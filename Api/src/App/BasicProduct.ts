@@ -4,12 +4,12 @@ import { ProductImageRow } from "../Database/ProductImageRow"
 
 export function toBasicProduct(
   productRow: ProductRow,
-  productImageRow: ProductImageRow,
+  productImageRow: ProductImageRow | undefined,
 ): BasicProduct {
   return {
     id: productRow.id,
     name: productRow.name,
     price: productRow.price,
-    imageUrl: productImageRow.url,
+    url: productImageRow?.url,
   }
 }

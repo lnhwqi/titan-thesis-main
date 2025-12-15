@@ -6,7 +6,7 @@ export type Schema = {
   user: UserTable
   refresh_token: RefreshTokenTable
   product: ProductTable
-  product_image: ProductImageTable
+  productImage: ProductImageTable
 }
 
 type UserTable = {

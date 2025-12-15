@@ -10,7 +10,7 @@ export type Product = {
   name: Name
   price: Price
   description: Description
-  imageUrls: ImageUrl[]
+  urls: ImageUrl[]
 }
 
 export const productDecoder: JD.Decoder<Product> = JD.object({
@@ -18,5 +18,5 @@ export const productDecoder: JD.Decoder<Product> = JD.object({
   name: nameDecoder,
   price: priceDecoder,
   description: descriptionDecoder,
-  imageUrls: JD.array(imageUrlDecoder),
+  urls: JD.array(imageUrlDecoder),
 })

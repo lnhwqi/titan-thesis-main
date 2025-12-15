@@ -11,6 +11,6 @@ export function toProduct(
     name: productRow.name,
     price: productRow.price,
     description: productRow.description,
-    imageUrls: productImageRows.map((imageRow) => imageRow.url),
+    urls: productImageRows.map((imageRow) => imageRow.url),
   }
 }

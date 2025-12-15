@@ -5,7 +5,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .createTable("product")
     .addColumn("id", "varchar(36)", (col) => col.primaryKey())
-    .addColumn("name", "varchar(100)", (col) => col.notNull().unique()) // Thêm unique cho name để dễ dàng tìm kiếm (getByName)
+    .addColumn("name", "varchar(100)", (col) => col.notNull())
     .addColumn("price", "integer", (col) => col.notNull())
     .addColumn("description", "varchar(100)", (col) => col.notNull())
     .addColumn("isDeleted", "boolean", (col) => col.notNull().defaultTo(false))

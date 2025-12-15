@@ -1,12 +1,6 @@
 import * as JD from "decoders"
-import { Name, nameDecoder } from "../../../Core/App/Product/Name"
-import { Price, priceDecoder } from "../../../Core/App/Product/Price"
+
 import {
-  Description,
-  descriptionDecoder,
-} from "../../../Core/App/Product/Description"
-import {
-  createProductID,
   ProductID,
   productIDDecoder,
 } from "../../../Core/App/Product/ProductID"
@@ -30,7 +24,7 @@ import {
   imageUrlDecoder,
 } from "../../../Core/App/Product/ProductImageUrl"
 
-const tableName = "product_image"
+const tableName = "productImage"
 
 export type ProductImageRow = {
   id: ImageID

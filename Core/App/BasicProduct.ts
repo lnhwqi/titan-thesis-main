@@ -8,12 +8,12 @@ export type BasicProduct = {
   id: ProductID
   name: Name
   price: Price
-  imageUrl: ImageUrl
+  url?: ImageUrl
 }
 
 export const basicProductDecoder: JD.Decoder<BasicProduct> = JD.object({
   id: productIDDecoder,
   name: nameDecoder,
   price: priceDecoder,
-  imageUrl: imageUrlDecoder,
+  url: JD.optional(imageUrlDecoder),
 })
