@@ -19,7 +19,7 @@ export default function (props: Props): JSX.Element {
         route={toRoute("Home", {})}
         className={styles.logo}
       >
-        <img src={localImage.logo.unwrap()} />
+        <img className={styles.img} src={localImage.logo.unwrap()} />
       </Link>
       <div className={styles.menuItems}>
         <Link
@@ -58,16 +58,15 @@ export default function (props: Props): JSX.Element {
         <img src={localImage.logo.unwrap()} />
       </Link>
       <div className={styles.menuItems}>
-        <div>
+        <div className= { styles.iconItem }>
           <IoMdCart size={32}></IoMdCart>
         </div>
-        <div>
+        <div className= { styles.iconItem }>
           <IoMdNotifications size={32}></IoMdNotifications>
         </div>
         <Link
           route={toRoute("Login", { redirect: null })}
-          className={styles.menuItem}
-        >
+          className= { styles.menuItem }>
           Login
         </Link>
       </div>
@@ -82,12 +81,22 @@ const styles = {
     gap: theme.s4,
     justifyContent: "space-between",
     alignItems: "center",
+    background: color.secondary100,
   }),
   logo: css({
-    display: "flex",
+    display: "flex", 
+    width: "48px",
+    height:  "48px",
   }),
+  img:css({
+    width:"100%",
+    height: "100%",
+    display: "none",
+  }),
+
   menuItems: css({
     display: "flex",
+    gap: "12px",
     justifyContent: "center",
     alignItems: "center",
   }),
@@ -97,8 +106,22 @@ const styles = {
     textDecoration: "none",
     padding: `${theme.s2} ${theme.s4}`,
     border: theme.s0,
-    backgroundColor: color.transparent,
-    cursor: "pointer",
+    borderRadius: "4px",
+    backgroundColor: color.neutral10,
+
+    "&:hover": {
+      color: color.neutral0,
+      backgroundColor: color.secondary400, 
+      cursor: "pointer",
+    },
+  }),
+   iconItem: css({
+    color: color.secondary400,
+
+    "&:hover": {
+      color: color.primary500,
+      cursor: "pointer",
+    },
   }),
   menuItemActive: css({
     ...font.medium14,

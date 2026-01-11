@@ -17,9 +17,10 @@
     "teki": "^1.2.2"
   },
   "devDependencies": {
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
+    "baseline-browser-mapping": "^2.9.14",
     "vite": "^7.0.6",
     "vitest": "^3.2.4"
   }
