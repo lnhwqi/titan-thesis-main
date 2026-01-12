@@ -1,8 +1,8 @@
 import { css } from "@emotion/css"
 import { State } from "../../State"
 import { JSX } from "react"
-import Header from "./Auth/Header"
-
+import Header from "./Header"
+import SubHeader from "./SubHeader"
 type Props = {
   state: State
   Page: React.FC<{ state: State }>
@@ -12,6 +12,7 @@ export function HomeLayout(props: Props): JSX.Element {
   return (
     <div className={styles.container}>
       <Header state={state} />
+      <SubHeader />
       <Page state={state} />
     </div>
   )

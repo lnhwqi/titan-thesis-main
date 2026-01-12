@@ -1,7 +1,7 @@
 import { css } from "@emotion/css"
 import { AuthState } from "../../State"
 import { JSX } from "react"
-import Header from "./Auth/Header"
+import Header from "./Header"
 import { theme, layoutSize } from "../Theme"
 
 type Props = { authState: AuthState; Page: React.FC<{ authState: AuthState }> }
