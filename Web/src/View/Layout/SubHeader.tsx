@@ -5,7 +5,7 @@ import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 
 export default function SubHeader(): JSX.Element {
-  const navItems = ["Saved", "Electronics", "Deals"]
+  const navItems = ["Saved", "Electronics", "Fashion", "Deals"]
 
   return (
     <div className={styles.navContainer}>

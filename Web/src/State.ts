@@ -1,6 +1,7 @@
 import { User } from "../../Core/App/User"
 import { LoginState } from "./State/Login"
-import { ProductState } from "./State/ProductList" 
+import { ProductState } from "./State/ProductList"
+import { SearchState } from "./State/Search"
 import { Route } from "./Route"
 import { Action, Cmd } from "./Action"
 import { UpdateProfileState } from "./State/UpdateProfile"
@@ -12,6 +13,7 @@ export type PublicState = {
   route: Route
   login: LoginState
   product: ProductState
+  search: SearchState
 }
 
 export type AuthState = Omit<PublicState, "_t"> & {
