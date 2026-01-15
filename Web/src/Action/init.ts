@@ -1,54 +1,79 @@
 import { Action, cmd, Cmd } from "../Action"
 import * as ProfileApi from "../Api/Auth/Profile"
 import * as ProductApi from "../Api/Public/Product"
+import { _ProductState } from "../State/ProductList"
+
+import * as CategoryApi from "../Api/Public/Category/ListAll"
+import { _CategoryState } from "../State/Category"
+
 import { State } from "../State"
-import {_ProductState} from "../State/ProductList"
 import * as AuthToken from "../App/AuthToken"
 import { onUrlChange } from "./Route"
 import { initAuthState } from "../State/init"
 import * as RD from "../../../Core/Data/RemoteData"
-
 
 export function initCmd(): Cmd {
   const authToken = AuthToken.get()
   return authToken == null ? initPublicCmd() : initAuthCmd()
 }
 
-
 function initPublicCmd(): Cmd {
-  return cmd(ProductApi.call({}).then(productResponse))
+  return cmd(
+    Promise.all([ProductApi.call({}), CategoryApi.call()]).then(
+      ([productRes, categoryRes]) =>
+        publicInitResponse(productRes, categoryRes),
+    ),
+  )
 }
 
-function initAuthCmd(): Cmd {
-  return  cmd(ProfileApi.call().then(profileResponse))
-}
-
-
-function profileResponse(response: ProfileApi.Response): Action {
+function publicInitResponse(
+  productRes: ProductApi.Response,
+  categoryRes: CategoryApi.Response,
+): Action {
   return (state: State) => {
-    if (response._t === "Err") {
-      return [{ ...state, _t: "Public" }, cmd()]
-    }
+    let nextState = _ProductState(state, {
+      listResponse:
+        productRes._t === "Ok"
+          ? RD.success(productRes.value)
+          : RD.failure(productRes.error),
+    })
 
-    const authState = initAuthState(response.value.user, state)
+    nextState = _CategoryState(nextState, {
+      treeResponse:
+        categoryRes._t === "Ok"
+          ? RD.success(categoryRes.value)
+          : RD.failure(categoryRes.error),
+    })
 
-    return onUrlChange(authState)
+    return [nextState, cmd()]
   }
 }
 
+function initAuthCmd(): Cmd {
+  return cmd(
+    Promise.all([ProfileApi.call(), CategoryApi.call()]).then(
+      ([profileRes, categoryRes]) => authInitResponse(profileRes, categoryRes),
+    ),
+  )
+}
 
-function productResponse(response: ProductApi.Response): Action {
+function authInitResponse(
+  profileRes: ProfileApi.Response,
+  categoryRes: CategoryApi.Response,
+): Action {
   return (state: State) => {
-    if (response._t === "Err") {
-      return [
-        _ProductState(state, { listResponse: RD.failure(response.error) }),
-        cmd()
-      ]
+    if (profileRes._t === "Err") {
+      return [{ ...state, _t: "Public" }, cmd()]
     }
 
-    return [
-      _ProductState(state, { listResponse: RD.success(response.value) }),
-      cmd()
-    ]
+    const nextState = _CategoryState(state, {
+      treeResponse:
+        categoryRes._t === "Ok"
+          ? RD.success(categoryRes.value)
+          : RD.failure(categoryRes.error),
+    })
+
+    const authState = initAuthState(profileRes.value.user, nextState)
+    return onUrlChange(authState)
   }
 }

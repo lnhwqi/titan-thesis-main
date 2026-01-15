@@ -4,11 +4,11 @@ import {
   Api,
   NoUrlParams,
   noUrlParamsDecoder,
-  NoBodyParams, // Thêm cái này vì GET không có Body
-  noBodyParamsDecoder, // Thêm cái này
-} from "../../Data/Api"
+  NoBodyParams,
+  noBodyParamsDecoder,
+} from "../../../Data/Api"
 
-import { Category, categoryDecoder } from "../../App/Category"
+import { Category, categoryDecoder } from "../../../App/Category"
 
 export type Contract = Api<
   "GET",
@@ -19,14 +19,14 @@ export type Contract = Api<
   Payload
 >
 
-export type ErrorCode = "INTERNAL_ERROR"
+export type ErrorCode = "CATEGORY_NOT_FOUND"
 
 export type Payload = Category[]
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.array(categoryDecoder)
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
-  "INTERNAL_ERROR",
+  "CATEGORY_NOT_FOUND",
 ])
 
 export const contract: Contract = {

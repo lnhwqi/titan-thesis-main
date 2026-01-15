@@ -7,6 +7,7 @@ export type Schema = {
   refresh_token: RefreshTokenTable
   product: ProductTable
   productImage: ProductImageTable
+  category: CategoryTable
 }
 
 type UserTable = {
@@ -23,6 +24,15 @@ type ProductTable = {
   name: string
   price: number
   description: string
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+type CategoryTable = {
+  id: string
+  name: string
+  slug: string
+  parentId: string | null
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date

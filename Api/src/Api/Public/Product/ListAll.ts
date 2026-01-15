@@ -1,8 +1,8 @@
-import * as API from "../../../../../Core/Api/Public/Product/GetList"
+import * as API from "../../../../../Core/Api/Public/Product/ListAll"
 import { Result, err, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
 import { toBasicProduct } from "../../../App/BasicProduct"
-import { UrlParams } from "../../../../../Core/Api/Public/Product/GetList"
+import { UrlParams } from "../../../../../Core/Api/Public/Product/ListAll"
 import { BasicProduct } from "../../../../../Core/App/BasicProduct"
 import * as ProductImageRow from "../../../Database/ProductImageRow"
 

@@ -6,7 +6,7 @@ const key: unique symbol = Symbol()
 export type CategoryID = Opaque<string, typeof key>
 export type ErrorCategoryID = "INVALID_CATEGORY_ID"
 
-export function createProductID(): CategoryID {
+export function createCategoryID(): CategoryID {
   return _create(createUUID())
 }
 

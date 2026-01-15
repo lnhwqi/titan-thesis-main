@@ -2,6 +2,7 @@ import { Express } from "express"
 import { authApi } from "./Api/AuthApi"
 import { userRoutes } from "./Route/User"
 import { productRoutes } from "./Route/Product"
+import { categoryRoutes } from "./Route/Category"
 import * as Home from "./Api/Auth/Home"
 import * as HealthCheck from "./Api/Public/HealthCheck"
 
@@ -26,5 +27,6 @@ export function routes(app: Express): void {
 
   userRoutes(app)
   productRoutes(app)
+  categoryRoutes(app)
   authApi(app, Home)
 }

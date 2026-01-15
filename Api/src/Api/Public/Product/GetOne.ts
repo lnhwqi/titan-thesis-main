@@ -1,4 +1,4 @@
-import * as API from "../../../../../Core/Api/Public/Product/GetProductByID"
+import * as API from "../../../../../Core/Api/Public/Product/GetOne"
 import { Result, err, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
 import * as ProductImageRow from "../../../Database/ProductImageRow"
@@ -7,7 +7,6 @@ import { Product } from "../../../../../Core/App/Product"
 
 export const contract = API.contract
 
-// Định nghĩa kiểu kết hợp cho nội bộ handler
 export type ProductWithImages = ProductRow.ProductRow & {
   images: ProductImageRow.ProductImageRow[]
 }
@@ -15,7 +14,7 @@ export type ProductWithImages = ProductRow.ProductRow & {
 export async function handler(
   params: API.UrlParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { id } = params // 1. Fetch Product Core Data
+  const { id } = params
 
   const productRow = await ProductRow.getByID(id)
 

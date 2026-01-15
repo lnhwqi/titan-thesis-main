@@ -6,6 +6,7 @@ import { initProductState } from "./ProductList"
 import { initSearchState } from "./Search"
 import { User } from "../../../Core/App/User"
 import { initUpdateProfileState } from "./UpdateProfile"
+import { initCategoryState } from "./Category"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -15,6 +16,7 @@ export function initState(route: Route): State {
     login: initLoginState(),
     product: initProductState(),
     search: initSearchState(),
+    category: initCategoryState(),
   }
 }
 
