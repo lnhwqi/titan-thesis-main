@@ -3,6 +3,7 @@ import { State } from "../../State"
 import { JSX } from "react"
 import Header from "./Header"
 import SubHeader from "./SubHeader"
+import CategorySidebar from "./Category"
 type Props = {
   state: State
   Page: React.FC<{ state: State }>
@@ -13,6 +14,7 @@ export function HomeLayout(props: Props): JSX.Element {
     <div className={styles.container}>
       <Header state={state} />
       <SubHeader />
+      <CategorySidebar state={state} />
       <Page state={state} />
     </div>
   )

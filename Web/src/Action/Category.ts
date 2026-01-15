@@ -4,37 +4,50 @@ import * as RD from "../../../Core/Data/RemoteData"
 import { State } from "../State"
 import { _CategoryState } from "../State/Category"
 import { _ProductState } from "../State/ProductList"
-// 1. IMPORT the CategoryID Type (Adjust the path to match your Core folder structure)
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
+import { Action, cmd } from "../Action"
 
-// --- ACTION 1: LOAD TREE (ListAll) ---
-export async function loadTree(dispatch: (state: State) => void, state: State) {
+const update =
+  (newState: State): Action =>
+  (_oldState) => [newState, cmd()]
+
+// --- ACTION 1: LOAD TREE ---
+export async function loadTree(
+  dispatch: (action: Action) => void, // SỬA: dispatch nhận Action
+  state: State,
+) {
   dispatch(
-    _CategoryState(state, {
-      treeResponse: RD.loading(),
-    }),
+    update(
+      _CategoryState(state, {
+        treeResponse: RD.loading(),
+      }),
+    ),
   )
 
   const response = await ListApi.call()
 
   if (response._t === "Ok") {
     dispatch(
-      _CategoryState(state, {
-        treeResponse: RD.success(response.value),
-      }),
+      update(
+        _CategoryState(state, {
+          treeResponse: RD.success(response.value),
+        }),
+      ),
     )
   } else {
     dispatch(
-      _CategoryState(state, {
-        treeResponse: RD.failure(response.error),
-      }),
+      update(
+        _CategoryState(state, {
+          treeResponse: RD.failure(response.error),
+        }),
+      ),
     )
   }
 }
 
-// --- ACTION 2: SELECT CATEGORY (GetOne) ---
+// --- ACTION 2: SELECT CATEGORY ---
 export async function selectCategory(
-  dispatch: (state: State) => void,
+  dispatch: (action: Action) => void, // SỬA: dispatch nhận Action
   state: State,
   categoryId: CategoryID,
 ) {
@@ -46,21 +59,25 @@ export async function selectCategory(
     detailResponse: RD.loading(),
   })
 
-  dispatch(nextState)
+  dispatch(update(nextState))
 
   const response = await GetOneApi.call({ id: categoryId })
 
   if (response._t === "Ok") {
     dispatch(
-      _CategoryState(nextState, {
-        detailResponse: RD.success(response.value),
-      }),
+      update(
+        _CategoryState(nextState, {
+          detailResponse: RD.success(response.value),
+        }),
+      ),
     )
   } else {
     dispatch(
-      _CategoryState(nextState, {
-        detailResponse: RD.failure(response.error),
-      }),
+      update(
+        _CategoryState(nextState, {
+          detailResponse: RD.failure(response.error),
+        }),
+      ),
     )
   }
 }
