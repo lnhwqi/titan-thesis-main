@@ -7,6 +7,7 @@ export type Schema = {
   refresh_token: RefreshTokenTable
   product: ProductTable
   productImage: ProductImageTable
+  productCategory: ProductCategoryTable
   category: CategoryTable
 }
 
@@ -54,7 +55,13 @@ type ProductImageTable = {
   updatedAt: Date
   createdAt: Date
 }
-
+type ProductCategoryTable = {
+  productID: string
+  categoryID: string
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
 // Hacking for multiple test databases for parallel testing in Vitest
 const databaseName =
   Number(process.env.TOTAL_TEST_DB) > 0

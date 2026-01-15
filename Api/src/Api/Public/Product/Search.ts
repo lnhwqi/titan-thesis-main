@@ -2,8 +2,8 @@ import * as API from "../../../../../Core/Api/Public/Product/Search"
 import { Result, err, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
 import * as ProductImageTable from "../../../Database/ProductImageRow"
-import { toBasicProduct } from "../../../App/BasicProduct"
-import { BasicProduct } from "../../../../../Core/App/BasicProduct"
+import { toBasicProduct } from "../../../App/ProductBasic"
+import { BasicProduct } from "../../../../../Core/App/ProductBasic"
 
 export const contract = API.contract
 

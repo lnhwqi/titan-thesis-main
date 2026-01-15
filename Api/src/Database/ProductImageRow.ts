@@ -148,3 +148,26 @@ export const productImageRowDecoder: JD.Decoder<ProductImageRow> = JD.object({
   updatedAt: timestampJSDateDecoder,
   createdAt: timestampJSDateDecoder,
 })
+export async function getByProductIDs(
+  productIDs: ProductID[],
+): Promise<ProductImageRow[]> {
+  const idStrings = productIDs.map((id) => id.unwrap())
+
+  if (idStrings.length === 0) {
+    return []
+  }
+
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("productID", "in", idStrings)
+    .where("isDeleted", "=", false)
+    .execute()
+    .then((rows) => {
+      return JD.array(productImageRowDecoder).verify(rows)
+    })
+    .catch((e) => {
+      Logger.error(`#${tableName}.getByProductIDs error ${e}`)
+      throw e
+    })
+}

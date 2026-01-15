@@ -2,14 +2,11 @@ import * as API from "../../../../../Core/Api/Public/Product/GetOne"
 import { Result, err, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
 import * as ProductImageRow from "../../../Database/ProductImageRow"
-import { toProduct } from "../../../App/Product"
-import { Product } from "../../../../../Core/App/Product"
+import * as ProductCategoryRow from "../../../Database/ProductCategoryRow" // Import thêm bảng thứ 3
+import { toProduct } from "../../../App/ProductDetail"
+import { Product } from "../../../../../Core/App/ProductDetail"
 
 export const contract = API.contract
-
-export type ProductWithImages = ProductRow.ProductRow & {
-  images: ProductImageRow.ProductImageRow[]
-}
 
 export async function handler(
   params: API.UrlParams,
@@ -22,10 +19,15 @@ export async function handler(
     return err("PRODUCT_NOT_FOUND")
   }
 
-  const imagesResult = await ProductImageRow.getByProductID(productRow.id)
-  const images = imagesResult ?? []
+  const [imagesResult, categoriesResult] = await Promise.all([
+    ProductImageRow.getByProductID(productRow.id),
+    ProductCategoryRow.getByProductID(productRow.id),
+  ])
 
-  const product: Product = toProduct(productRow, images)
+  const images = imagesResult ?? []
+  const categories = categoriesResult ?? []
+
+  const product: Product = toProduct(productRow, images, categories)
 
   return ok(product)
 }
@@ -33,7 +35,7 @@ export async function handler(
 export async function getProductPayload(
   productRow: ProductRow.ProductRow,
   productImageRows: ProductImageRow.ProductImageRow[],
+  productCategoryRows: ProductCategoryRow.ProductCategoryRow[],
 ): Promise<API.Payload> {
-  const product: Product = toProduct(productRow, productImageRows)
-  return product
+  return toProduct(productRow, productImageRows, productCategoryRows)
 }

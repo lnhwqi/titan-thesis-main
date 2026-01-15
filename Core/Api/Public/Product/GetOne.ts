@@ -5,7 +5,7 @@ import {
   NoBodyParams,
   noBodyParamsDecoder,
 } from "../../../Data/Api"
-import { Product, productDecoder } from "../../../App/Product"
+import { Product, productDecoder } from "../../../App/ProductDetail"
 import { ProductID, productIDDecoder } from "../../../App/Product/ProductID"
 
 export type Contract = Api<
