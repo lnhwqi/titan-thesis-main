@@ -8,6 +8,7 @@ import ProfilePage from "./Page/Profile"
 import NotFoundPage from "./Page/NotFound"
 import LoginPage from "./Page/Login"
 import HomePage from "./Page/Home"
+import SearchPage from "./Page/Search"
 
 type Props = { state: State }
 export default function View(props: Props): JSX.Element {
@@ -38,6 +39,22 @@ export default function View(props: Props): JSX.Element {
           Page={LoginPage}
         />
       )
+
+    case "Search":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SearchPage}
+        />
+      )
+    case "ProductDetail":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SearchPage}
+        />
+      )
+
     case "Profile":
       return withAuthLayout(state, ProfilePage)
   }

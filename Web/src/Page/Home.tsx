@@ -4,12 +4,21 @@ import { AuthState, PublicState } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
 
 export type HomePageProps = { state: AuthState | PublicState }
-export default function HomePage(_props: HomePageProps): JSX.Element {
+export default function HomePage(props: HomePageProps): JSX.Element {
+  const { state } = props
+
+  const userName = state._t === "Auth" ? state.profile.name.unwrap() : "Guest"
+
   return (
     <div className={styles.container}>
-      <h1 className={styles.pageTitle}>Lorem Ipsum</h1>
+      <h1 className={styles.pageTitle}>Welcome, {userName}!</h1>
+
       <div className={styles.pageContent}>
-          <>Huy</>
+        {state._t === "Auth" ? (
+          <>Đây là dữ liệu của người dùng thật được lấy từ API Home.</>
+        ) : (
+          <>Vui lòng đăng nhập.</>
+        )}
       </div>
     </div>
   )

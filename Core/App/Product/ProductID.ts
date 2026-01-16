@@ -14,7 +14,10 @@ export const productIDDecoder: JD.Decoder<ProductID> = uuidDecoder
   .describe("INVALID_PRODUCT_ID")
   .transform(_create)
 
-// Purposely receive UUID to express UserID is UUID
 function _create(uuid: UUID): ProductID {
   return jsonValueCreate<string, typeof key>(key)(uuid.unwrap())
+}
+
+export function parseProductID(str: string): ProductID {
+  return productIDDecoder.verify(str)
 }

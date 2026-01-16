@@ -7,6 +7,7 @@ import { RemoteData } from "../../../../Core/Data/RemoteData"
 import { ApiError } from "../../Api"
 import * as CategoryListApi from "../../Api/Public/Category/ListAll"
 import * as CategoryAction from "../../Action/Category"
+import * as ProductAction from "../../Action/Product" // Import thêm để xử lý nút All Products
 import { Category } from "../../../../Core/App/Category"
 
 export type Props = { state: State }
@@ -44,7 +45,9 @@ function renderContent(
             className={cx(styles.item, {
               [styles.itemActive]: state.product.currentCategoryId === null,
             })}
-            onClick={() => {}}
+            onClick={() => {
+              emit(ProductAction.loadList())
+            }}
           >
             All Products
           </div>
@@ -76,7 +79,7 @@ function renderCategoryItem(
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onClick={(e) => {
           e.stopPropagation()
-          CategoryAction.selectCategory(emit, state, category.id)
+          emit(CategoryAction.selectCategory(category.id))
         }}
       >
         {category.name.unwrap()}

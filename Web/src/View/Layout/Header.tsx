@@ -1,27 +1,31 @@
 import { css } from "@emotion/css"
-import { State } from "../../State"
 import { JSX } from "react"
+import {
+  IoIosArrowDown,
+  IoMdCart,
+  IoMdNotifications,
+  IoMdSearch,
+} from "react-icons/io"
+import { State } from "../../State"
 import { localImage } from "../ImageLocalSrc"
 import Link from "../Link"
 import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as LoginAction from "../../Action/Login"
-import * as SearchAction from "../../Action/Search"
+import * as ProductAction from "../../Action/Product"
 import InputText from "../../View/Form/InputText"
-import {
-  IoMdCart,
-  IoMdNotifications,
-  IoMdSearch,
-  IoIosArrowDown,
-} from "react-icons/io"
 
 type Props = { state: State }
 
 export default function Header(props: Props): JSX.Element {
   const { state } = props
+  const query = state.product.searchQuery
 
-  const query = state.search ? state.search.query : ""
+  const handleSearch = () => {
+    if (!query.trim()) return
+    emit(ProductAction.submitSearch(query))
+  }
 
   return (
     <div className={styles.container}>
@@ -50,13 +54,13 @@ export default function Header(props: Props): JSX.Element {
             <InputText
               value={query}
               placeholder="Search for anything"
-              onChange={(val) => emit(SearchAction.onChangeQuery(val))}
+              onChange={(val) => emit(ProductAction.onChangeQuery(val))}
             />
           </div>
 
           <button
             className={styles.searchButton}
-            onClick={() => emit(SearchAction.submit({ name: query }))}
+            onClick={handleSearch}
           >
             <IoMdSearch size={24} />
           </button>
@@ -138,6 +142,7 @@ const styles = {
     width: "120px",
     height: "48px",
     flexShrink: 0,
+    textDecoration: "none",
   }),
   img: css({
     width: "100%",
@@ -178,7 +183,6 @@ const styles = {
     flex: 1,
     height: "100%",
     display: "flex",
-
     "& > div": {
       width: "100%",
       height: "100%",
@@ -188,30 +192,11 @@ const styles = {
       padding: `0 ${theme.s2} !important`,
       boxShadow: "none !important",
     },
-
     "& input": {
       height: "100%",
       cursor: "text",
     },
   }),
-  customInput: css({
-    flex: 1,
-    border: "none !important",
-    borderRadius: "0 !important",
-    background: "transparent !important",
-    padding: `0 ${theme.s4} !important`,
-    height: "100%",
-
-    "&:focus-within": {
-      boxShadow: "none !important",
-      border: "none !important",
-    },
-    "& input": {
-      height: "100%",
-      padding: 0,
-    },
-  }),
-
   searchButton: css({
     width: "50px",
     display: "flex",
@@ -252,6 +237,14 @@ const styles = {
       color: color.primary500,
     },
   }),
+  actionItem: css({
+    color: color.primary500,
+    textDecoration: "none",
+    cursor: "pointer",
+    "&:hover": {
+      textDecoration: "underline",
+    },
+  }),
   authWrapper: css({
     display: "flex",
     flexDirection: "column",
@@ -268,13 +261,6 @@ const styles = {
     gap: "4px",
     alignItems: "center",
     ...font.bold14,
-  }),
-  actionItem: css({
-    color: color.primary500,
-    textDecoration: "none",
-    "&:hover": {
-      textDecoration: "underline",
-    },
   }),
   separator: css({
     color: color.neutral400,

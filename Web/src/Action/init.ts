@@ -1,7 +1,7 @@
 import { Action, cmd, Cmd } from "../Action"
 import * as ProfileApi from "../Api/Auth/Profile"
 import * as ProductApi from "../Api/Public/Product"
-import { _ProductState } from "../State/ProductList"
+import { _ProductState } from "../State/Product"
 
 import * as CategoryApi from "../Api/Public/Category/ListAll"
 import { _CategoryState } from "../State/Category"

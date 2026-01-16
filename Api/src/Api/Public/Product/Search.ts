@@ -1,7 +1,8 @@
 import * as API from "../../../../../Core/Api/Public/Product/Search"
 import { Result, err, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
-import * as ProductImageTable from "../../../Database/ProductImageRow"
+import * as ProductImageRow from "../../../Database/ProductImageRow"
+import * as ProductCategoryRow from "../../../Database/ProductCategoryRow"
 import { toBasicProduct } from "../../../App/ProductBasic"
 import { BasicProduct } from "../../../../../Core/App/ProductBasic"
 
@@ -10,37 +11,60 @@ export const contract = API.contract
 export async function handler(
   params: API.UrlParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  let productRows = await ProductRow.getAll()
-  const searchName = params.name?.toLowerCase()
+  const searchName = params.name?.trim() ?? ""
 
-  if (searchName) {
-    productRows = productRows.filter((row) =>
-      String(row.name).toLowerCase().includes(searchName),
-    )
+  let productRows: ProductRow.ProductRow[] = []
+
+  if (searchName.length > 0) {
+    productRows = await ProductRow.searchByName(searchName)
+  } else {
+    productRows = []
   }
 
   if (productRows.length === 0) {
     return err("PRODUCT_NOT_FOUND")
   }
 
-  return ok(await getlistPayload(productRows))
+  const payload = await getlistPayload(productRows)
+
+  return ok(payload)
 }
 
 export async function getlistPayload(
   productRows: ProductRow.ProductRow[],
 ): Promise<API.Payload> {
-  const productsWithImagePromises = productRows.map(async (row) => {
-    const imagesResult = await ProductImageTable.getByProductID(row.id)
+  const productIds = productRows.map((p) => p.id)
 
-    const images = imagesResult ?? []
+  if (productIds.length === 0) return { items: [] }
 
-    const firstImage = images.length > 0 ? [images[0]] : []
+  const [allImages, allCategories] = await Promise.all([
+    ProductImageRow.getByProductIDs(productIds),
+    ProductCategoryRow.getByProductIDs(productIds),
+  ])
 
-    const product: BasicProduct = toBasicProduct(row, firstImage[0])
+  const imageMap = _groupBy(allImages, (img) => img.productID.unwrap())
+  const categoryMap = _groupBy(allCategories, (cat) => cat.productID.unwrap())
 
-    return product
+  const products: BasicProduct[] = productRows.map((row) => {
+    const idStr = row.id.unwrap()
+    const images = imageMap[idStr] ?? []
+    const categories = categoryMap[idStr] ?? []
+
+    return toBasicProduct(row, images[0], categories)
   })
 
-  const products: BasicProduct[] = await Promise.all(productsWithImagePromises)
-  return products
+  return { items: products }
+}
+
+function _groupBy<T>(
+  array: T[],
+  keyGetter: (item: T) => string,
+): Record<string, T[]> {
+  const obj: Record<string, T[]> = {}
+  array.forEach((item) => {
+    const key = keyGetter(item)
+    if (!obj[key]) obj[key] = []
+    obj[key].push(item)
+  })
+  return obj
 }

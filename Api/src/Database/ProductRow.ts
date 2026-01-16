@@ -147,6 +147,14 @@ export async function count(): Promise<Nat> {
       throw e
     })
 }
+export async function searchByName(name: string): Promise<ProductRow[]> {
+  return db
+    .selectFrom("product")
+    .selectAll()
+    .where("name", "ilike", `%${name}%`)
+    .execute()
+    .then((rows) => rows.map((row) => productRowDecoder.verify(row))) // <--- QUAN TRỌNG: verify để biến string thành ID Opaque
+}
 
 /** Exported for testing */
 export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {

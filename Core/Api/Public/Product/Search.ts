@@ -23,9 +23,13 @@ export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
 
 export type ErrorCode = "PRODUCT_NOT_FOUND"
 
-export type Payload = BasicProduct[]
+export type Payload = {
+  items: BasicProduct[]
+}
 
-export const payloadDecoder: JD.Decoder<Payload> = JD.array(basicProductDecoder)
+export const payloadDecoder: JD.Decoder<Payload> = JD.object({
+  items: JD.array(basicProductDecoder),
+})
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "PRODUCT_NOT_FOUND",

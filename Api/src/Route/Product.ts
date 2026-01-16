@@ -6,6 +6,6 @@ import * as Search from "../Api/Public/Product/Search"
 
 export function productRoutes(app: Express): void {
   publicApi(app, GetList)
-  publicApi(app, GetByID)
   publicApi(app, Search)
+  publicApi(app, GetByID)
 }

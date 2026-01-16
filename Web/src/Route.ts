@@ -5,25 +5,6 @@ import { Maybe, maybeOptionalDecoder } from "../../Core/Data/Maybe"
 import type { Action } from "./Action"
 import type { State } from "./State"
 
-/**
- * Use `toRoute` to create a Route
- * Use `toPath` to convert a Route into a path eg. `/login?redirect=null`
- * Use `parseRoute` to convert a full url into a Route
- * Use `navigateTo` to navigate to a Route
- * Use `src/Action/Route#onUrlChange` to add effects on url change
- *
- * WARN Defining a Route:
- * - *Ensure* your route params can be serialized into JSON string
- *   otherwise we can't use it in the url
- *   We don't allow object and function to be serialized
- *   Read _serializeParams function to understand more
- * - URL params are always a string in the url
- *   so start decoding with a string first then transform
- *   Eg. numberStringDecoder, booleanStringDecoder, natStringDecoder, etc
- * - For Maybe type, use `maybeOptionalDecoder` as we cannot pass null in URL
- * - URL Params syntax reference:
- *   https://github.com/philipnilsson/teki
- */
 export type Route =
   | { _t: "Home"; path: "/"; params: NoParams }
   | { _t: "NotFound"; path: "/not-found"; params: NoParams }
@@ -39,14 +20,21 @@ export type Route =
       path: "/profile"
       params: NoParams
     }
+  | {
+      _t: "Search"
+      path: "/search?q=:q"
+      params: {
+        q: Maybe<string>
+      }
+    }
+  | {
+      _t: "ProductDetail"
+      path: "/product/:id"
+      params: {
+        id: string
+      }
+    }
 
-/**
- * Define your route decoder and path in this RouteTable
- *
- * router *MUST* be kept as private
- * so as to keep the logic of parsing url into routes/paths
- * in this file only
- * */
 const router: RouteTable = {
   Home: {
     path: "/",
@@ -80,6 +68,26 @@ const router: RouteTable = {
       _t: JD.always("Profile"),
       path: JD.always("/profile"),
       params: JD.object({}),
+    }),
+  },
+  Search: {
+    path: "/search?q=:q",
+    decoder: JD.object({
+      _t: JD.always("Search"),
+      path: JD.always("/search?q=:q"),
+      params: JD.object({
+        q: maybeOptionalDecoder(JD.string),
+      }),
+    }),
+  },
+  ProductDetail: {
+    path: "/product/:id",
+    decoder: JD.object({
+      _t: JD.always("ProductDetail"),
+      path: JD.always("/product/:id"),
+      params: JD.object({
+        id: JD.string,
+      }),
     }),
   },
 }
