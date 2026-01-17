@@ -20,6 +20,7 @@ export function initCategoryState(): CategoryState {
   return {
     treeResponse: RD.notAsked(),
     detailResponse: RD.notAsked(),
+    isOpen: false,
   }
 }
 

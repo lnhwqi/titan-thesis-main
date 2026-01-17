@@ -1,4 +1,5 @@
 import { Action, cmd } from "../Action"
+import { State } from "../State"
 import * as ListApi from "../Api/Public/Category/ListAll"
 import * as GetOneApi from "../Api/Public/Category/GetOne"
 import * as RD from "../../../Core/Data/RemoteData"
@@ -16,7 +17,11 @@ export function loadTree(): Action {
     ]
   }
 }
-
+export function toggleCategory(isOpen: boolean): Action {
+  return (state: State) => {
+    return [_CategoryState(state, { isOpen }), cmd()]
+  }
+}
 function gotTreeResponse(response: ListApi.Response): Action {
   return (state) => {
     return [

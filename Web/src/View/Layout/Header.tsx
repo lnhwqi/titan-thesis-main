@@ -16,14 +16,15 @@ import * as LoginAction from "../../Action/Login"
 import * as ProductAction from "../../Action/Product"
 import * as CartAction from "../../Action/Cart"
 import InputText from "../../View/Form/InputText"
+import * as CategoryAction from "../../Action/Category"
 
 type Props = { state: State }
 
 export default function Header(props: Props): JSX.Element {
   const { state } = props
+  const { isOpen } = state.category
   const query = state.product.searchQuery
 
-  // Tránh lỗi crash nếu state.profile chưa tồn tại trong PublicState
   const userName = state._t === "Auth" ? state.profile.name.unwrap() : "Guest"
 
   const totalCartItems = state.cart.items.reduce(
@@ -49,11 +50,18 @@ export default function Header(props: Props): JSX.Element {
         />
       </Link>
 
-      <button className={styles.shopByCategoryBtn}>
+      <button
+        className={styles.shopByCategoryBtn}
+        onClick={() => emit(CategoryAction.toggleCategory(!isOpen))}
+      >
         Shop by category
         <IoIosArrowDown
           size={14}
-          style={{ marginTop: "2px" }}
+          className={css({
+            marginTop: "2px",
+            transition: "transform 0.3s ease",
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+          })}
         />
       </button>
 
@@ -95,7 +103,6 @@ export default function Header(props: Props): JSX.Element {
           Profile
         </Link>
 
-        {/* ICON GIỎ HÀNG: Action này đã được bọc withAuth trong file Cart.ts */}
         <div
           className={styles.iconItem}
           onClick={() => emit(CartAction.toggleCart(true))}
@@ -106,7 +113,6 @@ export default function Header(props: Props): JSX.Element {
           )}
         </div>
 
-        {/* ICON THÔNG BÁO: Bạn có thể tạo NotificationAction.open() tương tự withAuth */}
         <div
           className={styles.iconItem}
           onClick={() => {
@@ -117,7 +123,6 @@ export default function Header(props: Props): JSX.Element {
                 "",
                 `/login?redirect=${encodeURIComponent(currentPath)}`,
               )
-              // Giả sử onUrlChange có sẵn trong scope hoặc từ Action/Route
               window.dispatchEvent(new PopStateEvent("popstate"))
             }
           }}
@@ -159,8 +164,6 @@ export default function Header(props: Props): JSX.Element {
     </div>
   )
 }
-
-// --- STYLES ---
 
 const styles = {
   container: css({
