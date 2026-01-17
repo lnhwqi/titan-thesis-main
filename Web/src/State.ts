@@ -2,6 +2,7 @@ import { User } from "../../Core/App/User"
 import { LoginState } from "./State/Login"
 import { ProductState } from "./State/Product"
 import { CategoryState } from "./State/Category"
+import { CartState } from "./State/Cart"
 import { Route } from "./Route"
 import { Action, Cmd } from "./Action"
 import { UpdateProfileState } from "./State/UpdateProfile"
@@ -14,6 +15,7 @@ export type PublicState = {
   login: LoginState
   product: ProductState
   category: CategoryState
+  cart: CartState
 }
 
 export type AuthState = Omit<PublicState, "_t"> & {

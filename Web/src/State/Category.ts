@@ -13,6 +13,7 @@ export type CategoryState = {
     ApiError<CategoryGetOneApi.ErrorCode>,
     CategoryGetOneApi.Payload
   >
+  isOpen: boolean
 }
 
 export function initCategoryState(): CategoryState {

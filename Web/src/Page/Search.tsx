@@ -46,6 +46,7 @@ export default function SearchPage(props: Props): JSX.Element {
                   <ProductCard
                     key={product.id.unwrap()}
                     product={product}
+                    state={props.state}
                   />
                 ))}
               </div>

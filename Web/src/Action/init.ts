@@ -51,8 +51,12 @@ function publicInitResponse(
 
 function initAuthCmd(): Cmd {
   return cmd(
-    Promise.all([ProfileApi.call(), CategoryApi.call()]).then(
-      ([profileRes, categoryRes]) => authInitResponse(profileRes, categoryRes),
+    Promise.all([
+      ProfileApi.call(),
+      CategoryApi.call(),
+      ProductApi.call({}),
+    ]).then(([profileRes, categoryRes, productRes]) =>
+      authInitResponse(profileRes, categoryRes, productRes),
     ),
   )
 }
@@ -60,17 +64,25 @@ function initAuthCmd(): Cmd {
 function authInitResponse(
   profileRes: ProfileApi.Response,
   categoryRes: CategoryApi.Response,
+  productRes: ProductApi.Response,
 ): Action {
   return (state: State) => {
     if (profileRes._t === "Err") {
       return [{ ...state, _t: "Public" }, cmd()]
     }
 
-    const nextState = _CategoryState(state, {
+    let nextState = _CategoryState(state, {
       treeResponse:
         categoryRes._t === "Ok"
           ? RD.success(categoryRes.value)
           : RD.failure(categoryRes.error),
+    })
+    nextState = _ProductState(nextState, {
+      listResponse:
+        productRes._t === "Ok"
+          ? RD.success(productRes.value)
+          : RD.failure(productRes.error),
+      currentCategoryId: null, // Đảm bảo trạng thái là All Products
     })
 
     const authState = initAuthState(profileRes.value.user, nextState)

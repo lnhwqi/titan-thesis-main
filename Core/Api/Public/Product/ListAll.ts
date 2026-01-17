@@ -16,11 +16,13 @@ export type Contract = Api<
   Payload
 >
 export type UrlParams = {
+  categoryID?: string
   name?: string
   page?: number
   limit?: number
 }
 export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
+  categoryID: JD.optional(JD.string),
   name: JD.optional(JD.string),
   page: JD.optional(JD.number),
   limit: JD.optional(JD.number),

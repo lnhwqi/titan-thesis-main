@@ -14,6 +14,7 @@ import { color, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as LoginAction from "../../Action/Login"
 import * as ProductAction from "../../Action/Product"
+import * as CartAction from "../../Action/Cart"
 import InputText from "../../View/Form/InputText"
 
 type Props = { state: State }
@@ -21,6 +22,14 @@ type Props = { state: State }
 export default function Header(props: Props): JSX.Element {
   const { state } = props
   const query = state.product.searchQuery
+
+  // Tránh lỗi crash nếu state.profile chưa tồn tại trong PublicState
+  const userName = state._t === "Auth" ? state.profile.name.unwrap() : "Guest"
+
+  const totalCartItems = state.cart.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  )
 
   const handleSearch = () => {
     if (!query.trim()) return
@@ -57,7 +66,6 @@ export default function Header(props: Props): JSX.Element {
               onChange={(val) => emit(ProductAction.onChangeQuery(val))}
             />
           </div>
-
           <button
             className={styles.searchButton}
             onClick={handleSearch}
@@ -87,45 +95,72 @@ export default function Header(props: Props): JSX.Element {
           Profile
         </Link>
 
-        <div className={styles.iconItem}>
+        {/* ICON GIỎ HÀNG: Action này đã được bọc withAuth trong file Cart.ts */}
+        <div
+          className={styles.iconItem}
+          onClick={() => emit(CartAction.toggleCart(true))}
+        >
           <IoMdCart size={28} />
+          {totalCartItems > 0 && (
+            <span className={styles.badge}>{totalCartItems}</span>
+          )}
         </div>
-        <div className={styles.iconItem}>
+
+        {/* ICON THÔNG BÁO: Bạn có thể tạo NotificationAction.open() tương tự withAuth */}
+        <div
+          className={styles.iconItem}
+          onClick={() => {
+            if (state._t !== "Auth") {
+              const currentPath = window.location.pathname
+              window.history.pushState(
+                {},
+                "",
+                `/login?redirect=${encodeURIComponent(currentPath)}`,
+              )
+              // Giả sử onUrlChange có sẵn trong scope hoặc từ Action/Route
+              window.dispatchEvent(new PopStateEvent("popstate"))
+            }
+          }}
+        >
           <IoMdNotifications size={28} />
         </div>
 
-        {state._t === "Auth" ? (
-          <Link
-            route={toRoute("Login", { redirect: null })}
-            onClick={() => emit(LoginAction.logout())}
-            className={styles.actionItem}
-          >
-            Logout
-          </Link>
-        ) : (
-          <div className={styles.authWrapper}>
-            <span className={styles.hiText}>Hi!</span>
-            <div className={styles.actionGroup}>
+        <div className={styles.authWrapper}>
+          <span className={styles.hiText}>Hi! {userName}</span>
+          <div className={styles.actionGroup}>
+            {state._t === "Auth" ? (
               <Link
                 route={toRoute("Login", { redirect: null })}
+                onClick={() => emit(LoginAction.logout())}
                 className={styles.actionItem}
               >
-                Login
+                Logout
               </Link>
-              <span className={styles.separator}>or</span>
-              <Link
-                route={toRoute("Login", { redirect: null })}
-                className={styles.actionItem}
-              >
-                Register
-              </Link>
-            </div>
+            ) : (
+              <>
+                <Link
+                  route={toRoute("Login", { redirect: null })}
+                  className={styles.actionItem}
+                >
+                  Login
+                </Link>
+                <span className={styles.separator}>or</span>
+                <Link
+                  route={toRoute("Login", { redirect: null })}
+                  className={styles.actionItem}
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
 }
+
+// --- STYLES ---
 
 const styles = {
   container: css({
@@ -160,9 +195,7 @@ const styles = {
     color: color.neutral600,
     cursor: "pointer",
     whiteSpace: "nowrap",
-    "&:hover": {
-      color: color.primary500,
-    },
+    "&:hover": { color: color.primary500 },
   }),
   searchWrapper: css({
     flex: 1,
@@ -192,10 +225,7 @@ const styles = {
       padding: `0 ${theme.s2} !important`,
       boxShadow: "none !important",
     },
-    "& input": {
-      height: "100%",
-      cursor: "text",
-    },
+    "& input": { height: "100%", cursor: "text" },
   }),
   searchButton: css({
     width: "50px",
@@ -207,9 +237,7 @@ const styles = {
     border: "none",
     cursor: "pointer",
     flexShrink: 0,
-    "&:hover": {
-      background: color.primary500,
-    },
+    "&:hover": { background: color.primary500 },
   }),
   menuItems: css({
     display: "flex",
@@ -233,24 +261,42 @@ const styles = {
     color: color.secondary400,
     display: "flex",
     cursor: "pointer",
-    "&:hover": {
-      color: color.primary500,
-    },
+    position: "relative",
+    transition: "color 0.2s",
+    "&:hover": { color: color.primary500 },
+  }),
+  badge: css({
+    position: "absolute",
+    top: "-6px",
+    right: "-8px",
+    backgroundColor: color.primary500,
+    color: color.neutral0,
+    fontSize: "10px",
+    fontWeight: "bold",
+    minWidth: "18px",
+    height: "18px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: `2px solid ${color.neutral0}`,
+    padding: "2px",
+    lineHeight: 1,
   }),
   actionItem: css({
     color: color.primary500,
     textDecoration: "none",
     cursor: "pointer",
-    "&:hover": {
-      textDecoration: "underline",
-    },
+    ...font.bold14,
+    "&:hover": { textDecoration: "underline" },
   }),
   authWrapper: css({
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
-    gap: "0px",
+    gap: "2px",
     lineHeight: 1.2,
+    marginLeft: theme.s2,
   }),
   hiText: css({
     ...font.regular12,
@@ -260,7 +306,6 @@ const styles = {
     display: "flex",
     gap: "4px",
     alignItems: "center",
-    ...font.bold14,
   }),
   separator: css({
     color: color.neutral400,

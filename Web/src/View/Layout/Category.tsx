@@ -6,8 +6,8 @@ import { emit } from "../../Runtime/React"
 import { RemoteData } from "../../../../Core/Data/RemoteData"
 import { ApiError } from "../../Api"
 import * as CategoryListApi from "../../Api/Public/Category/ListAll"
-import * as CategoryAction from "../../Action/Category"
-import * as ProductAction from "../../Action/Product" // Import thêm để xử lý nút All Products
+// import * as CategoryAction from "../../Action/Category"
+import * as ProductAction from "../../Action/Product"
 import { Category } from "../../../../Core/App/Category"
 
 export type Props = { state: State }
@@ -46,7 +46,7 @@ function renderContent(
               [styles.itemActive]: state.product.currentCategoryId === null,
             })}
             onClick={() => {
-              emit(ProductAction.loadList())
+              emit(ProductAction.selectCategory(null))
             }}
           >
             All Products
@@ -59,35 +59,65 @@ function renderContent(
       )
   }
 }
-
 function renderCategoryItem(
   state: State,
   category: Category,
   depth: number,
 ): JSX.Element {
-  const isSelected = state.product.currentCategoryId === category.id
+  const { currentCategoryId, currentCategoryTree } = state.product
+
+  const categoryIdStr = category.id.unwrap()
+  const currentIdStr = currentCategoryId?.unwrap()
+
+  // 1. Kiểm tra xem mục này có đang được chọn trực tiếp không
+  const isSelected =
+    currentIdStr !== undefined && currentIdStr === categoryIdStr
+
+  // 2. Kiểm tra xem mục này có phải là CHA của mục đang chọn không
+  // Quan trọng: Kiểm tra ID của cha trong cây dữ liệu chi tiết
+  const isParentOfSelected =
+    currentCategoryTree !== null &&
+    currentCategoryTree.id.unwrap() === categoryIdStr && // Tôi chính là cái cây đang mở
+    currentCategoryTree.children.some(
+      (child) => child.id.unwrap() === currentIdStr,
+    ) // Và tôi có đứa con đang được chọn
+
+  // 3. Quyết định mở menu: Mở nếu tôi được chọn HOẶC tôi là cha của mục được chọn
+  const isOpen = isSelected || isParentOfSelected
+
+  // 4. Lấy danh sách con để render
+  const children =
+    isOpen &&
+    currentCategoryTree &&
+    currentCategoryTree.id.unwrap() === categoryIdStr
+      ? currentCategoryTree.children
+      : []
 
   return (
     <div
-      key={category.id.unwrap()}
+      key={categoryIdStr}
       className={styles.nodeWrapper}
     >
       <div
-        className={cx(styles.item, {
-          [styles.itemActive]: isSelected,
-        })}
+        className={cx(styles.item, { [styles.itemActive]: isSelected })}
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onClick={(e) => {
           e.stopPropagation()
-          emit(CategoryAction.selectCategory(category.id))
+          emit(ProductAction.selectCategory(category.id))
         }}
       >
         {category.name.unwrap()}
+        {/* Chỉ hiện mũi tên nếu mục này có con trong dữ liệu chi tiết */}
+        {(isSelected || isParentOfSelected) && children.length > 0 && (
+          <span style={{ marginLeft: "auto", fontSize: "10px" }}>
+            {isOpen ? " ▼" : " ▶"}
+          </span>
+        )}
       </div>
 
-      {category.children.length > 0 && (
+      {isOpen && children.length > 0 && (
         <div className={styles.childrenContainer}>
-          {category.children.map((child: Category) =>
+          {children.map((child: Category) =>
             renderCategoryItem(state, child, depth + 1),
           )}
         </div>
@@ -95,14 +125,13 @@ function renderCategoryItem(
     </div>
   )
 }
-
 const styles = {
   container: css({
     width: "250px",
     display: "flex",
     flexDirection: "column",
     borderRight: `1px solid ${color.neutral200}`,
-    backgroundColor: color.neutral50,
+    backgroundColor: color.neutral0,
     height: "100%",
     overflowY: "auto",
   }),
@@ -110,12 +139,12 @@ const styles = {
     padding: `${theme.s4} ${theme.s3}`,
     ...font.bold14,
     borderBottom: `1px solid ${color.neutral200}`,
-    color: color.neutral900,
+    color: color.secondary500,
   }),
   loading: css({
     padding: theme.s4,
     ...font.regular14,
-    color: color.neutral500,
+    color: color.secondary500,
     textAlign: "center",
   }),
   error: css({
@@ -139,15 +168,15 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      backgroundColor: color.primary50,
-      color: color.primary400,
+      backgroundColor: color.secondary300,
+      color: color.neutral0,
     },
   }),
   itemActive: css({
-    backgroundColor: color.primary100,
-    color: color.primary500,
+    backgroundColor: color.secondary300,
+    color: color.neutral0,
     fontWeight: 600,
-    borderRight: `3px solid ${color.primary500}`,
+    borderRight: `3px solid ${color.secondary500}`,
   }),
   childrenContainer: css({
     display: "flex",

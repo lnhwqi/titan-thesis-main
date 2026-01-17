@@ -7,6 +7,7 @@ import * as RD from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
 import type { State } from "../State"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
+import { Category } from "../../../Core/App/Category"
 
 export type ProductState = {
   listResponse: RD.RemoteData<
@@ -21,14 +22,16 @@ export type ProductState = {
 
   searchQuery: string
   currentCategoryId: CategoryID | null
+  currentCategoryTree: Category | null
 }
 
 export function initProductState(): ProductState {
   return {
-    listResponse: RD.notAsked(),
+    listResponse: RD.loading(),
     detailResponse: RD.notAsked(),
     searchQuery: "",
     currentCategoryId: null,
+    currentCategoryTree: null,
   }
 }
 

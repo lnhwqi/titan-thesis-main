@@ -22,49 +22,49 @@ const PRODUCTS_DATA: SeedDefinition[] = [
     name: "Basic White Tee",
     price: 150000,
     description: "100% Cotton basic white t-shirt",
-    image: "/assets/tshirt-white.jpg",
+    image: "../assets/images/product5.jpg",
     categorySlug: "t-shirt",
   },
   {
     name: "Vintage Graphic Tee",
     price: 250000,
     description: "Retro style graphic t-shirt",
-    image: "/assets/tshirt-vint.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "t-shirt",
   },
   {
     name: "Black Slim Fit Tee",
     price: 180000,
     description: "Elegant black slim fit shirt",
-    image: "/assets/tshirt-black.jpg",
+    image: "../assets/images/product3.jpg",
     categorySlug: "t-shirt",
   },
   {
     name: "Oversized Streetwear",
     price: 350000,
     description: "Modern oversized fit tee",
-    image: "/assets/tshirt-over.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "t-shirt",
   },
   {
     name: "Striped Summer Shirt",
     price: 220000,
     description: "Lightweight striped t-shirt",
-    image: "/assets/tshirt-strip.jpg",
+    image: "../assets/images/product1.jpg",
     categorySlug: "t-shirt",
   },
   {
     name: "V-neck Casual",
     price: 170000,
     description: "Comfortable v-neck t-shirt",
-    image: "/assets/tshirt-v.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "t-shirt",
   },
   {
     name: "Polo Classic",
     price: 450000,
     description: "High quality polo shirt",
-    image: "/assets/polo.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "t-shirt",
   },
 
@@ -73,49 +73,49 @@ const PRODUCTS_DATA: SeedDefinition[] = [
     name: "Slim Fit Jeans",
     price: 550000,
     description: "Classic blue slim fit jeans",
-    image: "/assets/pants-jeans.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "pants",
   },
   {
     name: "Cargo Joggers",
     price: 420000,
     description: "Utility cargo pants with joggers fit",
-    image: "/assets/pants-cargo.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "pants",
   },
   {
     name: "Chino Trousers",
     price: 480000,
     description: "Khaki chinos for office wear",
-    image: "/assets/pants-chino.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "pants",
   },
   {
     name: "Denim Shorts",
     price: 300000,
     description: "Summer denim shorts",
-    image: "/assets/pants-short.jpg",
+    image: "/../assets/images/product4.jpg",
     categorySlug: "pants",
   },
   {
     name: "Formal Slacks",
     price: 600000,
     description: "Black formal pants for suits",
-    image: "/assets/pants-formal.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "pants",
   },
   {
     name: "Corduroy Pants",
     price: 520000,
     description: "Warm corduroy material pants",
-    image: "/assets/pants-cord.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "pants",
   },
   {
     name: "Linen Beach Pants",
     price: 380000,
     description: "Breathable linen pants",
-    image: "/assets/pants-linen.jpg",
+    image: "../assets/images/product4.jpg",
     categorySlug: "pants",
   },
 
@@ -124,49 +124,49 @@ const PRODUCTS_DATA: SeedDefinition[] = [
     name: "Logi Wireless Mouse",
     price: 850000,
     description: "Silent wireless optical mouse",
-    image: "/assets/mouse-logi.jpg",
+    image: "../assets/images/product3.jpg",
     categorySlug: "mouse",
   },
   {
     name: "Gaming RGB Mouse",
     price: 1200000,
     description: "High DPI gaming mouse with RGB",
-    image: "/assets/mouse-rgb.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "mouse",
   },
   {
     name: "Ergonomic Vertical",
     price: 1500000,
     description: "Prevent wrist pain with vertical design",
-    image: "/assets/mouse-erg.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "mouse",
   },
   {
     name: "Travel Mini Mouse",
     price: 350000,
     description: "Compact mouse for travelers",
-    image: "/assets/mouse-mini.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "mouse",
   },
   {
     name: "Bluetooth Multi-device",
     price: 950000,
     description: "Switch between 3 devices easily",
-    image: "/assets/mouse-bt.jpg",
+    image: "../assets/images/product1.jpg",
     categorySlug: "mouse",
   },
   {
     name: "Pro Laser Mouse",
     price: 2100000,
     description: "Precision laser for designers",
-    image: "/assets/mouse-laser.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "mouse",
   },
   {
     name: "Trackball Mouse",
     price: 1800000,
     description: "Stationary trackball for comfort",
-    image: "/assets/mouse-track.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "mouse",
   },
 
@@ -175,63 +175,63 @@ const PRODUCTS_DATA: SeedDefinition[] = [
     name: "Mechanical Blue Switch",
     price: 1450000,
     description: "Clicky mechanical gaming keyboard",
-    image: "/assets/kb-mech.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Wireless Slim KB",
     price: 900000,
     description: "Ultra slim aluminum keyboard",
-    image: "/assets/kb-slim.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Tenkeyless RGB",
     price: 1100000,
     description: "Compact TKL mechanical keyboard",
-    image: "/assets/kb-tkl.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Split Ergonomic",
     price: 3200000,
     description: "Ortholinear split ergonomic board",
-    image: "/assets/kb-split.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Backlit Office KB",
     price: 550000,
     description: "White backlit quiet keyboard",
-    image: "/assets/kb-office.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Foldable Bluetooth",
     price: 750000,
     description: "Pocket sized foldable keyboard",
-    image: "/assets/kb-fold.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Custom Wood Keyboard",
     price: 4500000,
     description: "Luxury walnut wood mechanical KB",
-    image: "/assets/kb-wood.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "Mac Style Keyboard",
     price: 1250000,
     description: "Optimized layout for macOS users",
-    image: "/assets/kb-mac.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
   {
     name: "NumPad Wireless",
     price: 400000,
     description: "External numeric keypad",
-    image: "/assets/kb-num.jpg",
+    image: "../assets/images/product2.jpg",
     categorySlug: "keyboard",
   },
 ]
@@ -243,7 +243,6 @@ export async function seedDev(): Promise<void> {
     return
   }
 
-  // 1. Lấy toàn bộ danh mục để map Slug -> ID
   const categories = await CategoryRow.getAll()
   const categoryMap = new Map(categories.map((c) => [c.slug.unwrap(), c.id]))
 
@@ -251,20 +250,17 @@ export async function seedDev(): Promise<void> {
 
   for (const item of PRODUCTS_DATA) {
     try {
-      // 2. Tạo Product
       const product = await ProductRow.create({
         name: nameDecoder.verify(item.name),
         price: priceDecoder.verify(item.price),
         description: descriptionDecoder.verify(item.description),
       })
 
-      // 3. Tạo Product Image
       await ProductImageRow.create({
         productID: product.id,
         url: imageUrlDecoder.verify(item.image),
       })
 
-      // 4. Gắn vào Category tương ứng
       const catID = categoryMap.get(item.categorySlug)
       if (catID) {
         await ProductCategoryRow.create({
