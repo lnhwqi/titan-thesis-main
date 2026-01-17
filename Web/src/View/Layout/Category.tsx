@@ -69,23 +69,18 @@ function renderCategoryItem(
   const categoryIdStr = category.id.unwrap()
   const currentIdStr = currentCategoryId?.unwrap()
 
-  // 1. Kiểm tra xem mục này có đang được chọn trực tiếp không
   const isSelected =
     currentIdStr !== undefined && currentIdStr === categoryIdStr
 
-  // 2. Kiểm tra xem mục này có phải là CHA của mục đang chọn không
-  // Quan trọng: Kiểm tra ID của cha trong cây dữ liệu chi tiết
   const isParentOfSelected =
     currentCategoryTree !== null &&
-    currentCategoryTree.id.unwrap() === categoryIdStr && // Tôi chính là cái cây đang mở
+    currentCategoryTree.id.unwrap() === categoryIdStr &&
     currentCategoryTree.children.some(
       (child) => child.id.unwrap() === currentIdStr,
-    ) // Và tôi có đứa con đang được chọn
+    )
 
-  // 3. Quyết định mở menu: Mở nếu tôi được chọn HOẶC tôi là cha của mục được chọn
   const isOpen = isSelected || isParentOfSelected
 
-  // 4. Lấy danh sách con để render
   const children =
     isOpen &&
     currentCategoryTree &&
@@ -107,10 +102,9 @@ function renderCategoryItem(
         }}
       >
         {category.name.unwrap()}
-        {/* Chỉ hiện mũi tên nếu mục này có con trong dữ liệu chi tiết */}
         {(isSelected || isParentOfSelected) && children.length > 0 && (
           <span style={{ marginLeft: "auto", fontSize: "10px" }}>
-            {isOpen ? " ▼" : " ▶"}
+            {isOpen ? " 👍" : " 👎 "}
           </span>
         )}
       </div>

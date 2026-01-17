@@ -22,16 +22,13 @@ export function HomeLayout(props: Props): JSX.Element {
       <SubHeader />
 
       <div className={styles.body}>
-        {/* SIDEBAR: Luôn nằm bên trái, co giãn mượt mà */}
         <aside className={isOpen ? styles.sidebarOpen : styles.sidebarClosed}>
           <div className={styles.sidebarContent}>
             <CategorySidebar state={state} />
           </div>
         </aside>
 
-        {/* MAIN: Luôn cho phép tương tác với sản phẩm */}
         <main className={styles.mainContent}>
-          {/* KHÔNG dùng Overlay ở đây nếu muốn tương tác với ProductCard */}
           <Page state={state} />
         </main>
       </div>
@@ -68,22 +65,22 @@ const styles = {
   sidebarClosed: css({
     width: "0px",
     opacity: 0,
-    visibility: "hidden", // Để chuột có thể đi xuyên qua khi đóng
+    visibility: "hidden",
     flexShrink: 0,
     borderRight: "0px solid transparent",
-    pointerEvents: "none", // Vô hiệu hóa tương tác khi ẩn
+    pointerEvents: "none",
     transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
   }),
 
   sidebarContent: css({
-    width: "260px", // Giữ nguyên độ rộng để nội dung không bị méo
+    width: "260px",
   }),
 
   mainContent: css({
     flex: 1,
     overflowY: "auto",
     position: "relative",
-    zIndex: 1, // Đảm bảo luôn nằm dưới Header nhưng có thể nhận event
+    zIndex: 1,
     transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
   }),
 }

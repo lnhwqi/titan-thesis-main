@@ -23,6 +23,8 @@ export type ProductState = {
   searchQuery: string
   currentCategoryId: CategoryID | null
   currentCategoryTree: Category | null
+
+  currentImageIndex: number
 }
 
 export function initProductState(): ProductState {
@@ -32,6 +34,7 @@ export function initProductState(): ProductState {
     searchQuery: "",
     currentCategoryId: null,
     currentCategoryTree: null,
+    currentImageIndex: 0,
   }
 }
 

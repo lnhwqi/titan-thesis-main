@@ -9,6 +9,7 @@ import NotFoundPage from "./Page/NotFound"
 import LoginPage from "./Page/Login"
 import HomePage from "./Page/Home"
 import SearchPage from "./Page/Search"
+import ProductDetailPage from "./Page/ProductDetail"
 
 type Props = { state: State }
 export default function View(props: Props): JSX.Element {
@@ -49,9 +50,9 @@ export default function View(props: Props): JSX.Element {
       )
     case "ProductDetail":
       return (
-        <EmptyLayout
+        <HomeLayout
           state={state}
-          Page={SearchPage}
+          Page={ProductDetailPage}
         />
       )
 
