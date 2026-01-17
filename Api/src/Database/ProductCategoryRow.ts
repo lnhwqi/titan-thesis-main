@@ -31,9 +31,6 @@ export type CreateParams = {
   categoryID: CategoryID
 }
 
-/**
- * Gắn sản phẩm vào một danh mục
- */
 export async function create(
   params: CreateParams,
 ): Promise<ProductCategoryRow> {
@@ -58,9 +55,6 @@ export async function create(
     })
 }
 
-/**
- * Lấy danh mục của một sản phẩm
- */
 export async function getByProductID(
   productID: ProductID,
 ): Promise<ProductCategoryRow[]> {

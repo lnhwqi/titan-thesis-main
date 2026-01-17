@@ -12,7 +12,6 @@ export const contract = API.contract
 export async function handler(
   _params: UrlParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  // 1. Lấy tất cả thông tin cơ bản của sản phẩm (Query 1)
   const productRows = await ProductRow.getAll()
 
   if (productRows.length === 0) {

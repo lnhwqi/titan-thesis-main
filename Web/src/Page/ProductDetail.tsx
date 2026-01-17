@@ -17,13 +17,11 @@ export default function ProductDetailPage(
   const currentIndex = state.product.currentImageIndex
 
   if (detailRD._t === "Loading") {
-    return <div className={styles.statusMsg}>Đang tải sản phẩm...</div>
+    return <div className={styles.statusMsg}>Loading Product</div>
   }
 
   if (detailRD._t === "Failure") {
-    return (
-      <div className={styles.statusMsg}>Không tìm thấy thông tin sản phẩm.</div>
-    )
+    return <div className={styles.statusMsg}>Cannot Find Product</div>
   }
 
   if (detailRD._t !== "Success") {

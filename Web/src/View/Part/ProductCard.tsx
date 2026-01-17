@@ -31,7 +31,7 @@ export function ProductCard(props: Props): JSX.Element {
       if (found) return found.name.unwrap()
     }
 
-    return "Sản phẩm"
+    return "Fashion"
   }
 
   const categoryName = getCategoryName()

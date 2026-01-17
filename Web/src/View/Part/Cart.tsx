@@ -29,7 +29,7 @@ export function CartSidebar(props: Props): JSX.Element {
 
       <div className={`${styles.sidebar} ${isOpen ? styles.openSidebar : ""}`}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Giỏ hàng ({items.length})</h2>
+          <h2 className={styles.title}>Cart({items.length})</h2>
           <button
             className={styles.closeBtn}
             onClick={closeCart}
@@ -40,7 +40,7 @@ export function CartSidebar(props: Props): JSX.Element {
 
         <div className={styles.itemList}>
           {items.length === 0 ? (
-            <div className={styles.empty}>Chưa có sản phẩm nào</div>
+            <div className={styles.empty}>Empty</div>
           ) : (
             items.map((item) => (
               <div
@@ -95,12 +95,12 @@ export function CartSidebar(props: Props): JSX.Element {
         {items.length > 0 && (
           <div className={styles.footer}>
             <div className={styles.totalRow}>
-              <span>Tổng cộng:</span>
+              <span>Total:</span>
               <span className={styles.totalPrice}>
                 {totalPrice.toLocaleString()}đ
               </span>
             </div>
-            <button className={styles.checkoutBtn}>Thanh toán ngay</button>
+            <button className={styles.checkoutBtn}>Payment</button>
           </div>
         )}
       </div>

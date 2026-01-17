@@ -103,9 +103,7 @@ function renderCategoryItem(
       >
         {category.name.unwrap()}
         {(isSelected || isParentOfSelected) && children.length > 0 && (
-          <span style={{ marginLeft: "auto", fontSize: "10px" }}>
-            {isOpen ? " 👍" : " 👎 "}
-          </span>
+          <span style={{ marginLeft: "auto", fontSize: "10px" }}></span>
         )}
       </div>
 

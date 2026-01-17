@@ -4,7 +4,7 @@ import { createUUID, UUID, uuidDecoder } from "../../Data/UUID"
 
 const key: unique symbol = Symbol()
 export type VoucherID = Opaque<string, typeof key>
-export type ErrorUserID = "INVALID_USER_ID"
+export type ErrorVoucherID = "INVALID_VOUCHER_ID"
 
 export function createVoucherID(): VoucherID {
   return _create(createUUID())
