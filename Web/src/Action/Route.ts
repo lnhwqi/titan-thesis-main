@@ -12,8 +12,6 @@ export function onUrlChange(s: State): [State, Cmd] {
 
   switch (route._t) {
     case "Home":
-      return ProductAction.loadList()(state)
-
     case "Login":
     case "NotFound":
       return [state, cmd()]
@@ -29,8 +27,34 @@ export function onUrlChange(s: State): [State, Cmd] {
         return [state, cmd()]
       }
 
-    case "Search":
-      const query = route.params.q ?? ""
+    case "Search": {
+      const rawName = route.params.name
+      let query = ""
+
+      if (typeof rawName === "string") {
+        query = rawName
+      } else if (rawName !== null && typeof rawName === "object") {
+        const json = JSON.parse(JSON.stringify(rawName))
+        if (json.value && typeof json.value === "string") {
+          query = json.value
+        }
+      }
+
+      query = decodeURIComponent(query || "").trim()
+
+      const { searchQuery, listResponse } = state.product
+      const isAlreadyLoading =
+        listResponse._t === "Loading" || listResponse._t === "Success"
+
+      if (searchQuery === query && isAlreadyLoading) {
+        return [state, cmd()]
+      }
+
+      if (!query) {
+        return ProductAction.loadList()(state)
+      }
+
       return ProductAction.search(query)(state)
+    }
   }
 }

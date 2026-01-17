@@ -11,7 +11,7 @@ export default function SearchPage(props: Props): JSX.Element {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>{`Search results for "${searchQuery}"`}</h1>
+      <h1 className={styles.title}>{`Search results for ${searchQuery}`}</h1>
 
       {(() => {
         switch (listResponse._t) {
@@ -36,7 +36,6 @@ export default function SearchPage(props: Props): JSX.Element {
 
           case "Success":
             const products = listResponse.data.items
-
             if (products.length === 0) {
               return <div className={styles.emptyState}>No products found.</div>
             }

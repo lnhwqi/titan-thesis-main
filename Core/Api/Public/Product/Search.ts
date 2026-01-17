@@ -8,17 +8,17 @@ import {
 import { BasicProduct, basicProductDecoder } from "../../../App/ProductBasic"
 export type Contract = Api<
   "GET",
-  "/products/search",
+  "/products/search?name=:name",
   UrlParams,
   NoBodyParams,
   ErrorCode,
   Payload
 >
 export type UrlParams = {
-  name?: string
+  name: string
 }
 export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
-  name: JD.optional(JD.string),
+  name: JD.string,
 })
 
 export type ErrorCode = "PRODUCT_NOT_FOUND"
@@ -37,7 +37,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
 
 export const contract: Contract = {
   method: "GET",
-  route: "/products/search",
+  route: "/products/search?name=:name",
   urlDecoder: urlParamsDecoder,
   bodyDecoder: noBodyParamsDecoder,
   responseDecoder: responseDecoder(errorCodeDecoder, payloadDecoder),

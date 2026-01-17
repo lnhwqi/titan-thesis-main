@@ -22,9 +22,9 @@ export type Route =
     }
   | {
       _t: "Search"
-      path: "/search?q=:q"
+      path: "/search?name=:name"
       params: {
-        q: Maybe<string>
+        name: Maybe<string>
       }
     }
   | {
@@ -71,12 +71,12 @@ const router: RouteTable = {
     }),
   },
   Search: {
-    path: "/search?q=:q",
+    path: "/search?name=:name",
     decoder: JD.object({
       _t: JD.always("Search"),
-      path: JD.always("/search?q=:q"),
+      path: JD.always("/search?name=:name"),
       params: JD.object({
-        q: maybeOptionalDecoder(JD.string),
+        name: maybeOptionalDecoder(JD.string),
       }),
     }),
   },

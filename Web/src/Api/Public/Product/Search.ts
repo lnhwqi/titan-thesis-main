@@ -19,7 +19,7 @@ export type Response = ApiResponse<ErrorCode, Payload>
  * @param params Contains 'name'
  */
 export async function call(params: UrlParams): Promise<Response> {
-  return publicApi(contract, params, {})
+  return publicApi(contract, params, undefined)
 }
 
 export function errorString(code: ApiError<ErrorCode>): string {

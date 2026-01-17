@@ -48,7 +48,7 @@ export function search(query: string): Action {
         listResponse: RD.loading(),
         searchQuery: query,
       }),
-      cmd(SearchApi.call({ name: query }).then(gotListResponse)), // Khôi phục gọi API
+      cmd(SearchApi.call({ name: query }).then(gotListResponse)),
     ]
   }
 }
@@ -56,15 +56,20 @@ export function submitSearch(query: string): Action {
   return (state) => {
     if (!query.trim()) return [state, cmd()]
 
-    return [state, cmd(perform(navigateTo(toRoute("Search", { q: query }))))]
-  }
-}
-export function loadDetail(id: ProductID): Action {
-  return (state) => {
-    return [
-      _ProductState(state, { detailResponse: RD.loading() }),
-      cmd(GetOneApi.call({ id }).then(gotDetailResponse)),
-    ]
+    const nextState = _ProductState(state, {
+      listResponse: RD.loading(),
+      searchQuery: query,
+    })
+
+    const apiCallCmd = cmd(
+      SearchApi.call({ name: query }).then(gotListResponse),
+    )
+
+    const navigateCmd = cmd(
+      perform(navigateTo(toRoute("Search", { name: query }))),
+    )
+
+    return [nextState, [...apiCallCmd, ...navigateCmd]]
   }
 }
 
@@ -78,6 +83,14 @@ function gotDetailResponse(response: GetOneApi.Response): Action {
             : RD.failure(response.error),
       }),
       cmd(),
+    ]
+  }
+}
+export function loadDetail(id: ProductID): Action {
+  return (state) => {
+    return [
+      _ProductState(state, { detailResponse: RD.loading() }),
+      cmd(GetOneApi.call({ id }).then(gotDetailResponse)),
     ]
   }
 }
