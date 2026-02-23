@@ -17,7 +17,6 @@ export function ProductCard(props: Props): JSX.Element {
   const { product, state } = props
   const { treeResponse } = state.category
 
-  // Lấy tên danh mục để hiển thị trên badge của card
   const getCategoryName = () => {
     if (state.product.currentCategoryTree) {
       return state.product.currentCategoryTree.name.unwrap()
@@ -44,8 +43,8 @@ export function ProductCard(props: Props): JSX.Element {
   }
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault() // Ngăn Link chuyển trang khi nhấn vào nút +
-    e.stopPropagation() // Ngăn sự kiện click nổi bọt lên thẻ Link cha
+    e.preventDefault()
+    e.stopPropagation()
     emit(CartAction.addToCart(product))
   }
 

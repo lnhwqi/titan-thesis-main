@@ -5,14 +5,14 @@ import { ProductCategoryRow } from "../Database/ProductCategoryRow"
 
 export function toBasicProduct(
   productRow: ProductRow,
-  productImageRow: ProductImageRow | undefined,
+  productImageRow: ProductImageRow,
   categoryRows: ProductCategoryRow[],
 ): BasicProduct {
   return {
     id: productRow.id,
     name: productRow.name,
     price: productRow.price,
-    url: productImageRow?.url,
+    url: productImageRow.url,
 
     categoryIDs: categoryRows.map((row) => row.categoryID),
   }

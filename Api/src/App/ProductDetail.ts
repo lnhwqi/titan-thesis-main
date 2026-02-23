@@ -1,13 +1,13 @@
-import { Product } from "../../../Core/App/ProductDetail"
+import { DetailProduct } from "../../../Core/App/ProductDetail"
 import { ProductRow } from "../Database/ProductRow"
 import { ProductImageRow } from "../Database/ProductImageRow"
 import { ProductCategoryRow } from "../Database/ProductCategoryRow"
 
-export function toProduct(
+export function toDetailProduct(
   productRow: ProductRow,
   productImageRows: ProductImageRow[],
   categoryRows: ProductCategoryRow[],
-): Product {
+): DetailProduct {
   return {
     id: productRow.id,
     name: productRow.name,

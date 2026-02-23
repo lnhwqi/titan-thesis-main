@@ -10,10 +10,15 @@ import { ProductID } from "../../../Core/App/Product/ProductID"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
 export function loadList(params: ListAllApi.UrlParams = {}): Action {
-  return (state) => [
-    _ProductState(state, { listResponse: RD.loading(), searchQuery: "" }),
-    cmd(ListAllApi.call(params).then(gotListResponse)),
-  ]
+  return (state) => {
+    const expected = params.name || params.categoryID || ""
+    return [
+      _ProductState(state, { listResponse: RD.loading(), searchQuery: "" }),
+      cmd(
+        ListAllApi.call(params).then((res) => gotListResponse(res, expected)),
+      ),
+    ]
+  }
 }
 
 export function selectCategory(categoryId: CategoryID | null): Action {
@@ -21,7 +26,7 @@ export function selectCategory(categoryId: CategoryID | null): Action {
     const { currentCategoryTree } = state.product
     const isChildOfCurrent =
       currentCategoryTree &&
-      currentCategoryTree.children.some(
+      currentCategoryTree.children?.some(
         (child) => child.id.unwrap() === categoryId?.unwrap(),
       )
 
@@ -33,15 +38,21 @@ export function selectCategory(categoryId: CategoryID | null): Action {
     })
 
     if (categoryId === null) {
-      return [nextState, cmd(ListAllApi.call({}).then(gotListResponse))]
+      return [
+        nextState,
+        cmd(ListAllApi.call({}).then((res) => gotListResponse(res, ""))),
+      ]
     }
 
+    const expectedId = categoryId.toString()
     const loadProductsCmd = cmd(
-      ListAllApi.call({ categoryID: categoryId.toString() }).then(
-        gotListResponse,
+      ListAllApi.call({ categoryID: expectedId }).then((res) =>
+        gotListResponse(res, expectedId),
       ),
     )
+
     const navigateCmd = cmd(perform(navigateTo(toRoute("Home", {}))))
+
     const loadSubCategoriesCmd = isChildOfCurrent
       ? []
       : cmd(
@@ -70,16 +81,27 @@ function gotCategoryDetailResponse(
 
 function gotListResponse(
   response: ListAllApi.Response | SearchApi.Response,
+  expectedQueryOrId: string,
 ): Action {
-  return (state) => [
-    _ProductState(state, {
-      listResponse:
-        response._t === "Ok"
-          ? RD.success(response.value)
-          : RD.failure(response.error),
-    }),
-    cmd(),
-  ]
+  return (state) => {
+    const isStale =
+      (state.product.searchQuery || "") !== expectedQueryOrId &&
+      (state.product.currentCategoryId?.toString() || "") !== expectedQueryOrId
+
+    if (isStale) {
+      return [state, cmd()]
+    }
+
+    return [
+      _ProductState(state, {
+        listResponse:
+          response._t === "Ok"
+            ? RD.success(response.value)
+            : RD.failure(response.error),
+      }),
+      cmd(),
+    ]
+  }
 }
 
 export function onChangeQuery(query: string): Action {
@@ -92,23 +114,33 @@ export function search(query: string): Action {
       listResponse: RD.loading(),
       searchQuery: query,
     }),
-    cmd(SearchApi.call({ name: query }).then(gotListResponse)),
+    cmd(
+      SearchApi.call({ name: query }).then((res) =>
+        gotListResponse(res, query),
+      ),
+    ),
   ]
 }
 
 export function submitSearch(query: string): Action {
   return (state) => {
     if (!query.trim()) return [state, cmd()]
+
     const nextState = _ProductState(state, {
       listResponse: RD.loading(),
       searchQuery: query,
     })
+
     const apiCallCmd = cmd(
-      SearchApi.call({ name: query }).then(gotListResponse),
+      SearchApi.call({ name: query }).then((res) =>
+        gotListResponse(res, query),
+      ),
     )
+
     const navigateCmd = cmd(
       perform(navigateTo(toRoute("Search", { name: query }))),
     )
+
     return [nextState, [...apiCallCmd, ...navigateCmd]]
   }
 }

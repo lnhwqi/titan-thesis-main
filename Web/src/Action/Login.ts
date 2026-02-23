@@ -4,7 +4,7 @@ import * as LoginApi from "../Api/Public/Login"
 import * as LogoutApi from "../Api/Auth/Logout"
 import * as RD from "../../../Core/Data/RemoteData"
 import * as AuthToken from "../App/AuthToken"
-import { navigateTo, toRoute } from "../Route"
+import { navigateTo, toRoute, goBack } from "../Route"
 import { initAuthState, initState } from "../State/init"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 
@@ -51,7 +51,7 @@ export function onSubmit(params: LoginApi.BodyParams): Action {
   }
 }
 
-function onSubmitResponse(response: LoginApi.Response): Action {
+export function onSubmitResponse(response: LoginApi.Response): Action {
   return (state) => {
     if (response._t === "Err") {
       return [
@@ -70,11 +70,15 @@ function onSubmitResponse(response: LoginApi.Response): Action {
       refreshToken,
     })
 
-    return [
-      _LoginState(initAuthState(user, state), {
-        loginResponse: RD.success(response.value),
-      }),
-      cmd(perform(navigateTo(toRoute("Home", {})))),
-    ]
+    // Create the updated state first
+    const nextState = _LoginState(initAuthState(user, state), {
+      loginResponse: RD.success(response.value),
+    })
+
+    // Fire the goBack action as a command!
+    // We use your 'perform' helper to trigger another Action from this one.
+    const navigateCmd = cmd(perform(goBack()))
+
+    return [nextState, navigateCmd]
   }
 }

@@ -31,14 +31,12 @@ export async function getlistPayload(
     ProductCategoryRow.getByProductIDs(productIds),
   ])
 
-  // CHỈNH SỬA TẠI ĐÂY: Đảm bảo key luôn là string nguyên bản
   const imageMap = _groupBy(allImages, (img) => String(img.productID.unwrap()))
   const categoryMap = _groupBy(allCategories, (cat) =>
     String(cat.productID.unwrap()),
   )
 
   const products: BasicProduct[] = productRows.map((row) => {
-    // Ép kiểu string để khớp tuyệt đối với key trong Map
     const idStr = String(row.id.unwrap())
 
     const images = imageMap[idStr] ?? []

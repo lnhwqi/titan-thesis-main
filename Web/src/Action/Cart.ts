@@ -1,16 +1,22 @@
-import { Action, cmd, type Cmd } from "../Action"
+import { Action, cmd, perform, type Cmd } from "../Action"
 import { State } from "../State"
 import { BasicProduct } from "../../../Core/App/ProductBasic"
-import { onUrlChange } from "./Route"
 import { _CartState, CartItem, CartState } from "../State/Cart"
+import { navigateTo, toRoute } from "../Route"
+
+function saveCartCmd(items: CartItem[]): Promise<Action | null> {
+  return new Promise((resolve) => {
+    localStorage.setItem("titan_cart", JSON.stringify(items))
+    resolve(null)
+  })
+}
 
 function saveAndReturn(
   state: State,
   cartUpdate: Partial<CartState>,
 ): [State, Cmd] {
   const nextState = _CartState(state, cartUpdate)
-  localStorage.setItem("titan_cart", JSON.stringify(nextState.cart.items))
-  return [nextState, cmd()]
+  return [nextState, cmd(saveCartCmd(nextState.cart.items))]
 }
 
 function withAuth(
@@ -19,15 +25,14 @@ function withAuth(
 ): [State, Cmd] {
   if (state._t !== "Auth") {
     const currentPath = window.location.pathname
-    window.history.pushState(
-      {},
-      "",
-      `/login?redirect=${encodeURIComponent(currentPath)}`,
-    )
-    return onUrlChange(state)
+    return [
+      state,
+      cmd(perform(navigateTo(toRoute("Login", { redirect: currentPath })))),
+    ]
   }
   return authorizedAction()
 }
+
 export function addToCart(product: BasicProduct): Action {
   return (state: State) =>
     withAuth(state, () => {
@@ -70,7 +75,6 @@ export function updateQuantity(productID: string, delta: number): Action {
 export function toggleCart(isOpen: boolean): Action {
   return (state: State) =>
     withAuth(state, () => {
-      // Vì toggle chỉ là đóng/mở UI nên không cần dùng saveAndReturn (không cần lưu DB)
       return [_CartState(state, { isOpen }), cmd()]
     })
 }

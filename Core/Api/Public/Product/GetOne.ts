@@ -5,7 +5,7 @@ import {
   NoBodyParams,
   noBodyParamsDecoder,
 } from "../../../Data/Api"
-import { Product, productDecoder } from "../../../App/ProductDetail"
+import { DetailProduct, productDecoder } from "../../../App/ProductDetail"
 import { ProductID, productIDDecoder } from "../../../App/Product/ProductID"
 
 export type Contract = Api<
@@ -23,7 +23,7 @@ export type UrlParams = {
 
 export type ErrorCode = "PRODUCT_NOT_FOUND"
 
-export type Payload = Product
+export type Payload = DetailProduct
 
 export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
   id: productIDDecoder,

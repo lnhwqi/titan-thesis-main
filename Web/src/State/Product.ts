@@ -1,6 +1,5 @@
 import * as GetListApi from "../../../Core/Api/Public/Product/ListAll"
 import * as SearchApi from "../../../Core/Api/Public/Product/Search"
-// 1. Import API GetOne
 import * as GetOneApi from "../../../Core/Api/Public/Product/GetOne"
 
 import * as RD from "../../../Core/Data/RemoteData"

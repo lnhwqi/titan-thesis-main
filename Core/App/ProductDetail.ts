@@ -6,7 +6,7 @@ import { Description, descriptionDecoder } from "./Product/Description"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"
 import { CategoryID, categoryIDDecoder } from "./Category/CategoryID"
 
-export type Product = {
+export type DetailProduct = {
   id: ProductID
   name: Name
   price: Price
@@ -15,7 +15,7 @@ export type Product = {
   categoryIDs: CategoryID[]
 }
 
-export const productDecoder: JD.Decoder<Product> = JD.object({
+export const productDecoder: JD.Decoder<DetailProduct> = JD.object({
   id: productIDDecoder,
   name: nameDecoder,
   price: priceDecoder,

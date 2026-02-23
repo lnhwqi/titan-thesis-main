@@ -96,7 +96,14 @@ export default function ProductDetailPage(
             <p className={styles.description}>{product.description.unwrap()}</p>
             <button
               className={styles.addToCartBtn}
-              onClick={() => emit(CartAction.addToCart(product))}
+              onClick={() =>
+                emit(
+                  CartAction.addToCart({
+                    ...product,
+                    url: product.urls[0],
+                  }),
+                )
+              }
             >
               Add To Cart
             </button>
