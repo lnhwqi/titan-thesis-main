@@ -4,7 +4,7 @@ import {
   ErrorCode,
   Payload,
   BodyParams,
-} from "../../../../Core/Api/Public/Login"
+} from "../../../../Core/Api/Public/LoginUser"
 
 export type { ErrorCode, Payload, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>

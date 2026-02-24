@@ -1,4 +1,4 @@
-import * as API from "../../../../Core/Api/Public/Login"
+import * as API from "../../../../Core/Api/Public/LoginUser"
 import { Result, err, ok } from "../../../../Core/Data/Result"
 import * as UserRow from "../../Database/UserRow"
 import * as RefreshTokenRow from "../../Database/RefreshTokenRow"

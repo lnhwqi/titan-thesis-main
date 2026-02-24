@@ -1,4 +1,4 @@
-import * as API from "../../../../Core/Api/Public/RefreshToken"
+import * as API from "../../../../Core/Api/Public/RefreshTokenUser"
 import { Result, err, ok } from "../../../../Core/Data/Result"
 import * as RefreshTokenRow from "../../Database/RefreshTokenRow"
 import * as AccessToken from "../../App/AccessToken"

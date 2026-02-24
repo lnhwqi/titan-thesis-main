@@ -1,4 +1,4 @@
-import * as LoginApi from "../../../Core/Api/Public/Login"
+import * as LoginApi from "../../../Core/Api/Public/LoginUser"
 import {
   createPasswordE,
   ErrorPassword,

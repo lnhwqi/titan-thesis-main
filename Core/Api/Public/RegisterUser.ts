@@ -5,9 +5,10 @@ import {
   NoUrlParams,
   noUrlParamsDecoder,
 } from "../../Data/Api"
-import { User, userDecoder } from "../../App/BaseProfile"
+import { User, userDecoder } from "../../App/User"
 import { Email, emailDecoder } from "../../Data/User/Email"
 import { Password, passwordDecoder } from "../../App/BaseProfile/Password"
+import { Name, nameDecoder } from "../../App/BaseProfile/Name"
 import {
   AccessToken,
   accessTokenDecoder,
@@ -19,7 +20,7 @@ import {
 
 export type Contract = Api<
   "POST",
-  "/login",
+  "/register",
   NoUrlParams,
   BodyParams,
   ErrorCode,
@@ -27,11 +28,12 @@ export type Contract = Api<
 >
 
 export type BodyParams = {
+  name: Name
   email: Email
   password: Password
 }
 
-export type ErrorCode = "USER_NOT_FOUND" | "INVALID_PASSWORD"
+export type ErrorCode = "EMAIL_ALREADY_EXISTS" | "WEAK_PASSWORD"
 
 export type Payload = {
   user: User
@@ -46,18 +48,19 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 })
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
-  "USER_NOT_FOUND",
-  "INVALID_PASSWORD",
+  "EMAIL_ALREADY_EXISTS",
+  "WEAK_PASSWORD",
 ])
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
+  name: nameDecoder,
   email: emailDecoder,
   password: passwordDecoder,
 })
 
 export const contract: Contract = {
   method: "POST",
-  route: "/login",
+  route: "/register",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
   responseDecoder: responseDecoder(errorCodeDecoder, payloadDecoder),

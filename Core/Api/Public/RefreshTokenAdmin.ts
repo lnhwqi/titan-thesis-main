@@ -5,7 +5,7 @@ import {
   noUrlParamsDecoder,
   responseDecoder,
 } from "../../Data/Api"
-import { User, userDecoder } from "../../App/BaseProfile"
+import { Admin, adminDecoder } from "../../App/Admin"
 import { UserID, userIDDecoder } from "../../App/BaseProfile/UserID"
 import {
   RefreshToken,
@@ -16,15 +16,9 @@ import {
   accessTokenDecoder,
 } from "../../App/BaseProfile/AccessToken"
 
-/**
- * NOTE Client-side MUST update the local user with this returned user
- * as credentials as the user's data/access/profile may have changed
- * API: Don't show too much error to reduce information to hackers
- * WARN This is a public Api as the AccessToken may have expired
- **/
 export type Contract = Api<
   "POST",
-  "/refresh-token",
+  "/admin/refresh-token",
   NoUrlParams,
   BodyParams,
   ErrorCode,
@@ -32,12 +26,12 @@ export type Contract = Api<
 >
 
 export type BodyParams = {
-  userID: UserID // Public API so we need userID in body
+  userID: UserID
   refreshToken: RefreshToken
 }
 
 export type Payload = {
-  user: User
+  admin: Admin
   accessToken: AccessToken
   refreshToken: RefreshToken
 }
@@ -46,7 +40,7 @@ export type ErrorCode = "INVALID"
 
 export const contract: Contract = {
   method: "POST",
-  route: "/refresh-token",
+  route: "/admin/refresh-token",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: JD.object({
     userID: userIDDecoder,
@@ -55,7 +49,7 @@ export const contract: Contract = {
   responseDecoder: responseDecoder(
     JD.oneOf(["INVALID"]),
     JD.object({
-      user: userDecoder,
+      admin: adminDecoder,
       accessToken: accessTokenDecoder,
       refreshToken: refreshTokenDecoder,
     }),

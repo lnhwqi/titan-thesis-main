@@ -1,5 +1,5 @@
 import * as JD from "decoders"
-import { User, userDecoder } from "../../App/BaseProfile"
+import { Seller, sellerDecoder } from "../../App/Seller"
 import { AuthApi, authResponseDecoder } from "../../Data/Api/Auth"
 import {
   NoBodyParams,
@@ -12,7 +12,7 @@ import {
 
 export type Contract = AuthApi<
   "GET",
-  "/home",
+  "/seller/dashboard",
   NoUrlParams,
   NoBodyParams,
   NoErrorCode,
@@ -23,16 +23,16 @@ export type BodyParams = NoBodyParams
 export type ErrorCode = NoErrorCode
 
 export type Payload = {
-  user: User
+  seller: Seller
 }
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
-  user: userDecoder,
+  seller: sellerDecoder,
 })
 
 export const contract: Contract = {
   method: "GET",
-  route: "/home",
+  route: "/seller/dashboard",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: noBodyParamsDecoder,
   responseDecoder: authResponseDecoder(noErrorCodeDecoder, payloadDecoder),

@@ -1,4 +1,4 @@
-import { contract } from "../../../../Core/Api/Public/RefreshToken"
+import { contract } from "../../../../Core/Api/Public/RefreshTokenUser"
 import { Result, err, ok } from "../../../../Core/Data/Result"
 import { Nat900 } from "../../../../Core/Data/Number/Nat"
 import * as Queue from "../../../../Core/Data/Queue/AggregateQueue"
