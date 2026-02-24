@@ -14,7 +14,7 @@ import {
   voucherIDDecoder,
   createVoucherID,
 } from "../../../Core/App/Voucher/VoucherID"
-import { Name, nameDecoder } from "../../../Core/App/Voucher/Name"
+import { Name, nameDecoder } from "../../../Core/App/Voucher/VoucherName"
 import {
   ExpiryDate,
   expiryDateDecoder,
@@ -27,7 +27,7 @@ import {
   MinProductValue,
   minProductValueDecoder,
 } from "../../../Core/App/Voucher/MinProductValue"
-import { UserID } from "../../../Core/App/User/UserID"
+import { UserID } from "../../../Core/App/BaseProfile/UserID"
 import { createUUID } from "../../../Core/Data/UUID"
 
 const tableName = "voucher"

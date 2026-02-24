@@ -1,6 +1,6 @@
 import * as JD from "decoders"
 import { VoucherID, voucherIDDecoder } from "./Voucher/VoucherID"
-import { Name, nameDecoder } from "./Voucher/Name"
+import { Name, nameDecoder } from "./Voucher/VoucherName"
 import { ExpiryDate, expiryDateDecoder } from "./Voucher/ExpiryDate"
 import { DiscountValue, discountValueDecoder } from "./Voucher/DiscountValue"
 import {

@@ -1,4 +1,4 @@
-import { User } from "../../../Core/App/User"
+import { User } from "../../../Core/App/BaseProfile"
 import { UserRow } from "../Database/UserRow"
 
 export function toUser(userRow: UserRow): User {

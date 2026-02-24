@@ -4,7 +4,7 @@ import * as RefreshTokenRow from "../../Database/RefreshTokenRow"
 import * as AccessToken from "../../App/AccessToken"
 import * as UserRow from "../../Database/UserRow"
 import { toUser } from "../../App/User"
-import { UserID } from "../../../../Core/App/User/UserID"
+import { UserID } from "../../../../Core/App/BaseProfile/UserID"
 import { RefreshToken } from "../../../../Core/Data/Security/RefreshToken"
 
 export const contract = API.contract

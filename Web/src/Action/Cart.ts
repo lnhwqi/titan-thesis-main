@@ -23,7 +23,7 @@ function withAuth(
   state: State,
   authorizedAction: () => [State, Cmd],
 ): [State, Cmd] {
-  if (state._t !== "Auth") {
+  if (state._t !== "AuthUser") {
     const currentPath = window.location.pathname
     return [
       state,

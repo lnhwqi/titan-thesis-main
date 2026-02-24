@@ -1,6 +1,6 @@
 import * as VoucherRow from "../../../Api/src/Database/VoucherRow"
 import * as UserRow from "../../../Api/src/Database/UserRow"
-import { nameDecoder } from "../../../Core/App/Voucher/Name"
+import { nameDecoder } from "../../../Core/App/Voucher/VoucherName"
 import { createExpiryDate } from "../../../Core/App/Voucher/ExpiryDate"
 import { createDiscountValue } from "../../../Core/App/Voucher/DiscountValue"
 import { createMinProductValue } from "../../../Core/App/Voucher/MinProductValue"

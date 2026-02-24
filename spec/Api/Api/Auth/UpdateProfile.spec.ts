@@ -1,7 +1,7 @@
 import { handler } from "../../../../Api/src/Api/Auth/UpdateProfile"
 import { handler as loginHandler } from "../../../../Api/src/Api/Public/Login"
 import { emailDecoder } from "../../../../Core/Data/User/Email"
-import { passwordDecoder } from "../../../../Core/App/User/Password"
+import { passwordDecoder } from "../../../../Core/App/BaseProfile/Password"
 import {
   _createUser,
   _notNull,
@@ -9,7 +9,7 @@ import {
   _fromOk,
   _hashPassword,
 } from "../../../Fixture"
-import { nameDecoder } from "../../../../Core/App/User/Name"
+import { nameDecoder } from "../../../../Core/App/BaseProfile/Name"
 
 describe("Api/Auth/UpdateProfile", () => {
   test("update profile success", async () => {

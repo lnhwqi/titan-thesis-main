@@ -5,20 +5,13 @@ import { nameDecoder } from "./BaseProfile/Name"
 import { walletDecoder } from "./BaseProfile/Wallet"
 import { activeDecoder } from "./BaseProfile/Active"
 import { emailDecoder } from "../Data/User/Email"
-import { Points, pointsDecoder } from "./User/Points"
-import { Tier, tierDecoder } from "./User/Tier"
 
-export type User = BaseProfile & {
-  points: Points
-  tier: Tier
-}
+export type Admin = BaseProfile & {}
 
-export const userDecoder: JD.Decoder<User> = JD.object({
+export const adminDecoder: JD.Decoder<Admin> = JD.object({
   id: userIDDecoder,
   name: nameDecoder,
   email: emailDecoder,
   wallet: walletDecoder,
   active: activeDecoder,
-  points: pointsDecoder,
-  tier: tierDecoder,
 })

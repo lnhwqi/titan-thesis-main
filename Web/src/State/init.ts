@@ -3,7 +3,7 @@ import { AuthState, State } from "../State"
 import * as AuthToken from "../App/AuthToken"
 import { initLoginState } from "./Login"
 import { initProductState } from "./Product"
-import { User } from "../../../Core/App/User"
+import { User } from "../../../Core/App/BaseProfile"
 import { initUpdateProfileState } from "./UpdateProfile"
 import { initCategoryState } from "./Category"
 import { initCartState } from "./Cart"
@@ -23,7 +23,7 @@ export function initState(route: Route): State {
 export function initAuthState(profile: User, state: State): AuthState {
   return {
     ...state,
-    _t: "Auth",
+    _t: "AuthUser",
     updateProfile: initUpdateProfileState(profile),
     profile,
   }

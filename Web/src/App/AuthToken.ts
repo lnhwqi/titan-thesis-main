@@ -1,8 +1,8 @@
-import { UserID, userIDDecoder } from "../../../Core/App/User/UserID"
+import { UserID, userIDDecoder } from "../../../Core/App/BaseProfile/UserID"
 import {
   AccessToken,
   accessTokenDecoder,
-} from "../../../Core/App/User/AccessToken"
+} from "../../../Core/App/BaseProfile/AccessToken"
 import { toString } from "../../../Core/Data/Security/JsonWebToken"
 import {
   RefreshToken,

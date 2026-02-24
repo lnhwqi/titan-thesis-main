@@ -1,11 +1,15 @@
 import * as UpdateProfileApi from "../../../Core/Api/Auth/UpdateProfile"
-import { User } from "../../../Core/App/User"
-import { createNameE, ErrorName, Name } from "../../../Core/App/User/Name"
+import { User } from "../../../Core/App/BaseProfile"
+import {
+  createNameE,
+  ErrorName,
+  Name,
+} from "../../../Core/App/BaseProfile/Name"
 import {
   createPasswordE,
   ErrorPassword,
   Password,
-} from "../../../Core/App/User/Password"
+} from "../../../Core/App/BaseProfile/Password"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 import { Maybe } from "../../../Core/Data/Maybe"
 import * as RD from "../../../Core/Data/RemoteData"

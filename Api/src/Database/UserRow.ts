@@ -1,12 +1,12 @@
 import * as JD from "decoders"
 import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
-import { Name, nameDecoder } from "../../../Core/App/User/Name"
+import { Name, nameDecoder } from "../../../Core/App/BaseProfile/Name"
 import {
   createUserID,
   UserID,
   userIDDecoder,
-} from "../../../Core/App/User/UserID"
+} from "../../../Core/App/BaseProfile/UserID"
 import {
   createNow,
   Timestamp,

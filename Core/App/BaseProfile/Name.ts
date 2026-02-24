@@ -1,8 +1,8 @@
 import * as JD from "decoders"
 import { Opaque, jsonValueCreate } from "../../Data/Opaque"
 import { Result, toMaybe, err, ok } from "../../Data/Result"
-import { Maybe, throwIfNull } from "../../Data/Maybe"
-import { createText100 } from "../../Data/Text"
+import { Maybe } from "../../Data/Maybe"
+import { createText100, text100Decoder } from "../../Data/Text"
 
 const key: unique symbol = Symbol()
 export type Name = Opaque<string, typeof key>
@@ -19,6 +19,8 @@ export function createNameE(s: string): Result<ErrorName, Name> {
   return ok(jsonValueCreate<string, typeof key>(key)(text100.unwrap()))
 }
 
-export const nameDecoder: JD.Decoder<Name> = JD.string.transform((s) => {
-  return throwIfNull(createName(s), `Invalid name: ${s}`)
-})
+export const nameDecoder: JD.Decoder<Name> = text100Decoder.transform(
+  (text100) => {
+    return jsonValueCreate<string, typeof key>(key)(text100.unwrap())
+  },
+)

@@ -25,7 +25,8 @@ export default function Header(props: Props): JSX.Element {
   const { isOpen } = state.category
   const query = state.product.searchQuery
 
-  const userName = state._t === "Auth" ? state.profile.name.unwrap() : "Guest"
+  const userName =
+    state._t === "AuthUser" ? state.profile.name.unwrap() : "Guest"
 
   const totalCartItems = state.cart.items.reduce(
     (sum, item) => sum + item.quantity,
@@ -116,7 +117,7 @@ export default function Header(props: Props): JSX.Element {
         <div
           className={styles.iconItem}
           onClick={() => {
-            if (state._t !== "Auth") {
+            if (state._t !== "AuthUser") {
               const currentPath = window.location.pathname
               window.history.pushState(
                 {},
@@ -133,7 +134,7 @@ export default function Header(props: Props): JSX.Element {
         <div className={styles.authWrapper}>
           <span className={styles.hiText}>Hi! {userName}</span>
           <div className={styles.actionGroup}>
-            {state._t === "Auth" ? (
+            {state._t === "AuthUser" ? (
               <Link
                 route={toRoute("Login", { redirect: null })}
                 onClick={() => emit(LoginAction.logout())}

@@ -16,7 +16,7 @@ import {
 import * as UserRow from "../Database/UserRow"
 import { Method } from "../../../Core/Data/Api"
 import { AuthApi, AuthResponseJson } from "../../../Core/Data/Api/Auth"
-import { JwtPayload } from "../../../Core/App/User/AccessToken"
+import { JwtPayload } from "../../../Core/App/BaseProfile/AccessToken"
 import * as AccessToken from "../App/AccessToken"
 
 /**

@@ -2,10 +2,10 @@ import * as UserRow from "../../Api/src/Database/UserRow"
 import * as Hash from "../../Api/src/Data/Hash"
 import { _notNull } from "./Maybe"
 import { createEmail } from "../../Core/Data/User/Email"
-import { createName } from "../../Core/App/User/Name"
+import { createName } from "../../Core/App/BaseProfile/Name"
 import { createNow } from "../../Core/Data/Time/Timestamp"
-import { createUserID } from "../../Core/App/User/UserID"
-import { passwordDecoder } from "../../Core/App/User/Password"
+import { createUserID } from "../../Core/App/BaseProfile/UserID"
+import { passwordDecoder } from "../../Core/App/BaseProfile/Password"
 
 export const _defaultPassword = passwordDecoder.verify("Valid4Good.Password")
 

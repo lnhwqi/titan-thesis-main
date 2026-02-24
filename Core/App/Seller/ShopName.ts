@@ -5,21 +5,21 @@ import { Maybe } from "../../Data/Maybe"
 import { createText100, text100Decoder } from "../../Data/Text"
 
 const key: unique symbol = Symbol()
-export type Name = Opaque<string, typeof key>
-export type ErrorName = "INVALID_NAME"
+export type ShopName = Opaque<string, typeof key>
+export type ErrorShopName = "INVALID_SHOP_NAME"
 
-export function createName(s: string): Maybe<Name> {
-  return toMaybe(createNameE(s))
+export function createShopName(s: string): Maybe<ShopName> {
+  return toMaybe(createShopNameE(s))
 }
 
-export function createNameE(s: string): Result<ErrorName, Name> {
+export function createShopNameE(s: string): Result<ErrorShopName, ShopName> {
   const text100 = createText100(s)
-  if (text100 == null) return err("INVALID_NAME")
+  if (text100 == null) return err("INVALID_SHOP_NAME")
 
   return ok(jsonValueCreate<string, typeof key>(key)(text100.unwrap()))
 }
 
-export const nameDecoder: JD.Decoder<Name> = text100Decoder.transform(
+export const shopNameDecoder: JD.Decoder<ShopName> = text100Decoder.transform(
   (text100) => {
     return jsonValueCreate<string, typeof key>(key)(text100.unwrap())
   },

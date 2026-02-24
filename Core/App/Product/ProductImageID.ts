@@ -4,7 +4,7 @@ import { createUUID, UUID, uuidDecoder } from "../../Data/UUID"
 
 const key: unique symbol = Symbol()
 export type ImageID = Opaque<string, typeof key>
-export type ErrorImageID = "IVDLID_IMAGE_ID"
+export type ErrorImageID = "INVALID_IMAGE_ID"
 
 export function createImageID(): ImageID {
   return _create(createUUID())

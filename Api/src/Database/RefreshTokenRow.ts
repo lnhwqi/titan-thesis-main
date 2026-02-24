@@ -1,6 +1,6 @@
 import * as JD from "decoders"
 import * as Logger from "../Logger"
-import { UserID, userIDDecoder } from "../../../Core/App/User/UserID"
+import { UserID, userIDDecoder } from "../../../Core/App/BaseProfile/UserID"
 import {
   createNow,
   createTimestampE,

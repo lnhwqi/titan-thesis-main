@@ -1,4 +1,4 @@
-import { createPassword } from "../../../../Core/App/User/Password"
+import { createPassword } from "../../../../Core/App/BaseProfile/Password"
 
 describe("Data/User/Password", () => {
   it("valid password", () => {

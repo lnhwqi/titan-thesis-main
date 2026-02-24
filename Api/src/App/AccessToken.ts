@@ -4,11 +4,11 @@ import { jwtVerify } from "jose"
 import ENV from "../Env"
 import { Result, ok, err } from "../../../Core/Data/Result"
 import * as Logger from "../Logger"
-import { UserID } from "../../../Core/App/User/UserID"
+import { UserID } from "../../../Core/App/BaseProfile/UserID"
 import {
   AccessToken,
   accessTokenDecoder,
-} from "../../../Core/App/User/AccessToken"
+} from "../../../Core/App/BaseProfile/AccessToken"
 
 const jwt_config = {
   // HS256 = HMAC 256-bits which is "fastest"

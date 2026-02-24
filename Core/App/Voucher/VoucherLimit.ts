@@ -5,25 +5,27 @@ import { Maybe } from "../../Data/Maybe"
 import { createNat, natDecoder } from "../../Data/Number/Nat"
 
 const key: unique symbol = Symbol()
-export type Price = Opaque<number, typeof key>
-export type ErrorPrice = "INVALID_PRICE"
+export type UsageLimit = Opaque<number, typeof key>
+export type ErrorUsageLimit = "INVALID_USAGE_LIMIT"
 
-export function createPrice(s: number): Maybe<Price> {
-  return toMaybe(createPriceE(s))
+export function createUsageLimit(s: number): Maybe<UsageLimit> {
+  return toMaybe(createUsageLimitE(s))
 }
 
-export function createPriceE(s: number): Result<ErrorPrice, Price> {
+export function createUsageLimitE(
+  s: number,
+): Result<ErrorUsageLimit, UsageLimit> {
   return mapOk(_validate(s), jsonValueCreate(key))
 }
 
-function _validate(s: number): Result<ErrorPrice, number> {
+function _validate(s: number): Result<ErrorUsageLimit, number> {
   const natValue = createNat(s)
 
-  if (natValue == null) return err("INVALID_PRICE")
+  if (natValue == null) return err("INVALID_USAGE_LIMIT")
 
   return ok(natValue.unwrap())
 }
 
-export const priceDecoder: JD.Decoder<Price> = natDecoder.transform(
+export const usageLimitDecoder: JD.Decoder<UsageLimit> = natDecoder.transform(
   (natValue) => jsonValueCreate<number, typeof key>(key)(natValue.unwrap()),
 )

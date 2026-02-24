@@ -5,13 +5,16 @@ import {
   noUrlParamsDecoder,
   responseDecoder,
 } from "../../Data/Api"
-import { User, userDecoder } from "../../App/User"
-import { UserID, userIDDecoder } from "../../App/User/UserID"
+import { User, userDecoder } from "../../App/BaseProfile"
+import { UserID, userIDDecoder } from "../../App/BaseProfile/UserID"
 import {
   RefreshToken,
   refreshTokenDecoder,
 } from "../../Data/Security/RefreshToken"
-import { AccessToken, accessTokenDecoder } from "../../App/User/AccessToken"
+import {
+  AccessToken,
+  accessTokenDecoder,
+} from "../../App/BaseProfile/AccessToken"
 
 /**
  * NOTE Client-side MUST update the local user with this returned user

@@ -65,7 +65,7 @@ function withAuthLayout(
   state: State,
   Page: React.FC<{ authState: AuthState }>,
 ): JSX.Element {
-  return state._t !== "Auth" ? (
+  return state._t !== "AuthUser" ? (
     <EmptyLayout
       state={state}
       Page={LoginPage}

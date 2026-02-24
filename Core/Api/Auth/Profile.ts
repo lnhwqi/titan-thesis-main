@@ -1,5 +1,5 @@
 import * as JD from "decoders"
-import { User, userDecoder } from "../../App/User"
+import { User, userDecoder } from "../../App/BaseProfile"
 import { AuthApi, authResponseDecoder } from "../../Data/Api/Auth"
 import {
   NoBodyParams,

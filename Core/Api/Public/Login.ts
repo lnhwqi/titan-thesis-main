@@ -5,10 +5,13 @@ import {
   NoUrlParams,
   noUrlParamsDecoder,
 } from "../../Data/Api"
-import { User, userDecoder } from "../../App/User"
+import { User, userDecoder } from "../../App/BaseProfile"
 import { Email, emailDecoder } from "../../Data/User/Email"
-import { Password, passwordDecoder } from "../../App/User/Password"
-import { AccessToken, accessTokenDecoder } from "../../App/User/AccessToken"
+import { Password, passwordDecoder } from "../../App/BaseProfile/Password"
+import {
+  AccessToken,
+  accessTokenDecoder,
+} from "../../App/BaseProfile/AccessToken"
 import {
   RefreshToken,
   refreshTokenDecoder,
