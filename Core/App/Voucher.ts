@@ -1,5 +1,6 @@
 import * as JD from "decoders"
 import { VoucherID, voucherIDDecoder } from "./Voucher/VoucherID"
+import { UserID, userIDDecoder } from "./BaseProfile/UserID"
 import { Active, activeDecoder } from "./Voucher/VoucherActive"
 import { VoucherCode, voucherCodeDecoder } from "./Voucher/VoucherCode"
 import {
@@ -17,6 +18,7 @@ import { UsedCount, usedCountDecoder } from "./Voucher/VoucherUsedCount"
 
 export type Voucher = {
   id: VoucherID
+  sellerID: UserID
   active: Active
   code: VoucherCode
   discount: VoucherDiscount
@@ -29,6 +31,7 @@ export type Voucher = {
 
 export const voucherDecoder: JD.Decoder<Voucher> = JD.object({
   id: voucherIDDecoder,
+  sellerID: userIDDecoder,
   active: activeDecoder,
   code: voucherCodeDecoder,
   discount: voucherDiscountDecoder,
