@@ -61,6 +61,7 @@ type AdminTable = {
 
 type ProductTable = {
   id: string
+  sellerId: string
   name: string
   price: number
   description: string
@@ -81,6 +82,7 @@ type CategoryTable = {
 
 export type VoucherTable = {
   id: string
+  sellerId: string
   code: string
   name: string
   discount: number
