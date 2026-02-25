@@ -14,6 +14,8 @@ import {
   unauthorised,
 } from "../Api"
 import * as UserRow from "../Database/UserRow"
+import * as SellerRow from "../Database/SellerRow"
+import * as AdminRow from "../Database/AdminRow"
 import { Method } from "../../../Core/Data/Api"
 import { AuthApi, AuthResponseJson } from "../../../Core/Data/Api/Auth"
 import { JwtPayload } from "../../../Core/App/BaseProfile/AccessToken"
@@ -28,6 +30,8 @@ export type AuthHandler<P, E, T> = (
 ) => Promise<Result<E, T>>
 
 export type AuthUser = UserRow.UserRow
+export type AuthSeller = SellerRow.SellerRow
+export type AuthAdmin = AdminRow.AdminRow
 
 export function authApi<
   ApiMethod extends Method,

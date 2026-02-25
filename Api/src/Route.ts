@@ -4,7 +4,7 @@ import { userRoutes } from "./Route/User"
 import { productRoutes } from "./Route/Product"
 import { categoryRoutes } from "./Route/Category"
 import { VoucherRoutes } from "./Route/Voucher"
-import * as Home from "./Api/Auth/Home"
+import * as Home from "./Api/Auth/User/HomeUser"
 import * as HealthCheck from "./Api/Public/HealthCheck"
 
 /**
