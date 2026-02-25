@@ -4,6 +4,8 @@ import ENV from "./Env"
 
 export type Schema = {
   user: UserTable
+  seller: SellerTable
+  admin: AdminTable
   refresh_token: RefreshTokenTable
   product: ProductTable
   productImage: ProductImageTable
@@ -18,10 +20,45 @@ type UserTable = {
   email: string
   name: string
   password: string
+  wallet: number
+  active: boolean
+  points: number
+  tier: string
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date
 }
+
+type SellerTable = {
+  id: string
+  email: string
+  name: string
+  password: string
+  wallet: number
+  active: boolean
+  shopName: string
+  verified: boolean
+  vacationMode: boolean
+  revenue: number
+  withdrawn: number
+  profit: number
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+
+type AdminTable = {
+  id: string
+  email: string
+  name: string
+  password: string
+  wallet: number
+  active: boolean
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+
 type ProductTable = {
   id: string
   name: string
@@ -31,6 +68,7 @@ type ProductTable = {
   updatedAt: Date
   createdAt: Date
 }
+
 type CategoryTable = {
   id: string
   name: string
@@ -40,12 +78,17 @@ type CategoryTable = {
   updatedAt: Date
   createdAt: Date
 }
+
 export type VoucherTable = {
   id: string
+  code: string
   name: string
-  expiryDate: Date | string
-  discountValue: number
-  minProductValue: number
+  discount: number
+  limit: number
+  usedCount: number
+  minOrderValue: number
+  active: boolean
+  expiredDate: Date | string | number
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date
@@ -76,6 +119,7 @@ type ProductImageTable = {
   updatedAt: Date
   createdAt: Date
 }
+
 type ProductCategoryTable = {
   productID: string
   categoryID: string
@@ -83,6 +127,7 @@ type ProductCategoryTable = {
   updatedAt: Date
   createdAt: Date
 }
+
 // Hacking for multiple test databases for parallel testing in Vitest
 const databaseName =
   Number(process.env.TOTAL_TEST_DB) > 0
