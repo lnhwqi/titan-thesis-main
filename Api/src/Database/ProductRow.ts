@@ -10,6 +10,7 @@ import {
   ProductID,
   productIDDecoder,
 } from "../../../Core/App/Product/ProductID"
+import { UserID, userIDDecoder } from "../../../Core/App/BaseProfile/UserID"
 import {
   createNow,
   Timestamp,
@@ -25,6 +26,7 @@ const tableName = "product"
 
 export type ProductRow = {
   id: ProductID
+  sellerId: UserID
   name: Name
   price: Price
   description: Description
@@ -34,18 +36,21 @@ export type ProductRow = {
 }
 
 export type CreateParams = {
+  sellerId: UserID
   name: Name
   price: Price
   description: Description
 }
+
 export async function create(params: CreateParams): Promise<ProductRow> {
-  const { name, price, description } = params
+  const { sellerId, name, price, description } = params
 
   const now = toDate(createNow())
   return db
     .insertInto(tableName)
     .values({
       id: createProductID().unwrap(),
+      sellerId: sellerId.unwrap(),
       name: name.unwrap(),
       price: price.unwrap(),
       description: description.unwrap(),
@@ -110,6 +115,7 @@ export type UpdateParams = {
   price: Price
   description: Description
 }
+
 export async function update(
   id: ProductID,
   params: UpdateParams,
@@ -140,6 +146,7 @@ export async function count(): Promise<Nat> {
   return db
     .selectFrom(tableName)
     .select([(b) => b.fn.count("id").as("total")])
+    .where("isDeleted", "=", false)
     .executeTakeFirst()
     .then((r) => natDecoder.verify(Number(r?.total)))
     .catch((e) => {
@@ -147,13 +154,19 @@ export async function count(): Promise<Nat> {
       throw e
     })
 }
+
 export async function searchByName(name: string): Promise<ProductRow[]> {
   return db
-    .selectFrom("product")
+    .selectFrom(tableName)
     .selectAll()
     .where("name", "ilike", `%${name}%`)
+    .where("isDeleted", "=", false)
     .execute()
-    .then((rows) => rows.map((row) => productRowDecoder.verify(row))) // <--- QUAN TRỌNG: verify để biến string thành ID Opaque
+    .then((rows) => JD.array(productRowDecoder).verify(rows))
+    .catch((e) => {
+      Logger.error(`#${tableName}.searchByName error ${e}`)
+      throw e
+    })
 }
 
 /** Exported for testing */
@@ -162,6 +175,7 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
     .insertInto(tableName)
     .values({
       id: row.id.unwrap(),
+      sellerId: row.sellerId.unwrap(),
       name: row.name.unwrap(),
       price: row.price.unwrap(),
       description: row.description.unwrap(),
@@ -180,6 +194,7 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
 
 export const productRowDecoder: JD.Decoder<ProductRow> = JD.object({
   id: productIDDecoder,
+  sellerId: userIDDecoder,
   name: nameDecoder,
   price: priceDecoder,
   description: descriptionDecoder,

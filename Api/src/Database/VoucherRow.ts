@@ -8,7 +8,8 @@ import {
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { UserID } from "../../../Core/App/BaseProfile/UserID"
+
+import { UserID, userIDDecoder } from "../../../Core/App/BaseProfile/UserID"
 import { createUUID } from "../../../Core/Data/UUID"
 
 import {
@@ -51,6 +52,7 @@ const userVoucherTable = "user_voucher"
 
 export type VoucherRow = {
   id: VoucherID
+  sellerId: UserID
   active: Active
   code: VoucherCode
   discount: VoucherDiscount
@@ -66,6 +68,7 @@ export type VoucherRow = {
 
 export const voucherRowDecoder: JD.Decoder<VoucherRow> = JD.object({
   id: voucherIDDecoder,
+  sellerId: userIDDecoder,
   active: activeDecoder,
   code: voucherCodeDecoder,
   discount: voucherDiscountDecoder,
@@ -87,6 +90,7 @@ export const voucherRowDecoder: JD.Decoder<VoucherRow> = JD.object({
 })
 
 export type CreateParams = {
+  sellerId: UserID
   code: VoucherCode
   name: VoucherName
   discount: VoucherDiscount
@@ -96,7 +100,8 @@ export type CreateParams = {
 }
 
 export async function create(params: CreateParams): Promise<VoucherRow> {
-  const { code, name, discount, limit, minOrderValue, expiredDate } = params
+  const { sellerId, code, name, discount, limit, minOrderValue, expiredDate } =
+    params
   const now = toDate(createNow())
   const newID = createVoucherID()
 
@@ -104,6 +109,7 @@ export async function create(params: CreateParams): Promise<VoucherRow> {
     .insertInto(tableName)
     .values({
       id: newID.unwrap(),
+      sellerId: sellerId.unwrap(),
       active: true,
       code: code.unwrap(),
       name: name.unwrap(),
@@ -135,6 +141,35 @@ export async function getByID(id: VoucherID): Promise<Maybe<VoucherRow>> {
     .then((row) => (row == null ? null : voucherRowDecoder.verify(row)))
     .catch((e) => {
       Logger.error(`#${tableName}.getByID error ${e}`)
+      throw e
+    })
+}
+
+export async function getByCode(code: VoucherCode): Promise<Maybe<VoucherRow>> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("code", "=", code.unwrap())
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+    .then((row) => (row == null ? null : voucherRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.getByCode error ${e}`)
+      throw e
+    })
+}
+
+export async function getBySellerID(sellerId: UserID): Promise<VoucherRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("sellerId", "=", sellerId.unwrap())
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => rows.map((row) => voucherRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.getBySellerID error ${e}`)
       throw e
     })
 }

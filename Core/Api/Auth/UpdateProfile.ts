@@ -1,5 +1,5 @@
 import * as JD from "decoders"
-import { User, userDecoder } from "../../App/BaseProfile"
+import { User, userDecoder } from "../../App/User"
 import { AuthApi, authResponseDecoder } from "../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../Data/Api"
 import { Name, nameDecoder } from "../../App/BaseProfile/Name"
