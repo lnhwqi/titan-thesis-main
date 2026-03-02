@@ -46,7 +46,6 @@ export type BodyParams = {
   minOrderValue: MinOrderValue
   limit: UsageLimit
   expiredDate: ExpiredDate
-  active: Active
 }
 
 export type ErrorCode = "VOUCHER_CODE_ALREADY_EXISTS" | "INVALID_EXPIRED_DATE"
@@ -71,7 +70,6 @@ export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   minOrderValue: minOrderValueDecoder,
   limit: usageLimitDecoder,
   expiredDate: expiredDateDecoder,
-  active: activeDecoder,
 })
 
 export const contract: Contract = {

@@ -13,6 +13,8 @@ export type Contract = AuthApi<
   Payload
 >
 
+export { NoUrlParams, noUrlParamsDecoder }
+
 export type BodyParams = {
   voucherID: VoucherID
   orderValue: number
