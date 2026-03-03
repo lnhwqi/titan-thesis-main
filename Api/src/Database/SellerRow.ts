@@ -177,3 +177,22 @@ export async function count(): Promise<Nat> {
       throw e
     })
 }
+export async function updateVerified(
+  id: UserID,
+  status: boolean,
+): Promise<Maybe<SellerRow>> {
+  return db
+    .updateTable(tableName)
+    .set({
+      verified: status,
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .returningAll()
+    .executeTakeFirst() // Trả về Row hoặc undefined thay vì throw lỗi
+    .then((row) => (row ? sellerRowDecoder.verify(row) : null))
+    .catch((e) => {
+      Logger.error(`#${tableName}.updateVerified error: ${e}`)
+      return null // Trả về null để Handler xử lý bằng if
+    })
+}

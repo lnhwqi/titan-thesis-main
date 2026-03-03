@@ -20,10 +20,10 @@ export type Contract = Api<
 >
 
 export type BodyParams = {
-  sellerID: UserID // ID của Seller mà Admin muốn duyệt
+  sellerID: UserID
 }
 
-export type ErrorCode = "SELLER_NOT_FOUND" | "ALREADY_VERIFIED" | "UNAUTHORIZED" // Nếu không phải Admin gọi
+export type ErrorCode = "SELLER_NOT_FOUND" | "ALREADY_VERIFIED" | "UNAUTHORIZED"
 
 export type Payload = {
   seller: Seller
