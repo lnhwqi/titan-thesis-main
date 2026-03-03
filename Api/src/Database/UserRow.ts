@@ -1,4 +1,7 @@
 import * as JD from "decoders"
+import db from "../Database"
+import * as Logger from "../Logger"
+import { Maybe } from "../../../Core/Data/Maybe"
 import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
 import { Name, nameDecoder } from "../../../Core/App/BaseProfile/Name"
@@ -17,10 +20,7 @@ import { Wallet, walletDecoder } from "../../../Core/App/BaseProfile/Wallet"
 import { Active, activeDecoder } from "../../../Core/App/BaseProfile/Active"
 import { Points, pointsDecoder } from "../../../Core/App/User/Points"
 import { Tier, tierDecoder } from "../../../Core/App/User/Tier"
-import db from "../Database"
-import * as Logger from "../Logger"
 import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
-import { Maybe } from "../../../Core/Data/Maybe"
 
 const tableName = "user"
 
@@ -44,10 +44,27 @@ export type CreateParams = {
   hashedPassword: Hash
 }
 
+// --- Decoder ---
+export const userRowDecoder: JD.Decoder<UserRow> = JD.object({
+  id: userIDDecoder,
+  email: emailDecoder,
+  name: nameDecoder,
+  password: JD.string,
+  wallet: walletDecoder,
+  active: activeDecoder,
+  points: pointsDecoder,
+  tier: tierDecoder,
+  isDeleted: JD.boolean,
+  updatedAt: timestampJSDateDecoder,
+  createdAt: timestampJSDateDecoder,
+})
+
+// --- Functions ---
+
 export async function create(params: CreateParams): Promise<UserRow> {
   const { email, name, hashedPassword } = params
-
   const now = toDate(createNow())
+
   return db
     .insertInto(tableName)
     .values({
@@ -72,14 +89,14 @@ export async function create(params: CreateParams): Promise<UserRow> {
     })
 }
 
-export async function getByID(userID: UserID): Promise<Maybe<UserRow>> {
+export async function getByID(id: UserID): Promise<Maybe<UserRow>> {
   return db
     .selectFrom(tableName)
     .selectAll()
-    .where("id", "=", userID.unwrap())
+    .where("id", "=", id.unwrap())
     .where("isDeleted", "=", false)
     .executeTakeFirst()
-    .then((row) => (row == null ? null : userRowDecoder.verify(row)))
+    .then((row) => (row ? userRowDecoder.verify(row) : null))
     .catch((e) => {
       Logger.error(`#${tableName}.getByID error ${e}`)
       throw e
@@ -93,97 +110,9 @@ export async function getByEmail(email: Email): Promise<Maybe<UserRow>> {
     .where("email", "=", email.unwrap())
     .where("isDeleted", "=", false)
     .executeTakeFirst()
-    .then((row) => (row == null ? null : userRowDecoder.verify(row)))
+    .then((row) => (row ? userRowDecoder.verify(row) : null))
     .catch((e) => {
       Logger.error(`#${tableName}.getByEmail error ${e}`)
       throw e
     })
 }
-
-export type UpdateParams = {
-  name: Name
-  email: Email
-  newHashedPassword: Maybe<Hash>
-}
-
-export async function update(
-  id: UserID,
-  params: UpdateParams,
-): Promise<UserRow> {
-  const { name, email, newHashedPassword } = params
-
-  const fields = {
-    name: name.unwrap(),
-    email: email.unwrap(),
-    updatedAt: toDate(createNow()),
-  }
-
-  const fieldsWithPassword =
-    newHashedPassword != null
-      ? { ...fields, password: newHashedPassword.unwrap() }
-      : fields
-
-  return db
-    .updateTable(tableName)
-    .set(fieldsWithPassword)
-    .where("id", "=", id.unwrap())
-    .returningAll()
-    .executeTakeFirstOrThrow()
-    .then(userRowDecoder.verify)
-    .catch((e) => {
-      Logger.error(`#${tableName}.update error ${e}`)
-      throw e
-    })
-}
-
-export async function count(): Promise<Nat> {
-  return db
-    .selectFrom(tableName)
-    .select([(b) => b.fn.count("id").as("total")])
-    .executeTakeFirst()
-    .then((r) => natDecoder.verify(Number(r?.total)))
-    .catch((e) => {
-      Logger.error(`#${tableName}.count error ${e}`)
-      throw e
-    })
-}
-
-/** Exported for testing */
-export async function unsafeCreate(row: UserRow): Promise<UserRow> {
-  return db
-    .insertInto(tableName)
-    .values({
-      id: row.id.unwrap(),
-      email: row.email.unwrap(),
-      name: row.name.unwrap(),
-      password: row.password,
-      wallet: row.wallet.unwrap(),
-      active: row.active.unwrap(),
-      points: row.points.unwrap(),
-      tier: row.tier.unwrap(),
-      isDeleted: row.isDeleted,
-      updatedAt: toDate(row.updatedAt),
-      createdAt: toDate(row.createdAt),
-    })
-    .returningAll()
-    .executeTakeFirstOrThrow()
-    .then(userRowDecoder.verify)
-    .catch((e) => {
-      Logger.error(`#${tableName}.unsafeCreate error ${e}`)
-      throw e
-    })
-}
-
-export const userRowDecoder: JD.Decoder<UserRow> = JD.object({
-  id: userIDDecoder,
-  email: emailDecoder,
-  name: nameDecoder,
-  password: JD.string,
-  wallet: walletDecoder,
-  active: activeDecoder,
-  points: pointsDecoder,
-  tier: tierDecoder,
-  isDeleted: JD.boolean,
-  updatedAt: timestampJSDateDecoder,
-  createdAt: timestampJSDateDecoder,
-})

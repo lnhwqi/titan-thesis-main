@@ -4,10 +4,14 @@ import { VoucherRow } from "../Database/VoucherRow"
 export function toVoucher(row: VoucherRow): Voucher {
   return {
     id: row.id,
+    sellerID: row.sellerId,
+    active: row.active,
+    code: row.code,
+    discount: row.discount,
+    expiredDate: row.expiredDate,
+    limit: row.limit,
+    minOrderValue: row.minOrderValue,
     name: row.name,
-    expiryDate: row.expiryDate,
-    discountValue: row.discountValue,
-    minProductValue: row.minProductValue,
-    isUsed: false,
+    usedCount: row.usedCount,
   }
 }

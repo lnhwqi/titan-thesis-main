@@ -1,0 +1,55 @@
+import * as API from "../../../../../Core/Api/Public/RegisterSeller"
+import { Result, ok, err } from "../../../../../Core/Data/Result"
+import * as SellerRow from "../../../Database/SellerRow"
+import * as AccessToken from "../../../App/AccessToken"
+import { toSeller } from "../../../App/Seller"
+import * as Hash from "../../../Data/Hash"
+import * as RefreshTokenRow from "../../../Database/RefreshTokenRow"
+
+export const contract = API.contract
+
+export async function handler({
+  bodyParams,
+}: {
+  bodyParams: API.BodyParams
+  urlParams: API.NoUrlParams
+}): Promise<Result<API.ErrorCode, API.Payload>> {
+  const { email, shopName, password, name } = bodyParams
+
+  const existingEmail = await SellerRow.getByEmail(email)
+  if (existingEmail != null) return err("EMAIL_ALREADY_EXISTS")
+
+  const existingShop = await SellerRow.getByShopName(shopName)
+  if (existingShop != null) return err("SHOP_NAME_TAKEN")
+
+  const hashedPassword = await Hash.issue(password.unwrap())
+  if (hashedPassword == null) {
+    throw new Error("FAILED_TO_HASH_PASSWORD")
+  }
+
+  const sellerRow = await SellerRow.create({
+    email,
+    name,
+    shopName,
+    hashedPassword,
+  })
+
+  return ok(await loginPayload(sellerRow))
+}
+
+export async function loginPayload(
+  sellerRow: SellerRow.SellerRow,
+): Promise<API.Payload> {
+  const seller = toSeller(sellerRow)
+
+  const [accessToken, refreshToken] = await Promise.all([
+    AccessToken.issue(sellerRow.id),
+    RefreshTokenRow.create(sellerRow.id),
+  ])
+
+  return {
+    seller,
+    accessToken,
+    refreshToken,
+  }
+}

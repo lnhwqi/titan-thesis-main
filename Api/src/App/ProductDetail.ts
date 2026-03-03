@@ -10,6 +10,7 @@ export function toDetailProduct(
 ): DetailProduct {
   return {
     id: productRow.id,
+    sellerID: productRow.sellerId,
     name: productRow.name,
     price: productRow.price,
     description: productRow.description,

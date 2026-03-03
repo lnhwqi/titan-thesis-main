@@ -10,10 +10,10 @@ export function toBasicProduct(
 ): BasicProduct {
   return {
     id: productRow.id,
+    sellerID: productRow.sellerId,
     name: productRow.name,
     price: productRow.price,
     url: productImageRow.url,
-
     categoryIDs: categoryRows.map((row) => row.categoryID),
   }
 }
