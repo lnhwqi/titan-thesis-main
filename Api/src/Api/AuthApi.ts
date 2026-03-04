@@ -137,3 +137,48 @@ async function verifyToken(
     })
   }
 }
+
+export const userAuthApi = <
+  M extends Method,
+  Route extends string,
+  U extends UrlRecord<Route>,
+  B,
+  E,
+  P,
+>(
+  app: Express.Express,
+  api: {
+    contract: AuthApi<AuthUser, M, Route, U, B, E, P>
+    handler: AuthHandler<AuthUser, U & B, E, P>
+  },
+) => authApi<AuthUser, M, Route, U, B, E, P>(app, api, UserRow.getByID)
+
+export const sellerAuthApi = <
+  M extends Method,
+  Route extends string,
+  U extends UrlRecord<Route>,
+  B,
+  E,
+  P,
+>(
+  app: Express.Express,
+  api: {
+    contract: AuthApi<AuthSeller, M, Route, U, B, E, P>
+    handler: AuthHandler<AuthSeller, U & B, E, P>
+  },
+) => authApi<AuthSeller, M, Route, U, B, E, P>(app, api, SellerRow.getByID)
+
+export const adminAuthApi = <
+  M extends Method,
+  Route extends string,
+  U extends UrlRecord<Route>,
+  B,
+  E,
+  P,
+>(
+  app: Express.Express,
+  api: {
+    contract: AuthApi<AuthAdmin, M, Route, U, B, E, P>
+    handler: AuthHandler<AuthAdmin, U & B, E, P>
+  },
+) => authApi<AuthAdmin, M, Route, U, B, E, P>(app, api, AdminRow.getByID)
