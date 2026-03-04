@@ -4,7 +4,7 @@ import * as LoginApi from "../Api/Public/Login"
 import * as LogoutApi from "../Api/Auth/Logout"
 import * as RD from "../../../Core/Data/RemoteData"
 import * as AuthToken from "../App/AuthToken"
-import { navigateTo, toRoute, goBack } from "../Route"
+import { toRoute, goBack } from "../Route"
 import { initAuthState, initState } from "../State/init"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 

@@ -2,7 +2,6 @@ import * as JD from "decoders"
 import { AuthApi, authResponseDecoder } from "../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 
-// Import your strict domain types and decoders
 import { Voucher, voucherDecoder } from "../../../App/Voucher"
 import {
   VoucherName,
@@ -28,7 +27,6 @@ import {
   ExpiredDate,
   expiredDateDecoder,
 } from "../../../App/Voucher/VoucherExpiredDate"
-import { Active, activeDecoder } from "../../../App/Voucher/VoucherActive"
 
 export type Contract = AuthApi<
   "POST",

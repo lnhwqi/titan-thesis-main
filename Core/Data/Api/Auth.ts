@@ -6,6 +6,7 @@ import { UrlRecord } from "../UrlToken"
  * and returns AuthResponseJson
  */
 export type AuthApi<
+  _A,
   M extends Method,
   Route extends string,
   UrlParams extends UrlRecord<Route>,

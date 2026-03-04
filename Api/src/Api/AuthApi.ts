@@ -18,14 +18,13 @@ import * as SellerRow from "../Database/SellerRow"
 import * as AdminRow from "../Database/AdminRow"
 import { Method } from "../../../Core/Data/Api"
 import { AuthApi, AuthResponseJson } from "../../../Core/Data/Api/Auth"
+
 import { JwtPayload } from "../../../Core/App/BaseProfile/AccessToken"
 import * as AccessToken from "../App/AccessToken"
+import { UserID } from "../../../Core/App/BaseProfile/UserID"
 
-/**
- * AuthHandler receives AuthUser on top of PublicHandler
- * */
-export type AuthHandler<P, E, T> = (
-  authUser: AuthUser,
+export type AuthHandler<U, P, E, T> = (
+  authUser: U,
   params: P,
 ) => Promise<Result<E, T>>
 
@@ -33,7 +32,10 @@ export type AuthUser = UserRow.UserRow
 export type AuthSeller = SellerRow.SellerRow
 export type AuthAdmin = AdminRow.AdminRow
 
+export type AuthActor = AuthAdmin | AuthSeller | AuthUser
+
 export function authApi<
+  _A extends AuthActor,
   ApiMethod extends Method,
   Route extends string,
   UrlParams extends UrlRecord<Route>,
@@ -44,6 +46,7 @@ export function authApi<
   app: Express.Express,
   api: {
     contract: AuthApi<
+      _A,
       ApiMethod,
       Route,
       UrlParams,
@@ -51,16 +54,18 @@ export function authApi<
       ErrorCode,
       Payload
     >
-    handler: AuthHandler<UrlParams & RequestBody, ErrorCode, Payload>
+    handler: AuthHandler<_A, UrlParams & RequestBody, ErrorCode, Payload>
   },
+  actorFetcher: (id: UserID) => Promise<_A | null>,
 ): void {
   const { contract, handler } = api
   const { method, route, urlDecoder, bodyDecoder } = contract
   const expressRoute = removeQuery(route)
+
   const handlerRunner = catchCallback((req, res) => {
     const paramsResult = decodeParams(req, urlDecoder, bodyDecoder)
     return paramsResult._t === "Ok"
-      ? runAuthHandler(paramsResult.value, handler, req, res)
+      ? runAuthHandler(paramsResult.value, handler, actorFetcher, req, res)
       : internalErr500(
           res,
           paramsResult.error,
@@ -87,9 +92,10 @@ export function authApi<
   }
 }
 
-async function runAuthHandler<ErrorCode, Params, Payload>(
+async function runAuthHandler<_A, ErrorCode, Params, Payload>(
   params: Params,
-  handler: AuthHandler<Params, ErrorCode, Payload>,
+  handler: AuthHandler<_A, Params, ErrorCode, Payload>,
+  actorFetcher: (id: UserID) => Promise<_A | null>,
   req: Express.Request,
   res: Express.Response<AuthResponseJson<ErrorCode, Payload>>,
 ): Promise<void> {
@@ -97,12 +103,13 @@ async function runAuthHandler<ErrorCode, Params, Payload>(
   if (jwtPayload._t === "Err") return unauthorised(res, jwtPayload.error)
 
   const { userID } = jwtPayload.value
-  const user = await UserRow.getByID(userID)
-  if (user == null) {
-    return unauthorised(res, `Invalid user with id ${userID.unwrap()}`)
+
+  const actor = await actorFetcher(userID)
+  if (actor == null) {
+    return unauthorised(res, `Invalid actor with id ${userID.unwrap()}`)
   }
 
-  return handler(user, params)
+  return handler(actor, params)
     .then((result) => {
       return result._t === "Ok"
         ? authOk200(res, result.value)

@@ -59,8 +59,18 @@ export const userRowDecoder: JD.Decoder<UserRow> = JD.object({
   createdAt: timestampJSDateDecoder,
 })
 
-// --- Functions ---
-
+export async function count(): Promise<Nat> {
+  return db
+    .selectFrom(tableName)
+    .select((b) => b.fn.count("id").as("total"))
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+    .then((r) => natDecoder.verify(Number(r?.total ?? 0)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.count error ${e}`)
+      throw e
+    })
+}
 export async function create(params: CreateParams): Promise<UserRow> {
   const { email, name, hashedPassword } = params
   const now = toDate(createNow())
@@ -113,6 +123,30 @@ export async function getByEmail(email: Email): Promise<Maybe<UserRow>> {
     .then((row) => (row ? userRowDecoder.verify(row) : null))
     .catch((e) => {
       Logger.error(`#${tableName}.getByEmail error ${e}`)
+      throw e
+    })
+}
+export async function unsafeCreate(row: UserRow): Promise<UserRow> {
+  return db
+    .insertInto(tableName)
+    .values({
+      id: row.id.unwrap(),
+      email: row.email.unwrap(),
+      name: row.name.unwrap(),
+      password: row.password, // hashed string
+      wallet: row.wallet.unwrap(),
+      active: row.active.unwrap(),
+      points: row.points.unwrap(),
+      tier: row.tier.unwrap(),
+      isDeleted: row.isDeleted,
+      updatedAt: toDate(row.updatedAt),
+      createdAt: toDate(row.createdAt),
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(userRowDecoder.verify)
+    .catch((e) => {
+      Logger.error(`#${tableName}.unsafeCreate error ${e}`)
       throw e
     })
 }
