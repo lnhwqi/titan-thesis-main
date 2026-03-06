@@ -1,13 +1,18 @@
 import * as JD from "decoders"
-import { AuthApi, authResponseDecoder } from "../../../Data/Api/Auth"
+import {
+  AuthApi,
+  authResponseDecoder,
+  AuthSeller,
+} from "../../../Data/Api/Auth"
 import { NoBodyParams, noBodyParamsDecoder } from "../../../Data/Api"
 import { VoucherID, voucherIDDecoder } from "../../../App/Voucher/VoucherID"
-
+export { NoBodyParams }
 export type UrlParams = {
   id: VoucherID
 }
 
 export type Contract = AuthApi<
+  AuthSeller,
   "DELETE",
   "/seller/voucher/:id",
   UrlParams,
@@ -16,7 +21,7 @@ export type Contract = AuthApi<
   Payload
 >
 
-export type ErrorCode = "VOUCHER_NOT_FOUND" | "VOUCHER_CANNOT_BE_DELETED" // Use this if a voucher has already been claimed and you want to block deletion
+export type ErrorCode = "VOUCHER_NOT_FOUND" | "VOUCHER_CANNOT_BE_DELETED"
 
 export type Payload = {
   id: VoucherID

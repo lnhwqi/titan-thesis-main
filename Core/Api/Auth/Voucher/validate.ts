@@ -1,10 +1,11 @@
 import * as JD from "decoders"
-import { AuthApi, authResponseDecoder } from "../../../Data/Api/Auth"
+import { AuthApi, authResponseDecoder, AuthUser } from "../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 
 import { VoucherID, voucherIDDecoder } from "../../../App/Voucher/VoucherID"
 
 export type Contract = AuthApi<
+  AuthUser,
   "POST",
   "/user/voucher/validate",
   NoUrlParams,

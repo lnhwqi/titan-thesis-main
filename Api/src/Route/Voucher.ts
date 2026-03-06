@@ -10,21 +10,19 @@ import * as revertVoucher from "../Api/Auth/Voucher/revert"
 import * as updateVoucher from "../Api/Auth/Voucher/update"
 import * as validateVoucher from "../Api/Auth/Voucher/validate"
 
-import { authApi } from "../Api/AuthApi"
-import * as UserRow from "../Database/UserRow"
-import * as SellerRow from "../Database/SellerRow"
+import { userAuthApi, sellerAuthApi } from "../Api/AuthApi"
 
 export function VoucherRoutes(app: Express): void {
-  authApi(app, applyVoucher, UserRow.getByID)
-  authApi(app, claimVoucher, UserRow.getByID)
-  authApi(app, listAvailableVoucher, UserRow.getByID)
-  authApi(app, listMineVoucher, UserRow.getByID)
-  authApi(app, revertVoucher, UserRow.getByID)
-  authApi(app, validateVoucher, UserRow.getByID)
+  userAuthApi(app, applyVoucher)
+  userAuthApi(app, claimVoucher)
+  userAuthApi(app, listAvailableVoucher)
+  userAuthApi(app, listMineVoucher)
+  userAuthApi(app, revertVoucher)
+  userAuthApi(app, validateVoucher)
 
-  //FOR SELLER
-  authApi(app, createVoucher, SellerRow.getByID)
-  authApi(app, updateVoucher, SellerRow.getByID)
-  authApi(app, deleteVoucher, SellerRow.getByID)
-  authApi(app, listVoucher, SellerRow.getByID)
+  // --- FOR SELLER ---
+  sellerAuthApi(app, createVoucher)
+  sellerAuthApi(app, updateVoucher)
+  sellerAuthApi(app, deleteVoucher)
+  sellerAuthApi(app, listVoucher)
 }

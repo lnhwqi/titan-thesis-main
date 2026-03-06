@@ -7,10 +7,9 @@ export const contract = API.contract
 
 export async function handler(
   seller: AuthSeller,
-  urlParams: API.UrlParams,
+  params: API.UrlParams & API.NoBodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { id } = urlParams
-
+  const { id } = params
   const existingVoucher = await VoucherRow.getByID(id)
 
   if (

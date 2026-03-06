@@ -48,8 +48,6 @@ import {
 const tableName = "voucher"
 const userVoucherTable = "user_voucher"
 
-// --- Types ---
-
 export type VoucherRow = {
   id: VoucherID
   sellerId: UserID
@@ -94,8 +92,6 @@ export type ApplyValidationResult =
   | { type: "MIN_VALUE_NOT_MET" }
   | { type: "ALREADY_USED" }
 
-// --- Decoder ---
-
 export const voucherRowDecoder: JD.Decoder<VoucherRow> = JD.object({
   id: voucherIDDecoder,
   sellerId: userIDDecoder,
@@ -114,8 +110,6 @@ export const voucherRowDecoder: JD.Decoder<VoucherRow> = JD.object({
   createdAt: JD.unknown.transform((v) => timestampJSDateDecoder.verify(v)),
 })
 
-// --- Internal Helpers ---
-
 const logError = (context: string, e: unknown) => {
   const msg = e instanceof Error ? e.message : String(e)
   Logger.error(`#${tableName}.${context} error: ${msg}`)
@@ -127,8 +121,6 @@ const getExpirationTime = (date: unknown): number => {
   if (typeof date === "string") return new Date(date).getTime()
   return 0
 }
-
-// --- Query Functions (SELECT) ---
 
 export async function getByID(id: VoucherID): Promise<Maybe<VoucherRow>> {
   return db
@@ -179,9 +171,6 @@ export async function getBySellerID(
     })
 }
 
-/**
- * Lấy danh sách Voucher User đang sở hữu (Trong ví)
- */
 export async function getByUserID(userId: UserID): Promise<VoucherRow[]> {
   return db
     .selectFrom(tableName)
@@ -217,8 +206,6 @@ export async function getAllAvailable(): Promise<VoucherRow[]> {
       throw e
     })
 }
-
-// --- Action Functions (INSERT / UPDATE / DELETE) ---
 
 export async function create(params: CreateParams): Promise<VoucherRow> {
   const now = toDate(createNow())
@@ -435,6 +422,23 @@ export async function softDelete(
     .then((res) => Number(res.numUpdatedRows) > 0)
     .catch((e) => {
       logError("softDelete", e)
+      throw e
+    })
+}
+export async function getByCodeAndSeller(
+  code: VoucherCode,
+  sellerId: UserID,
+): Promise<Maybe<VoucherRow>> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("code", "=", code.unwrap())
+    .where("sellerId", "=", sellerId.unwrap())
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+    .then((row) => (row ? voucherRowDecoder.verify(row) : null))
+    .catch((e) => {
+      logError("getByCodeAndSeller", e)
       throw e
     })
 }

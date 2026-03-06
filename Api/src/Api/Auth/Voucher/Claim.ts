@@ -5,18 +5,13 @@ import { AuthUser } from "../../AuthApi"
 
 export const contract = API.contract
 
-export async function handler({
-  user,
-  bodyParams,
-}: {
-  user: AuthUser
-  urlParams: API.NoUrlParams
-  bodyParams: API.BodyParams
-}): Promise<Result<API.ErrorCode, API.Payload>> {
-  const claimResult = await VoucherRow.claimVoucher(
-    user.id,
-    bodyParams.voucherID,
-  )
+export async function handler(
+  user: AuthUser,
+  params: API.NoUrlParams & API.BodyParams,
+): Promise<Result<API.ErrorCode, API.Payload>> {
+  const { voucherID } = params
+
+  const claimResult = await VoucherRow.claimVoucher(user.id, voucherID)
 
   switch (claimResult) {
     case "SUCCESS":

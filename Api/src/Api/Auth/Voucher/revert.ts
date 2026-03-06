@@ -5,15 +5,11 @@ import { AuthUser } from "../../AuthApi"
 
 export const contract = API.contract
 
-export async function handler({
-  user,
-  bodyParams,
-}: {
-  user: AuthUser
-  urlParams: API.NoUrlParams
-  bodyParams: API.BodyParams
-}): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { voucherID } = bodyParams
+export async function handler(
+  user: AuthUser,
+  params: API.NoUrlParams & API.BodyParams,
+): Promise<Result<API.ErrorCode, API.Payload>> {
+  const { voucherID } = params
 
   try {
     await VoucherRow.revertVoucher(user.id, voucherID)

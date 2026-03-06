@@ -1,5 +1,9 @@
 import * as JD from "decoders"
-import { AuthApi, authResponseDecoder } from "../../../Data/Api/Auth"
+import {
+  AuthApi,
+  authResponseDecoder,
+  AuthSeller,
+} from "../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 
 import { Voucher, voucherDecoder } from "../../../App/Voucher"
@@ -28,7 +32,10 @@ import {
   expiredDateDecoder,
 } from "../../../App/Voucher/VoucherExpiredDate"
 
+export { NoUrlParams, noUrlParamsDecoder }
+
 export type Contract = AuthApi<
+  AuthSeller,
   "POST",
   "/seller/voucher",
   NoUrlParams,

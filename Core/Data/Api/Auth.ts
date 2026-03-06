@@ -22,6 +22,9 @@ export type AuthApi<
     status: HttpStatus,
   ) => JD.Decoder<AuthResponseJson<ErrorCode, Payload>>
 }
+export type AuthUser = "USER_ROLE"
+export type AuthSeller = "SELLER_ROLE"
+export type AuthAdmin = "ADMIN_ROLE"
 
 export type AuthApiError = "UNAUTHORISED"
 export type AuthOk200<D> = { _t: "AuthOk"; data: D }

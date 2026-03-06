@@ -8,11 +8,9 @@ export const contract = API.contract
 
 export async function handler(
   seller: AuthSeller,
-  urlParams: API.UrlParams,
-  bodyParams: API.BodyParams,
+  params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { id } = urlParams
-  const { name, limit, expiredDate, active } = bodyParams
+  const { id, name, limit, expiredDate, active } = params
 
   if (expiredDate.unwrap() <= Date.now()) {
     return err("INVALID_EXPIRED_DATE")

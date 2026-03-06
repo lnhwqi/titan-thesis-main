@@ -1,5 +1,9 @@
 import * as JD from "decoders"
-import { AuthApi, authResponseDecoder } from "../../../Data/Api/Auth"
+import {
+  AuthApi,
+  authResponseDecoder,
+  AuthSeller,
+} from "../../../Data/Api/Auth"
 import { Voucher, voucherDecoder } from "../../../App/Voucher"
 import { VoucherID, voucherIDDecoder } from "../../../App/Voucher/VoucherID"
 import {
@@ -28,6 +32,7 @@ export type BodyParams = {
 }
 
 export type Contract = AuthApi<
+  AuthSeller,
   "PUT",
   "/seller/voucher/:id",
   UrlParams,

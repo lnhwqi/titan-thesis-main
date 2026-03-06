@@ -8,7 +8,7 @@ export const contract = API.contract
 
 export async function handler(
   seller: AuthSeller,
-  params: API.BodyParams,
+  params: API.NoUrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   const { name, code, discount, minOrderValue, limit, expiredDate } = params
 
@@ -16,7 +16,7 @@ export async function handler(
     return err("INVALID_EXPIRED_DATE")
   }
 
-  const existingVoucher = await VoucherRow.getByCode(code)
+  const existingVoucher = await VoucherRow.getByCodeAndSeller(code, seller.id)
   if (existingVoucher != null) {
     return err("VOUCHER_CODE_ALREADY_EXISTS")
   }

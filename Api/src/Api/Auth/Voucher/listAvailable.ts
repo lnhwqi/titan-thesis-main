@@ -6,15 +6,11 @@ import { toVoucher } from "../../../App/Voucher"
 
 export const contract = API.contract
 
-export async function handler({
-  user,
-}: {
-  user: AuthUser
-  urlParams: API.NoUrlParams
-  bodyParams: API.NoBodyParams
-}): Promise<Result<never, API.Payload>> {
+export async function handler(
+  user: AuthUser,
+  _params: API.NoUrlParams & API.NoBodyParams,
+): Promise<Result<never, API.Payload>> {
   const allAvailableRows = await VoucherRow.getAllAvailable()
-
   const myVoucherRows = await VoucherRow.getByUserID(user.id)
 
   const myVoucherIds = new Set(myVoucherRows.map((v) => v.id.unwrap()))
