@@ -8,6 +8,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
       col.notNull().references("product.id").onDelete("cascade"),
     )
     .addColumn("url", "text", (col) => col.notNull())
+    .addColumn("position", "integer", (col) => col.notNull().defaultTo(0))
     .addColumn("isDeleted", "boolean", (col) => col.notNull().defaultTo(false))
     .addColumn("createdAt", "timestamp", (col) => col.notNull())
     .addColumn("updatedAt", "timestamp", (col) => col.notNull())
