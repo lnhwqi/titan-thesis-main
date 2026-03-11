@@ -20,7 +20,6 @@ export function VoucherRoutes(app: Express): void {
   userAuthApi(app, revertVoucher)
   userAuthApi(app, validateVoucher)
 
-  // --- FOR SELLER ---
   sellerAuthApi(app, createVoucher)
   sellerAuthApi(app, updateVoucher)
   sellerAuthApi(app, deleteVoucher)

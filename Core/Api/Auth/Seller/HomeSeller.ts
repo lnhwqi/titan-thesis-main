@@ -1,6 +1,10 @@
 import * as JD from "decoders"
-import { Admin, adminDecoder } from "../../App/Admin"
-import { AuthApi, authResponseDecoder } from "../../Data/Api/Auth"
+import { Seller, sellerDecoder } from "../../../App/Seller"
+import {
+  AuthApi,
+  authResponseDecoder,
+  AuthSeller,
+} from "../../../Data/Api/Auth"
 import {
   NoBodyParams,
   noBodyParamsDecoder,
@@ -8,11 +12,12 @@ import {
   noErrorCodeDecoder,
   NoUrlParams,
   noUrlParamsDecoder,
-} from "../../Data/Api"
+} from "../../../Data/Api"
 
 export type Contract = AuthApi<
+  AuthSeller,
   "GET",
-  "/admin/dashboard",
+  "/seller/home",
   NoUrlParams,
   NoBodyParams,
   NoErrorCode,
@@ -21,18 +26,18 @@ export type Contract = AuthApi<
 
 export type BodyParams = NoBodyParams
 export type ErrorCode = NoErrorCode
-
+export type UrlParams = NoBodyParams
 export type Payload = {
-  admin: Admin
+  seller: Seller
 }
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
-  admin: adminDecoder,
+  seller: sellerDecoder,
 })
 
 export const contract: Contract = {
   method: "GET",
-  route: "/admin/dashboard",
+  route: "/seller/home",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: noBodyParamsDecoder,
   responseDecoder: authResponseDecoder(noErrorCodeDecoder, payloadDecoder),

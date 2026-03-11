@@ -3,7 +3,7 @@ import {
   contract,
   ErrorCode,
   Payload,
-} from "../../../../Core/Api/Auth/HomeUser"
+} from "../../../../Core/Api/Auth/User/HomeUser"
 
 export type { ErrorCode, Payload }
 export type Response = ApiResponse<ErrorCode, Payload>
