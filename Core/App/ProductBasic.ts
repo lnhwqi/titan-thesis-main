@@ -6,13 +6,16 @@ import { Price, priceDecoder } from "./Product/Price"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"
 import { CategoryID, categoryIDDecoder } from "./Category/CategoryID"
 
+import { ProductVariant, productVariantDecoder } from "./ProductVariant"
+
 export type BasicProduct = {
   id: ProductID
   sellerID: UserID
   name: Name
   price: Price
   url: ImageUrl
-  categoryIDs: CategoryID[]
+  categoryID: CategoryID
+  variants: ProductVariant[]
 }
 
 export const basicProductDecoder: JD.Decoder<BasicProduct> = JD.object({
@@ -21,5 +24,6 @@ export const basicProductDecoder: JD.Decoder<BasicProduct> = JD.object({
   name: nameDecoder,
   price: priceDecoder,
   url: imageUrlDecoder,
-  categoryIDs: JD.array(categoryIDDecoder),
+  categoryID: categoryIDDecoder,
+  variants: JD.array(productVariantDecoder),
 })

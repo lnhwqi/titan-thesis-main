@@ -6,8 +6,10 @@ import { Price, priceDecoder } from "./Product/Price"
 import { Description, descriptionDecoder } from "./Product/Description"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"
 import { CategoryID, categoryIDDecoder } from "./Category/CategoryID"
+import { ProductVariant, productVariantDecoder } from "./ProductVariant"
 
 export type ProductAttributes = Record<string, unknown>
+
 export const productAttributesDecoder: JD.Decoder<ProductAttributes> =
   JD.optional(JD.record(JD.unknown)).transform((val) => val ?? {})
 
@@ -20,6 +22,7 @@ export type DetailProduct = {
   urls: ImageUrl[]
   categoryID: CategoryID
   attributes: ProductAttributes
+  variants: ProductVariant[]
 }
 
 export const productDecoder: JD.Decoder<DetailProduct> = JD.object({
@@ -31,4 +34,5 @@ export const productDecoder: JD.Decoder<DetailProduct> = JD.object({
   urls: JD.array(imageUrlDecoder),
   categoryID: categoryIDDecoder,
   attributes: productAttributesDecoder,
+  variants: JD.array(productVariantDecoder),
 })
