@@ -6,100 +6,80 @@ import {
 } from "../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 
-// Các Import từ Domain Sản phẩm
-import { DetailProduct, productDecoder } from "../../../App/ProductDetail"
-import { Name, nameDecoder } from "../../../App/Product/Name"
-import { Price, priceDecoder } from "../../../App/Product/Price"
+import { Voucher, voucherDecoder } from "../../../App/Voucher"
 import {
-  Description,
-  descriptionDecoder,
-} from "../../../App/Product/Description"
-import { ImageUrl, imageUrlDecoder } from "../../../App/Product/ProductImageUrl"
-import { CategoryID, categoryIDDecoder } from "../../../App/Category/CategoryID"
+  VoucherName,
+  voucherNameDecoder,
+} from "../../../App/Voucher/VoucherName"
 import {
-  ProductAttributes,
-  productAttributesDecoder,
-} from "../../../App/ProductDetail"
+  VoucherCode,
+  voucherCodeDecoder,
+} from "../../../App/Voucher/VoucherCode"
+import {
+  VoucherDiscount,
+  voucherDiscountDecoder,
+} from "../../../App/Voucher/VoucherDiscount"
+import {
+  MinOrderValue,
+  minOrderValueDecoder,
+} from "../../../App/Voucher/VoucherMinOrderValue"
+import {
+  UsageLimit,
+  usageLimitDecoder,
+} from "../../../App/Voucher/VoucherLimit"
+import {
+  ExpiredDate,
+  expiredDateDecoder,
+} from "../../../App/Voucher/VoucherExpiredDate"
 
-// Các Import cho Variant
-import { SKU, skuDecoder } from "../../../App/ProductVariant/ProductVarirantSKU"
-import { Stock, stockDecoder } from "../../../App/ProductVariant/Stock"
-
-// Re-export theo đúng format chuẩn của bạn
 export { NoUrlParams, noUrlParamsDecoder }
 
-// 1. CONTRACT (Sử dụng AuthApi và AuthSeller)
 export type Contract = AuthApi<
   AuthSeller,
   "POST",
-  "/seller/product", // Hoặc "/seller/products" tùy convention của bạn
+  "/seller/voucher",
   NoUrlParams,
   BodyParams,
   ErrorCode,
   Payload
 >
 
-// 2. BODY PARAMS
-export type CreateVariantBody = {
-  name: Name // Dùng Value Object Name cho tên phân loại ("Đen - Size S")
-  sku: SKU // Mã SKU (Bắt buộc)
-  price: Price // Giá riêng của phân loại
-  stock: Stock // Tồn kho
-}
-
 export type BodyParams = {
-  name: Name
-  price: Price
-  description: Description
-  urls: ImageUrl[]
-  categoryID: CategoryID
-  attributes: ProductAttributes
-  variants: CreateVariantBody[] // Danh sách phân loại do Frontend gửi lên
+  name: VoucherName
+  code: VoucherCode
+  discount: VoucherDiscount
+  minOrderValue: MinOrderValue
+  limit: UsageLimit
+  expiredDate: ExpiredDate
 }
 
-// 3. ERROR CODES
-export type ErrorCode =
-  | "CATEGORY_NOT_FOUND"
-  | "SKU_ALREADY_EXISTS"
-  | "INVALID_PRODUCT_DATA"
+export type ErrorCode = "VOUCHER_CODE_ALREADY_EXISTS" | "INVALID_EXPIRED_DATE"
 
-// 4. PAYLOAD
 export type Payload = {
-  product: DetailProduct // Bọc trong object giống { voucher: Voucher }
+  voucher: Voucher
 }
 
-// 5. DECODERS
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
-  product: productDecoder,
+  voucher: voucherDecoder,
 })
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
-  "CATEGORY_NOT_FOUND",
-  "SKU_ALREADY_EXISTS",
-  "INVALID_PRODUCT_DATA",
+  "VOUCHER_CODE_ALREADY_EXISTS",
+  "INVALID_EXPIRED_DATE",
 ])
 
-export const createVariantBodyDecoder: JD.Decoder<CreateVariantBody> =
-  JD.object({
-    name: nameDecoder,
-    sku: skuDecoder,
-    price: priceDecoder,
-    stock: stockDecoder,
-  })
-
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
-  name: nameDecoder,
-  price: priceDecoder,
-  description: descriptionDecoder,
-  urls: JD.array(imageUrlDecoder),
-  categoryID: categoryIDDecoder,
-  attributes: productAttributesDecoder,
-  variants: JD.array(createVariantBodyDecoder),
+  name: voucherNameDecoder,
+  code: voucherCodeDecoder,
+  discount: voucherDiscountDecoder,
+  minOrderValue: minOrderValueDecoder,
+  limit: usageLimitDecoder,
+  expiredDate: expiredDateDecoder,
 })
 
 export const contract: Contract = {
   method: "POST",
-  route: "/seller/product",
+  route: "/seller/voucher",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
   responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),
