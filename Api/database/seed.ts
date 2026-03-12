@@ -1,7 +1,5 @@
 import ENV from "../src/Env"
-import * as User from "./Seed/User"
-import * as Product from "./Seed/Product"
-import * as Category from "./Seed/Category"
+
 // import * as Voucher from "./Seed/Voucher"
 
 export async function run(): Promise<void | never> {
@@ -10,23 +8,14 @@ export async function run(): Promise<void | never> {
 
   switch (APP_ENV) {
     case "production":
-      await User.seedProd()
-      await Product.seedProd()
-      await Category.seedProd()
       // await Voucher.seedProd()
       return
 
     case "staging":
-      await User.seedProd()
-      await Product.seedProd()
-      await Category.seedProd()
       // await Voucher.seedProd()
       return
 
     case "development":
-      await User.seedDev()
-      await Product.seedDev()
-      await Category.seedDev()
       // await Voucher.seedDev()
       return
 

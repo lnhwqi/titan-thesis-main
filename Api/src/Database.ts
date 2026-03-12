@@ -109,7 +109,8 @@ type RefreshTokenTable = {
   id: string
   previousID: string
   previousCreatedAt: Date
-  userID: string
+  actorID: string
+  actorType: "USER" | "SELLER" | "ADMIN"
   createdAt: Date
 }
 

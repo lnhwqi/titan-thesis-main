@@ -9,7 +9,7 @@ import {
   createUserID,
   UserID,
   userIDDecoder,
-} from "../../../Core/App/Admin/AdminID"
+} from "../../../Core/App/User/UserID"
 import {
   createNow,
   Timestamp,

@@ -3,9 +3,9 @@ import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
 import { Name, nameDecoder } from "../../../Core/App/Admin/Name"
 import {
-  createUserID,
-  UserID,
-  userIDDecoder,
+  createAdminID,
+  AdminID,
+  adminIDDecoder,
 } from "../../../Core/App/Admin/AdminID"
 import {
   createNow,
@@ -23,7 +23,7 @@ import { Maybe } from "../../../Core/Data/Maybe"
 const tableName = "admin"
 
 export type AdminRow = {
-  id: UserID
+  id: AdminID
   email: Email
   name: Name
   password: string // hashed password
@@ -47,7 +47,7 @@ export async function create(params: CreateParams): Promise<AdminRow> {
   return db
     .insertInto(tableName)
     .values({
-      id: createUserID().unwrap(),
+      id: createAdminID().unwrap(),
       email: email.unwrap(),
       name: name.unwrap(),
       password: hashedPassword.unwrap(),
@@ -66,7 +66,7 @@ export async function create(params: CreateParams): Promise<AdminRow> {
     })
 }
 
-export async function getByID(id: UserID): Promise<Maybe<AdminRow>> {
+export async function getByID(id: AdminID): Promise<Maybe<AdminRow>> {
   return db
     .selectFrom(tableName)
     .selectAll()
@@ -101,7 +101,7 @@ export type UpdateParams = {
 }
 
 export async function update(
-  id: UserID,
+  id: AdminID,
   params: UpdateParams,
 ): Promise<AdminRow> {
   const { name, email, newHashedPassword } = params
@@ -167,7 +167,7 @@ export async function unsafeCreate(row: AdminRow): Promise<AdminRow> {
 }
 
 export const adminRowDecoder: JD.Decoder<AdminRow> = JD.object({
-  id: userIDDecoder,
+  id: adminIDDecoder,
   email: emailDecoder,
   name: nameDecoder,
   password: JD.string,

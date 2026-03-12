@@ -10,7 +10,7 @@ import {
   ProductID,
   productIDDecoder,
 } from "../../../Core/App/Product/ProductID"
-import { UserID, userIDDecoder } from "../../../Core/App/Admin/AdminID"
+import { SellerID, sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
 import {
   createNow,
   Timestamp,
@@ -26,7 +26,7 @@ const tableName = "product"
 
 export type ProductRow = {
   id: ProductID
-  sellerId: UserID
+  sellerId: SellerID
   name: Name
   price: Price
   description: Description
@@ -36,7 +36,7 @@ export type ProductRow = {
 }
 
 export type CreateParams = {
-  sellerId: UserID
+  sellerId: SellerID
   name: Name
   price: Price
   description: Description
@@ -194,7 +194,7 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
 
 export const productRowDecoder: JD.Decoder<ProductRow> = JD.object({
   id: productIDDecoder,
-  sellerId: userIDDecoder,
+  sellerId: sellerIDDecoder,
   name: nameDecoder,
   price: priceDecoder,
   description: descriptionDecoder,

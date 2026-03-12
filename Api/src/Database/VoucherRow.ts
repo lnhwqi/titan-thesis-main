@@ -9,7 +9,10 @@ import {
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { UserID, userIDDecoder } from "../../../Core/App/Admin/AdminID"
+
+import { SellerID, sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
+import { UserID, userIDDecoder } from "../../../Core/App/User/UserID"
+
 import {
   VoucherID,
   voucherIDDecoder,
@@ -50,7 +53,7 @@ const userVoucherTable = "user_voucher"
 
 export type VoucherRow = {
   id: VoucherID
-  sellerId: UserID
+  sellerId: SellerID
   active: Active
   code: VoucherCode
   discount: VoucherDiscount
@@ -65,7 +68,7 @@ export type VoucherRow = {
 }
 
 export type CreateParams = {
-  sellerId: UserID
+  sellerId: SellerID
   code: VoucherCode
   name: VoucherName
   discount: VoucherDiscount
@@ -94,7 +97,7 @@ export type ApplyValidationResult =
 
 export const voucherRowDecoder: JD.Decoder<VoucherRow> = JD.object({
   id: voucherIDDecoder,
-  sellerId: userIDDecoder,
+  sellerId: sellerIDDecoder,
   active: activeDecoder,
   code: voucherCodeDecoder,
   discount: voucherDiscountDecoder,
@@ -106,8 +109,8 @@ export const voucherRowDecoder: JD.Decoder<VoucherRow> = JD.object({
   expiredDate: JD.unknown.transform((v) =>
     expiredDateDecoder.verify(v instanceof Date ? v.getTime() : v),
   ),
-  updatedAt: JD.unknown.transform((v) => timestampJSDateDecoder.verify(v)),
-  createdAt: JD.unknown.transform((v) => timestampJSDateDecoder.verify(v)),
+  updatedAt: JD.unknown.transform(timestampJSDateDecoder.verify),
+  createdAt: JD.unknown.transform(timestampJSDateDecoder.verify),
 })
 
 const logError = (context: string, e: unknown) => {
@@ -137,7 +140,7 @@ export async function getByID(id: VoucherID): Promise<Maybe<VoucherRow>> {
 }
 
 export async function getBySellerID(
-  sellerId: UserID,
+  sellerId: SellerID,
   filters: {
     minDiscount?: number
     maxDiscount?: number
@@ -254,8 +257,7 @@ export async function claimVoucher(
         .forUpdate()
         .executeTakeFirst()
 
-      if (!voucher) return "NOT_FOUND"
-      if (getExpirationTime(voucher.expiredDate) <= Date.now())
+      if (!voucher || getExpirationTime(voucher.expiredDate) <= Date.now())
         return "NOT_FOUND"
       if (voucher.usedCount >= voucher.limit) return "FULLY_CLAIMED"
 
@@ -279,14 +281,16 @@ export async function claimVoucher(
 
       return "SUCCESS"
     })
-  } catch (e) {
+  } catch (e: unknown) {
     if (
       typeof e === "object" &&
       e !== null &&
       "code" in e &&
       e.code === "23505"
-    )
+    ) {
       return "ALREADY_CLAIMED"
+    }
+
     logError("claimVoucher", e)
     return "SYSTEM_ERROR"
   }
@@ -305,7 +309,7 @@ export async function validateForApplying(
       `${tableName}.id`,
     )
     .selectAll(tableName)
-    .select(`${userVoucherTable}.isUsed as userHasUsed`)
+    .select(`${userVoucherTable}.isUsed`)
     .where(`${tableName}.id`, "=", voucherId.unwrap())
     .where(`${userVoucherTable}.userId`, "=", userId.unwrap())
     .where(`${tableName}.isDeleted`, "=", false)
@@ -313,7 +317,7 @@ export async function validateForApplying(
     .executeTakeFirst()
 
   if (!row) return { type: "NOT_FOUND" }
-  if (row.userHasUsed) return { type: "ALREADY_USED" }
+  if (row.isUsed) return { type: "ALREADY_USED" }
   if (getExpirationTime(row.expiredDate) <= Date.now())
     return { type: "EXPIRED" }
   if (orderValue < row.minOrderValue) return { type: "MIN_VALUE_NOT_MET" }
@@ -326,28 +330,21 @@ export async function markAsUsed(
   voucherId: VoucherID,
 ): Promise<void> {
   const now = toDate(createNow())
-  await db
-    .transaction()
-    .execute(async (trx) => {
-      const res = await trx
-        .updateTable(userVoucherTable)
-        .set({ isUsed: true, usedAt: now })
-        .where("userId", "=", userId.unwrap())
-        .where("voucherId", "=", voucherId.unwrap())
-        .where("isUsed", "=", false)
-        .executeTakeFirst()
-      if (Number(res.numUpdatedRows) === 0)
-        throw new Error("Voucher invalid or already used")
-    })
-    .catch((e) => {
-      logError("markAsUsed", e)
-      throw e
-    })
+
+  const res = await db
+    .updateTable(userVoucherTable)
+    .set({ isUsed: true, usedAt: now })
+    .where("userId", "=", userId.unwrap())
+    .where("voucherId", "=", voucherId.unwrap())
+    .where("isUsed", "=", false)
+    .executeTakeFirst()
+
+  if (Number(res.numUpdatedRows) === 0) {
+    logError("markAsUsed", "Voucher invalid or already used")
+    throw new Error("Voucher invalid or already used")
+  }
 }
 
-/**
- * Hoàn trả Voucher nếu hủy đơn hàng
- */
 export async function revertVoucher(
   userId: UserID,
   voucherId: VoucherID,
@@ -380,19 +377,23 @@ export async function revertVoucher(
 
 export async function update(
   id: VoucherID,
-  sellerId: UserID,
+  sellerId: SellerID,
   params: UpdateParams,
 ): Promise<Maybe<VoucherRow>> {
-  const now = toDate(createNow())
-  const updateData = {
-    updatedAt: now,
-    ...(params.name && { name: params.name.unwrap() }),
-    ...(params.limit && { limit: params.limit.unwrap() }),
-    ...(params.active !== undefined && { active: params.active.unwrap() }),
-    ...(params.expiredDate && {
-      expiredDate: new Date(params.expiredDate.unwrap()),
-    }),
-  }
+  const updateData: {
+    updatedAt: Date
+    name?: string
+    limit?: number
+    active?: boolean
+    expiredDate?: Date
+  } = { updatedAt: toDate(createNow()) }
+
+  if (params.name) updateData.name = params.name.unwrap()
+  if (params.limit) updateData.limit = params.limit.unwrap()
+  if (params.active !== undefined) updateData.active = params.active.unwrap()
+  if (params.expiredDate)
+    updateData.expiredDate = new Date(params.expiredDate.unwrap())
+
   return db
     .updateTable(tableName)
     .set(updateData)
@@ -410,7 +411,7 @@ export async function update(
 
 export async function softDelete(
   id: VoucherID,
-  sellerId: UserID,
+  sellerId: SellerID,
 ): Promise<boolean> {
   return db
     .updateTable(tableName)
@@ -425,9 +426,10 @@ export async function softDelete(
       throw e
     })
 }
+
 export async function getByCodeAndSeller(
   code: VoucherCode,
-  sellerId: UserID,
+  sellerId: SellerID,
 ): Promise<Maybe<VoucherRow>> {
   return db
     .selectFrom(tableName)

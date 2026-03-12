@@ -21,7 +21,7 @@ import { AuthApi, AuthResponseJson } from "../../../Core/Data/Api/Auth"
 
 import { JwtPayload } from "../../../Core/App/Admin/AccessToken"
 import * as AccessToken from "../App/AccessToken"
-import { UserID } from "../../../Core/App/Admin/AdminID"
+import { UserID } from "../../../Core/App/User/UserID"
 
 export type AuthHandler<U, P, E, T> = (
   authUser: U,

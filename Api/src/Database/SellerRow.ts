@@ -6,10 +6,10 @@ import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
 import { Name, nameDecoder } from "../../../Core/App/Admin/Name"
 import {
-  createUserID,
-  UserID,
-  userIDDecoder,
-} from "../../../Core/App/Admin/AdminID"
+  createSellerID,
+  SellerID,
+  sellerIDDecoder,
+} from "../../../Core/App/Seller/SellerID"
 import {
   createNow,
   Timestamp,
@@ -32,7 +32,7 @@ import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
 const tableName = "seller"
 
 export type SellerRow = {
-  id: UserID
+  id: SellerID
   email: Email
   name: Name
   password: string
@@ -57,7 +57,7 @@ export type CreateParams = {
 }
 
 export const sellerRowDecoder: JD.Decoder<SellerRow> = JD.object({
-  id: userIDDecoder,
+  id: sellerIDDecoder,
   email: emailDecoder,
   name: nameDecoder,
   password: JD.string,
@@ -81,7 +81,7 @@ export async function create(params: CreateParams): Promise<SellerRow> {
   return db
     .insertInto(tableName)
     .values({
-      id: createUserID().unwrap(),
+      id: createSellerID().unwrap(),
       email: email.unwrap(),
       name: name.unwrap(),
       password: hashedPassword.unwrap(),
@@ -106,7 +106,7 @@ export async function create(params: CreateParams): Promise<SellerRow> {
     })
 }
 
-export async function getByID(id: UserID): Promise<Maybe<SellerRow>> {
+export async function getByID(id: SellerID): Promise<Maybe<SellerRow>> {
   return db
     .selectFrom(tableName)
     .selectAll()
@@ -178,7 +178,7 @@ export async function count(): Promise<Nat> {
     })
 }
 export async function updateVerified(
-  id: UserID,
+  id: SellerID,
   status: boolean,
 ): Promise<Maybe<SellerRow>> {
   return db
@@ -189,10 +189,10 @@ export async function updateVerified(
     })
     .where("id", "=", id.unwrap())
     .returningAll()
-    .executeTakeFirst() // Trả về Row hoặc undefined thay vì throw lỗi
+    .executeTakeFirst()
     .then((row) => (row ? sellerRowDecoder.verify(row) : null))
     .catch((e) => {
       Logger.error(`#${tableName}.updateVerified error: ${e}`)
-      return null // Trả về null để Handler xử lý bằng if
+      return null
     })
 }
