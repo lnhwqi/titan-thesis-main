@@ -1,7 +1,7 @@
 import * as JD from "decoders"
 import { Name, nameDecoder } from "./Product/Name"
 import { ProductID, productIDDecoder } from "./Product/ProductID"
-import { UserID, userIDDecoder } from "./Admin/AdminID"
+import { SellerID, sellerIDDecoder } from "./Seller/SellerID"
 import { Price, priceDecoder } from "./Product/Price"
 import { Description, descriptionDecoder } from "./Product/Description"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"
@@ -14,7 +14,7 @@ import {
 
 export type DetailProduct = {
   id: ProductID
-  sellerID: UserID
+  sellerID: SellerID
   name: Name
   price: Price
   description: Description
@@ -26,7 +26,7 @@ export type DetailProduct = {
 
 export const productDecoder: JD.Decoder<DetailProduct> = JD.object({
   id: productIDDecoder,
-  sellerID: userIDDecoder,
+  sellerID: sellerIDDecoder,
   name: nameDecoder,
   price: priceDecoder,
   description: descriptionDecoder,

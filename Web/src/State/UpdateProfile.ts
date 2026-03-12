@@ -1,5 +1,5 @@
 import * as UpdateProfileApi from "../../../Core/Api/Auth/UpdateProfile"
-import { User } from "../../../Core/App/BaseProfile"
+import { User } from "../../../Core/App/User"
 import { createNameE, ErrorName, Name } from "../../../Core/App/Admin/Name"
 import {
   createPasswordE,

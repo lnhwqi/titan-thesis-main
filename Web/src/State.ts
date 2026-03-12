@@ -1,4 +1,4 @@
-import { User } from "../../Core/App/BaseProfile"
+import { User } from "../../Core/App/User"
 import { LoginState } from "./State/Login"
 import { ProductState } from "./State/Product"
 import { CategoryState } from "./State/Category"
