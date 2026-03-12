@@ -2,7 +2,7 @@ import { count, create } from "../../src/Database/UserRow"
 import * as Hash from "../../src/Data/Hash"
 import * as Logger from "../../src/Logger"
 import { emailDecoder } from "../../../Core/Data/User/Email"
-import { nameDecoder } from "../../../Core/App/BaseProfile/Name"
+import { nameDecoder } from "../../../Core/App/Admin/Name"
 
 type NewUserData = {
   nameStr: string

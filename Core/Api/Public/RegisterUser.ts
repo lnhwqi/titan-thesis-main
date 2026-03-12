@@ -7,12 +7,9 @@ import {
 } from "../../Data/Api"
 import { User, userDecoder } from "../../App/User"
 import { Email, emailDecoder } from "../../Data/User/Email"
-import { Password, passwordDecoder } from "../../App/BaseProfile/Password"
-import { Name, nameDecoder } from "../../App/BaseProfile/Name"
-import {
-  AccessToken,
-  accessTokenDecoder,
-} from "../../App/BaseProfile/AccessToken"
+import { Password, passwordDecoder } from "../../App/Admin/Password"
+import { Name, nameDecoder } from "../../App/Admin/Name"
+import { AccessToken, accessTokenDecoder } from "../../App/Admin/AccessToken"
 import {
   RefreshToken,
   refreshTokenDecoder,

@@ -1,14 +1,18 @@
 import * as JD from "decoders"
-import { BaseProfile } from "./BaseProfile"
-import { userIDDecoder } from "./BaseProfile/UserID"
-import { nameDecoder } from "./BaseProfile/Name"
-import { walletDecoder } from "./BaseProfile/Wallet"
-import { activeDecoder } from "./BaseProfile/Active"
-import { emailDecoder } from "../Data/User/Email"
+import { UserID, userIDDecoder } from "./User/UserID"
+import { Name, nameDecoder } from "./User/Name"
+import { Wallet, walletDecoder } from "./User/Wallet"
+import { Active, activeDecoder } from "./User/Active"
+import { Email, emailDecoder } from "../Data/User/Email"
 import { Points, pointsDecoder } from "./User/Points"
 import { Tier, tierDecoder } from "./User/Tier"
 
-export type User = BaseProfile & {
+export type User = {
+  id: UserID
+  name: Name
+  email: Email
+  wallet: Wallet
+  active: Active
   points: Points
   tier: Tier
 }

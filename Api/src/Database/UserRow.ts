@@ -4,20 +4,20 @@ import * as Logger from "../Logger"
 import { Maybe } from "../../../Core/Data/Maybe"
 import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
-import { Name, nameDecoder } from "../../../Core/App/BaseProfile/Name"
+import { Name, nameDecoder } from "../../../Core/App/Admin/Name"
 import {
   createUserID,
   UserID,
   userIDDecoder,
-} from "../../../Core/App/BaseProfile/UserID"
+} from "../../../Core/App/Admin/AdminID"
 import {
   createNow,
   Timestamp,
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { Wallet, walletDecoder } from "../../../Core/App/BaseProfile/Wallet"
-import { Active, activeDecoder } from "../../../Core/App/BaseProfile/Active"
+import { Wallet, walletDecoder } from "../../../Core/App/Admin/Wallet"
+import { Active, activeDecoder } from "../../../Core/App/Admin/Active"
 import { Points, pointsDecoder } from "../../../Core/App/User/Points"
 import { Tier, tierDecoder } from "../../../Core/App/User/Tier"
 import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"

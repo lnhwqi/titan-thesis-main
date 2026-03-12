@@ -10,7 +10,7 @@ import {
   ProductID,
   productIDDecoder,
 } from "../../../Core/App/Product/ProductID"
-import { UserID, userIDDecoder } from "../../../Core/App/BaseProfile/UserID"
+import { UserID, userIDDecoder } from "../../../Core/App/Admin/AdminID"
 import {
   createNow,
   Timestamp,

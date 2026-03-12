@@ -6,7 +6,7 @@ import {
   noUrlParamsDecoder,
 } from "../../../Data/Api"
 import { Seller, sellerDecoder } from "../../../App/Seller"
-import { UserID, userIDDecoder } from "../../../App/BaseProfile/UserID"
+import { UserID, userIDDecoder } from "../../../App/Admin/AdminID"
 
 export { NoUrlParams, noUrlParamsDecoder }
 

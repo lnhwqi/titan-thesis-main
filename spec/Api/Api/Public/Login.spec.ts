@@ -2,7 +2,7 @@ import { handler } from "../../../../Api/src/Api/Public/Login"
 import * as AccessToken from "../../../../Api/src/App/AccessToken"
 import * as RefreshTokenRow from "../../../../Api/src/Database/RefreshTokenRow"
 import { emailDecoder } from "../../../../Core/Data/User/Email"
-import { passwordDecoder } from "../../../../Core/App/BaseProfile/Password"
+import { passwordDecoder } from "../../../../Core/App/Admin/Password"
 import { toString } from "../../../../Core/Data/Security/JsonWebToken"
 import {
   _createUser,

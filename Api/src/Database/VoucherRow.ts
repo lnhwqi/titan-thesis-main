@@ -9,7 +9,7 @@ import {
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { UserID, userIDDecoder } from "../../../Core/App/BaseProfile/UserID"
+import { UserID, userIDDecoder } from "../../../Core/App/Admin/AdminID"
 import {
   VoucherID,
   voucherIDDecoder,

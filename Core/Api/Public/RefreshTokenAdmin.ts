@@ -6,15 +6,12 @@ import {
   responseDecoder,
 } from "../../Data/Api"
 import { Admin, adminDecoder } from "../../App/Admin"
-import { UserID, userIDDecoder } from "../../App/BaseProfile/UserID"
+import { UserID, userIDDecoder } from "../../App/Admin/AdminID"
 import {
   RefreshToken,
   refreshTokenDecoder,
 } from "../../Data/Security/RefreshToken"
-import {
-  AccessToken,
-  accessTokenDecoder,
-} from "../../App/BaseProfile/AccessToken"
+import { AccessToken, accessTokenDecoder } from "../../App/Admin/AccessToken"
 
 export type Contract = Api<
   "POST",

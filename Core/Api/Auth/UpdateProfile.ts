@@ -2,9 +2,9 @@ import * as JD from "decoders"
 import { User, userDecoder } from "../../App/User"
 import { AuthApi, authResponseDecoder, AuthUser } from "../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../Data/Api"
-import { Name, nameDecoder } from "../../App/BaseProfile/Name"
+import { Name, nameDecoder } from "../../App/Admin/Name"
 import { Email, emailDecoder } from "../../Data/User/Email"
-import { Password, passwordDecoder } from "../../App/BaseProfile/Password"
+import { Password, passwordDecoder } from "../../App/Admin/Password"
 import { Maybe, maybeDecoder } from "../../Data/Maybe"
 
 export type Contract = AuthApi<

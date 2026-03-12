@@ -1,6 +1,6 @@
 import * as JD from "decoders"
 import { VoucherID, voucherIDDecoder } from "./Voucher/VoucherID"
-import { UserID, userIDDecoder } from "./BaseProfile/UserID"
+import { UserID, userIDDecoder } from "./Admin/AdminID"
 import { Active, activeDecoder } from "./Voucher/VoucherActive"
 import { VoucherCode, voucherCodeDecoder } from "./Voucher/VoucherCode"
 import {

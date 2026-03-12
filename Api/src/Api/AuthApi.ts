@@ -19,9 +19,9 @@ import * as AdminRow from "../Database/AdminRow"
 import { Method } from "../../../Core/Data/Api"
 import { AuthApi, AuthResponseJson } from "../../../Core/Data/Api/Auth"
 
-import { JwtPayload } from "../../../Core/App/BaseProfile/AccessToken"
+import { JwtPayload } from "../../../Core/App/Admin/AccessToken"
 import * as AccessToken from "../App/AccessToken"
-import { UserID } from "../../../Core/App/BaseProfile/UserID"
+import { UserID } from "../../../Core/App/Admin/AdminID"
 
 export type AuthHandler<U, P, E, T> = (
   authUser: U,

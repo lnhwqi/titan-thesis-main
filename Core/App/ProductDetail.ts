@@ -1,7 +1,7 @@
 import * as JD from "decoders"
 import { Name, nameDecoder } from "./Product/Name"
 import { ProductID, productIDDecoder } from "./Product/ProductID"
-import { UserID, userIDDecoder } from "./BaseProfile/UserID"
+import { UserID, userIDDecoder } from "./Admin/AdminID"
 import { Price, priceDecoder } from "./Product/Price"
 import { Description, descriptionDecoder } from "./Product/Description"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"

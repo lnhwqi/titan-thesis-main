@@ -1,8 +1,8 @@
 import * as JD from "decoders"
-import { Name, nameDecoder } from "./BaseProfile/Name"
-import { UserID, userIDDecoder } from "./BaseProfile/UserID"
-import { Wallet, walletDecoder } from "./BaseProfile/Wallet"
-import { Active, activeDecoder } from "./BaseProfile/Active"
+import { Name, nameDecoder } from "./Admin/Name"
+import { UserID, userIDDecoder } from "./Admin/AdminID"
+import { Wallet, walletDecoder } from "./Admin/Wallet"
+import { Active, activeDecoder } from "./Admin/Active"
 import { Email, emailDecoder } from "../Data/User/Email"
 
 /** Provided as an example for App-level Type 1

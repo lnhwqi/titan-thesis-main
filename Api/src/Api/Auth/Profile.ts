@@ -1,4 +1,4 @@
-import * as API from "../../../../Core/Api/Auth/Profile"
+import * as API from "../../../../Core/Api/Auth/User/Profile"
 import { NoBodyParams } from "../../../../Core/Data/Api"
 import { Result, ok } from "../../../../Core/Data/Result"
 import { AuthUser } from "../AuthApi"
