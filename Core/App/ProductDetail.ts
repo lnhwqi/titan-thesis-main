@@ -7,11 +7,10 @@ import { Description, descriptionDecoder } from "./Product/Description"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"
 import { CategoryID, categoryIDDecoder } from "./Category/CategoryID"
 import { ProductVariant, productVariantDecoder } from "./ProductVariant"
-
-export type ProductAttributes = Record<string, unknown>
-
-export const productAttributesDecoder: JD.Decoder<ProductAttributes> =
-  JD.optional(JD.record(JD.unknown)).transform((val) => val ?? {})
+import {
+  ProductAttributes,
+  productAttributesDecoder,
+} from "./Product/Attributes"
 
 export type DetailProduct = {
   id: ProductID
