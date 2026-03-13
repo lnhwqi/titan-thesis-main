@@ -3,14 +3,14 @@ import {
   JsonWebToken,
   jsonWebTokenDecoder,
 } from "../../Data/Security/JsonWebToken"
-import { UserID, userIDDecoder } from "./SellerID"
+import { SellerID, sellerIDDecoder } from "./SellerID"
 
-export type JwtPayload = { userID: UserID }
+export type JwtPayload = { sellerID: SellerID }
 
 export type AccessToken = JsonWebToken<JwtPayload>
 
 export const jwtPayloadDecoder: JD.Decoder<JwtPayload> = JD.object({
-  userID: userIDDecoder,
+  sellerID: sellerIDDecoder,
 })
 
 export const accessTokenDecoder: JD.Decoder<AccessToken> =

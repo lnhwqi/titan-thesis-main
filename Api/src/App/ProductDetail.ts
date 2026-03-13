@@ -2,11 +2,13 @@ import { DetailProduct } from "../../../Core/App/ProductDetail"
 import { ProductRow } from "../Database/ProductRow"
 import { ProductImageRow } from "../Database/ProductImageRow"
 import { ProductCategoryRow } from "../Database/ProductCategoryRow"
+import { ProductVariant } from "../../../Core/App/ProductVariant"
 
 export function toDetailProduct(
   productRow: ProductRow,
   productImageRows: ProductImageRow[],
-  categoryRows: ProductCategoryRow[],
+  categoryRow: ProductCategoryRow,
+  variants: ProductVariant[],
 ): DetailProduct {
   return {
     id: productRow.id,
@@ -15,6 +17,8 @@ export function toDetailProduct(
     price: productRow.price,
     description: productRow.description,
     urls: productImageRows.map((imageRow) => imageRow.url),
-    categoryIDs: categoryRows.map((cateRow) => cateRow.categoryID),
+    categoryID: categoryRow.categoryID,
+    attributes: productRow.attributes,
+    variants: variants,
   }
 }

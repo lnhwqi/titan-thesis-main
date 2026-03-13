@@ -6,7 +6,7 @@ import {
   responseDecoder,
 } from "../../Data/Api"
 import { Admin, adminDecoder } from "../../App/Admin"
-import { UserID, userIDDecoder } from "../../App/Admin/AdminID"
+import { AdminID, adminIDDecoder } from "../../App/Admin/AdminID"
 import {
   RefreshToken,
   refreshTokenDecoder,
@@ -23,7 +23,7 @@ export type Contract = Api<
 >
 
 export type BodyParams = {
-  userID: UserID
+  adminID: AdminID
   refreshToken: RefreshToken
 }
 
@@ -40,7 +40,7 @@ export const contract: Contract = {
   route: "/admin/refresh-token",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: JD.object({
-    userID: userIDDecoder,
+    adminID: adminIDDecoder,
     refreshToken: refreshTokenDecoder,
   }),
   responseDecoder: responseDecoder(

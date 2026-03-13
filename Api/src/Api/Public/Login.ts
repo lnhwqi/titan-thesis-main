@@ -3,11 +3,11 @@ import { Result, err, ok } from "../../../../Core/Data/Result"
 import * as UserRow from "../../Database/UserRow"
 import * as RefreshTokenRow from "../../Database/RefreshTokenRow"
 import * as Hash from "../../Data/Hash"
-import * as AccessToken from "../../App/AccessToken"
+import * as AccessToken from "../../App/AccessTokenUser"
 import { toUser } from "../../App/User"
 
 export const contract = API.contract
-
+const actor_type: RefreshTokenRow.ActorType = "USER"
 export async function handler(
   params: API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
@@ -33,7 +33,7 @@ export async function loginPayload(
   const user = toUser(userRow)
   const [accessToken, refreshToken] = await Promise.all([
     AccessToken.issue(userRow.id),
-    RefreshTokenRow.create(userRow.id),
+    RefreshTokenRow.create(userRow.id, actor_type),
   ])
 
   return { user, accessToken, refreshToken }

@@ -6,12 +6,12 @@ import {
   responseDecoder,
 } from "../../Data/Api"
 import { Seller, sellerDecoder } from "../../App/Seller"
-import { UserID, userIDDecoder } from "../../App/Admin/AdminID"
+import { SellerID, sellerIDDecoder } from "../../App/Seller/SellerID"
 import {
   RefreshToken,
   refreshTokenDecoder,
 } from "../../Data/Security/RefreshToken"
-import { AccessToken, accessTokenDecoder } from "../../App/Admin/AccessToken"
+import { AccessToken, accessTokenDecoder } from "../../App/Seller/AccessToken"
 
 export type Contract = Api<
   "POST",
@@ -23,7 +23,7 @@ export type Contract = Api<
 >
 
 export type BodyParams = {
-  userID: UserID
+  sellerID: SellerID
   refreshToken: RefreshToken
 }
 
@@ -40,7 +40,7 @@ export const contract: Contract = {
   route: "/seller/refresh-token",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: JD.object({
-    userID: userIDDecoder,
+    sellerID: sellerIDDecoder,
     refreshToken: refreshTokenDecoder,
   }),
   responseDecoder: responseDecoder(

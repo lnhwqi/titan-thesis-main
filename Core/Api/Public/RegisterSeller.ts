@@ -7,10 +7,10 @@ import {
 } from "../../Data/Api"
 import { Seller, sellerDecoder } from "../../App/Seller"
 import { Email, emailDecoder } from "../../Data/User/Email"
-import { Password, passwordDecoder } from "../../App/Admin/Password"
-import { Name, nameDecoder } from "../../App/Admin/Name"
+import { Password, passwordDecoder } from "../../App/Seller/Password"
+import { Name, nameDecoder } from "../../App/Seller/Name"
 import { ShopName, shopNameDecoder } from "../../App/Seller/ShopName"
-import { AccessToken, accessTokenDecoder } from "../../App/Admin/AccessToken"
+import { AccessToken, accessTokenDecoder } from "../../App/Seller/AccessToken"
 import {
   RefreshToken,
   refreshTokenDecoder,

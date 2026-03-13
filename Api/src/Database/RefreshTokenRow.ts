@@ -241,3 +241,42 @@ export const rowDecoder: JD.Decoder<RefreshTokenRow> = rawRowDecoder.transform(
     createdAt: raw.createdAt,
   }),
 )
+
+export async function removeAllByUser(userID: UserID): Promise<number> {
+  return db
+    .deleteFrom(tableName)
+    .where("actorID", "=", userID.unwrap())
+    .where("actorType", "=", "USER")
+    .executeTakeFirst()
+    .then((r) => Number(r.numDeletedRows) || 0)
+    .catch((e) => {
+      Logger.error(`#${tableName}.removeAllByUser error ${e}`)
+      throw e
+    })
+}
+
+export async function removeAllBySeller(sellerID: SellerID): Promise<number> {
+  return db
+    .deleteFrom(tableName)
+    .where("actorID", "=", sellerID.unwrap())
+    .where("actorType", "=", "SELLER")
+    .executeTakeFirst()
+    .then((r) => Number(r.numDeletedRows) || 0)
+    .catch((e) => {
+      Logger.error(`#${tableName}.removeAllBySeller error ${e}`)
+      throw e
+    })
+}
+
+export async function removeAllByAdmin(adminID: AdminID): Promise<number> {
+  return db
+    .deleteFrom(tableName)
+    .where("actorID", "=", adminID.unwrap())
+    .where("actorType", "=", "ADMIN")
+    .executeTakeFirst()
+    .then((r) => Number(r.numDeletedRows) || 0)
+    .catch((e) => {
+      Logger.error(`#${tableName}.removeAllByAdmin error ${e}`)
+      throw e
+    })
+}

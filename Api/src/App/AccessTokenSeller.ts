@@ -4,11 +4,11 @@ import { jwtVerify } from "jose"
 import ENV from "../Env"
 import { Result, ok, err } from "../../../Core/Data/Result"
 import * as Logger from "../Logger"
-import { UserID } from "../../../Core/App/Admin/AdminID"
+import { SellerID } from "../../../Core/App/Seller/SellerID"
 import {
   AccessToken,
   accessTokenDecoder,
-} from "../../../Core/App/Admin/AccessToken"
+} from "../../../Core/App/Seller/AccessToken"
 
 const jwt_config = {
   // HS256 = HMAC 256-bits which is "fastest"
@@ -19,9 +19,9 @@ const jwt_config = {
   expirationTime: "1 hour",
 }
 
-export async function issue(userID: UserID): Promise<AccessToken> {
+export async function issue(sellerID: SellerID): Promise<AccessToken> {
   // Jose can only sign with JSON object
-  const payloadJSON: JD.JSONObject = { userID: userID.unwrap() }
+  const payloadJSON: JD.JSONObject = { sellerID: sellerID.unwrap() }
   const signer = new jose.SignJWT(payloadJSON)
     .setProtectedHeader({ alg: jwt_config.algorithm })
     .setExpirationTime(jwt_config.expirationTime)

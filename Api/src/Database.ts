@@ -13,6 +13,7 @@ export type Schema = {
   category: CategoryTable
   voucher: VoucherTable
   user_voucher: UserVoucherTable
+  product_variant: ProductVariantTable
 }
 
 type UserTable = {
@@ -65,6 +66,7 @@ type ProductTable = {
   name: string
   price: number
   description: string
+  attributes: Record<string, unknown>
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date
@@ -126,6 +128,17 @@ type ProductImageTable = {
 type ProductCategoryTable = {
   productID: string
   categoryID: string
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+export type ProductVariantTable = {
+  id: string
+  productId: string
+  name: string
+  sku: string
+  price: number | null
+  stock: number
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date

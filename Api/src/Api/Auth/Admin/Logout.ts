@@ -9,7 +9,7 @@ export async function handler(
   admin: AuthAdmin,
   _params: API.NoUrlParams & API.NoBodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  await RefreshTokenRow.removeAllByUser(admin.id)
+  await RefreshTokenRow.removeAllByAdmin(admin.id)
 
   return ok({})
 }

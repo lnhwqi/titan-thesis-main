@@ -1,12 +1,13 @@
 import * as API from "../../../../../Core/Api/Public/RegisterSeller"
 import { Result, ok, err } from "../../../../../Core/Data/Result"
 import * as SellerRow from "../../../Database/SellerRow"
-import * as AccessToken from "../../../App/AccessToken"
+import * as AccessToken from "../../../App/AccessTokenSeller"
 import { toSeller } from "../../../App/Seller"
 import * as Hash from "../../../Data/Hash"
 import * as RefreshTokenRow from "../../../Database/RefreshTokenRow"
 
 export const contract = API.contract
+const actor_type: RefreshTokenRow.ActorType = "SELLER"
 
 export async function handler({
   bodyParams,
@@ -44,7 +45,7 @@ export async function loginPayload(
 
   const [accessToken, refreshToken] = await Promise.all([
     AccessToken.issue(sellerRow.id),
-    RefreshTokenRow.create(sellerRow.id),
+    RefreshTokenRow.create(sellerRow.id, actor_type),
   ])
 
   return {

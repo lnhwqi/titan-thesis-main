@@ -4,7 +4,7 @@ import * as Logger from "../Logger"
 import { Maybe } from "../../../Core/Data/Maybe"
 import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
-import { Name, nameDecoder } from "../../../Core/App/Admin/Name"
+import { Name, nameDecoder } from "../../../Core/App/User/Name"
 import {
   createUserID,
   UserID,
@@ -16,8 +16,8 @@ import {
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { Wallet, walletDecoder } from "../../../Core/App/Admin/Wallet"
-import { Active, activeDecoder } from "../../../Core/App/Admin/Active"
+import { Wallet, walletDecoder } from "../../../Core/App/User/Wallet"
+import { Active, activeDecoder } from "../../../Core/App/User/Active"
 import { Points, pointsDecoder } from "../../../Core/App/User/Points"
 import { Tier, tierDecoder } from "../../../Core/App/User/Tier"
 import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
@@ -28,7 +28,7 @@ export type UserRow = {
   id: UserID
   email: Email
   name: Name
-  password: string // hashed password
+  password: string
   wallet: Wallet
   active: Active
   points: Points
@@ -44,7 +44,6 @@ export type CreateParams = {
   hashedPassword: Hash
 }
 
-// --- Decoder ---
 export const userRowDecoder: JD.Decoder<UserRow> = JD.object({
   id: userIDDecoder,
   email: emailDecoder,
@@ -133,7 +132,7 @@ export async function unsafeCreate(row: UserRow): Promise<UserRow> {
       id: row.id.unwrap(),
       email: row.email.unwrap(),
       name: row.name.unwrap(),
-      password: row.password, // hashed string
+      password: row.password,
       wallet: row.wallet.unwrap(),
       active: row.active.unwrap(),
       points: row.points.unwrap(),
@@ -147,6 +146,47 @@ export async function unsafeCreate(row: UserRow): Promise<UserRow> {
     .then(userRowDecoder.verify)
     .catch((e) => {
       Logger.error(`#${tableName}.unsafeCreate error ${e}`)
+      throw e
+    })
+}
+
+export type UpdateProfileParams = {
+  name: Name
+  email: Email
+  newHashedPassword: Hash | null
+}
+
+export async function update(
+  id: UserID,
+  params: UpdateProfileParams,
+): Promise<UserRow> {
+  const now = toDate(createNow())
+
+  const updateData: {
+    name: string
+    email: string
+    updatedAt: Date
+    password?: string
+  } = {
+    name: params.name.unwrap(),
+    email: params.email.unwrap(),
+    updatedAt: now,
+  }
+
+  if (params.newHashedPassword !== null) {
+    updateData.password = params.newHashedPassword.unwrap()
+  }
+
+  return db
+    .updateTable(tableName)
+    .set(updateData)
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(userRowDecoder.verify)
+    .catch((e) => {
+      Logger.error(`#${tableName}.update error ${e}`)
       throw e
     })
 }

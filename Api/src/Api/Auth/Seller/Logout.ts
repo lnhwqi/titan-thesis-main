@@ -9,7 +9,7 @@ export async function handler(
   seller: AuthSeller,
   _params: API.NoUrlParams & API.NoBodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  await RefreshTokenRow.removeAllByUser(seller.id)
+  await RefreshTokenRow.removeAllBySeller(seller.id)
 
   return ok({})
 }

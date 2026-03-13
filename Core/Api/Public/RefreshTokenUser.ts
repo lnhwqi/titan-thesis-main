@@ -6,12 +6,12 @@ import {
   responseDecoder,
 } from "../../Data/Api"
 import { User, userDecoder } from "../../App/User"
-import { UserID, userIDDecoder } from "../../App/Admin/AdminID"
+import { UserID, userIDDecoder } from "../../App/User/UserID"
 import {
   RefreshToken,
   refreshTokenDecoder,
 } from "../../Data/Security/RefreshToken"
-import { AccessToken, accessTokenDecoder } from "../../App/Admin/AccessToken"
+import { AccessToken, accessTokenDecoder } from "../../App/User/AccessToken"
 
 /**
  * NOTE Client-side MUST update the local user with this returned user

@@ -11,6 +11,12 @@ import {
   productIDDecoder,
 } from "../../../Core/App/Product/ProductID"
 import { SellerID, sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
+
+import {
+  ProductAttributes,
+  productAttributesDecoder,
+} from "../../../Core/App/Product/Attributes"
+
 import {
   createNow,
   Timestamp,
@@ -30,6 +36,7 @@ export type ProductRow = {
   name: Name
   price: Price
   description: Description
+  attributes: ProductAttributes
   isDeleted: boolean
   updatedAt: Timestamp
   createdAt: Timestamp
@@ -40,10 +47,11 @@ export type CreateParams = {
   name: Name
   price: Price
   description: Description
+  attributes: ProductAttributes
 }
 
 export async function create(params: CreateParams): Promise<ProductRow> {
-  const { sellerId, name, price, description } = params
+  const { sellerId, name, price, description, attributes } = params
 
   const now = toDate(createNow())
   return db
@@ -54,6 +62,9 @@ export async function create(params: CreateParams): Promise<ProductRow> {
       name: name.unwrap(),
       price: price.unwrap(),
       description: description.unwrap(),
+
+      attributes: attributes,
+
       isDeleted: false,
       createdAt: now,
       updatedAt: now,
@@ -114,18 +125,20 @@ export type UpdateParams = {
   name: Name
   price: Price
   description: Description
+  attributes: ProductAttributes
 }
 
 export async function update(
   id: ProductID,
   params: UpdateParams,
 ): Promise<ProductRow> {
-  const { name, price, description } = params
+  const { name, price, description, attributes } = params
 
   const fields = {
     name: name.unwrap(),
     price: price.unwrap(),
     description: description.unwrap(),
+    attributes: attributes,
     updatedAt: toDate(createNow()),
   }
 
@@ -179,6 +192,7 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
       name: row.name.unwrap(),
       price: row.price.unwrap(),
       description: row.description.unwrap(),
+      attributes: row.attributes,
       isDeleted: row.isDeleted,
       updatedAt: toDate(row.updatedAt),
       createdAt: toDate(row.createdAt),
@@ -198,6 +212,7 @@ export const productRowDecoder: JD.Decoder<ProductRow> = JD.object({
   name: nameDecoder,
   price: priceDecoder,
   description: descriptionDecoder,
+  attributes: productAttributesDecoder,
   isDeleted: JD.boolean,
   updatedAt: timestampJSDateDecoder,
   createdAt: timestampJSDateDecoder,

@@ -1,4 +1,4 @@
-import { handler as refreshHandler } from "../../../../Api/src/Api/Public/RefreshToken"
+import { handler as refreshHandler } from "../../../../Api/src/Api/Public/RefreshTokenUser"
 import { handler as loginHandler } from "../../../../Api/src/Api/Public/Login"
 import { createEmail } from "../../../../Core/Data/User/Email"
 import {

@@ -4,7 +4,7 @@ import * as Logger from "../Logger"
 import { Maybe } from "../../../Core/Data/Maybe"
 import { Hash } from "../Data/Hash"
 import { Email, emailDecoder } from "../../../Core/Data/User/Email"
-import { Name, nameDecoder } from "../../../Core/App/Admin/Name"
+import { Name, nameDecoder } from "../../../Core/App/Seller/Name"
 import {
   createSellerID,
   SellerID,
@@ -16,8 +16,8 @@ import {
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { Wallet, walletDecoder } from "../../../Core/App/Admin/Wallet"
-import { Active, activeDecoder } from "../../../Core/App/Admin/Active"
+import { Wallet, walletDecoder } from "../../../Core/App/Seller/Wallet"
+import { Active, activeDecoder } from "../../../Core/App/Seller/Active"
 import { ShopName, shopNameDecoder } from "../../../Core/App/Seller/ShopName"
 import { Verify, verifyDecoder } from "../../../Core/App/Seller/Verify"
 import {
