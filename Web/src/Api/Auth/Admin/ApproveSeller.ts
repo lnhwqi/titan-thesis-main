@@ -1,15 +1,10 @@
-import {
-  authApi,
-  apiErrorString,
-  ApiError,
-  ApiResponse,
-} from "../../../AuthApi"
+import { authApi, apiErrorString, ApiError, ApiResponse } from "../../AuthApi"
 import {
   contract,
   ErrorCode,
   Payload,
   BodyParams,
-} from "../../../../../../Core/Api/Auth/Voucher/revert"
+} from "../../../../../Core/Api/Auth/Admin/ApproveSeller"
 
 export type { ErrorCode, Payload, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>
@@ -23,10 +18,10 @@ export async function call(params: BodyParams): Promise<Response> {
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
-      case "VOUCHER_NOT_FOUND":
-        return "Voucher not found."
-      case "VOUCHER_NOT_USED":
-        return "Voucher has not been used."
+      case "SELLER_NOT_FOUND":
+        return "Seller not found."
+      case "ALREADY_VERIFIED":
+        return "Seller is already verified."
     }
   })
 }
