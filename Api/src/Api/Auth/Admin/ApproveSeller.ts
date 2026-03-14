@@ -25,7 +25,17 @@ export async function handler(
     return err("SELLER_NOT_FOUND")
   }
 
+  await notifySellerApproved(updatedRow)
+
   return ok({
     seller: toSeller(updatedRow),
   })
+}
+
+async function notifySellerApproved(
+  seller: SellerRow.SellerRow,
+): Promise<void> {
+  // Hook point for SMTP/email provider integration.
+  // Keep async signature so future email sending can be added without changing callers.
+  void seller
 }

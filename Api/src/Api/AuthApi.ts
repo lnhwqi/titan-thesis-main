@@ -1,7 +1,8 @@
 import * as JD from "decoders"
 import * as Express from "express"
+import { jwtVerify } from "jose"
 import { UrlRecord } from "../../../Core/Data/UrlToken"
-import { Result, err, mapOk } from "../../../Core/Data/Result"
+import { Result, err, ok } from "../../../Core/Data/Result"
 import {
   internalErr500,
   decodeParams,
@@ -17,10 +18,9 @@ import {
 import * as UserRow from "../Database/UserRow"
 import * as SellerRow from "../Database/SellerRow"
 import * as AdminRow from "../Database/AdminRow"
+import ENV from "../Env"
 import { Method } from "../../../Core/Data/Api"
 import { AuthApi, AuthResponseJson } from "../../../Core/Data/Api/Auth"
-
-import * as AccessToken from "../App/AccessTokenUser"
 
 import { userIDDecoder, UserID } from "../../../Core/App/User/UserID"
 import { sellerIDDecoder, SellerID } from "../../../Core/App/Seller/SellerID"
@@ -123,19 +123,41 @@ async function runAuthHandler<_A, _ID, ErrorCode, Params, Payload>(
     return unauthorised(res, "Invalid token payload structure")
   }
 
-  // Type Guard 2: Trích xuất ID một cách an toàn nhất (Không dùng bất kỳ chữ 'any' hay 'as' nào)
   let rawId: string | null = null
 
-  if ("actorID" in payload && typeof payload.actorID === "string") {
-    rawId = payload.actorID
-  } else if ("userID" in payload && typeof payload.userID === "string") {
-    rawId = payload.userID
-  } else if ("id" in payload && typeof payload.id === "string") {
-    rawId = payload.id
+  if ("actorID" in payload) {
+    rawId = extractActorID(payload.actorID)
+  }
+  if (rawId == null && "userID" in payload) {
+    rawId = extractActorID(payload.userID)
+  }
+  if (rawId == null && "userId" in payload) {
+    rawId = extractActorID(payload.userId)
+  }
+  if (rawId == null && "sellerID" in payload) {
+    rawId = extractActorID(payload.sellerID)
+  }
+  if (rawId == null && "sellerId" in payload) {
+    rawId = extractActorID(payload.sellerId)
+  }
+  if (rawId == null && "adminID" in payload) {
+    rawId = extractActorID(payload.adminID)
+  }
+  if (rawId == null && "adminId" in payload) {
+    rawId = extractActorID(payload.adminId)
+  }
+  if (rawId == null && "id" in payload) {
+    rawId = extractActorID(payload.id)
+  }
+  if (rawId == null && "sub" in payload) {
+    rawId = extractActorID(payload.sub)
   }
 
   if (rawId === null) {
-    return unauthorised(res, "Token is missing actor identifier")
+    return unauthorised(
+      res,
+      `Token is missing actor identifier. Payload keys: ${Object.keys(payload).join(",")}`,
+    )
   }
 
   // Ép chuỗi string từ Token thành đúng Opaque Type (UserID/SellerID/AdminID)
@@ -176,10 +198,26 @@ async function verifyToken(
     return err(`Invalid authorization header`)
   } else {
     const token = authorization.slice(7)
-    return AccessToken.verify(token).then((result) => {
-      return mapOk(result, (accessToken) => accessToken.unwrap())
-    })
+    return jwtVerify(token, new TextEncoder().encode(ENV.JWT_SECRET))
+      .then(({ payload }) => ok(payload))
+      .catch((error) => err(String(error)))
   }
+}
+
+function extractActorID(value: unknown): string | null {
+  if (typeof value === "string") {
+    return value
+  }
+
+  if (typeof value === "object" && value != null && "unwrap" in value) {
+    const maybeUnwrap = value.unwrap
+    if (typeof maybeUnwrap === "function") {
+      const unwrapped = maybeUnwrap.call(value)
+      return typeof unwrapped === "string" ? unwrapped : null
+    }
+  }
+
+  return null
 }
 
 // ---------------------------------------------------------------------------

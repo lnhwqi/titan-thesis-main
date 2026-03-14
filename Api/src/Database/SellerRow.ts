@@ -165,6 +165,21 @@ export async function getByShopName(
     })
 }
 
+export async function listPendingVerification(): Promise<SellerRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .where("verified", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => JD.array(sellerRowDecoder).verify(rows))
+    .catch((e) => {
+      Logger.error(`#${tableName}.listPendingVerification error ${e}`)
+      throw e
+    })
+}
+
 export async function searchByShopName(query: string): Promise<SellerRow[]> {
   return db
     .selectFrom(tableName)

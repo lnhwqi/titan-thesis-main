@@ -4,6 +4,7 @@ import * as Login from "../Api/Public/Admin/Login"
 import * as Logout from "../Api/Auth/Admin/Logout"
 import * as RefreshToken from "../Api/Public/RefreshTokenAdmin"
 import * as HomeAdmin from "../Api/Auth/Admin/HomeAdmin"
+import * as ListPendingSellers from "../Api/Auth/Admin/ListPendingSellers"
 import * as ApproveSeller from "../Api/Auth/Admin/ApproveSeller"
 import { adminAuthApi } from "../Api/AuthApi"
 
@@ -12,5 +13,6 @@ export function adminRoutes(app: Express): void {
   publicApi(app, RefreshToken)
   adminAuthApi(app, Logout)
   adminAuthApi(app, HomeAdmin)
+  adminAuthApi(app, ListPendingSellers)
   adminAuthApi(app, ApproveSeller)
 }

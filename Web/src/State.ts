@@ -7,12 +7,14 @@ import { Route } from "./Route"
 import { Action, Cmd } from "./Action"
 import { UpdateProfileState } from "./State/UpdateProfile"
 import { RegisterState } from "./State/Register"
+import { AdminDashboardState } from "./State/AdminDashboard"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
   route: Route
   login: LoginState
   register: RegisterState
+  adminDashboard: AdminDashboardState
   product: ProductState
   category: CategoryState
   cart: CartState
