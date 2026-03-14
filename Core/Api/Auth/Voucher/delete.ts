@@ -6,7 +6,7 @@ import {
 } from "../../../Data/Api/Auth"
 import { NoBodyParams, noBodyParamsDecoder } from "../../../Data/Api"
 import { VoucherID, voucherIDDecoder } from "../../../App/Voucher/VoucherID"
-export { NoBodyParams }
+export type { NoBodyParams }
 export type UrlParams = {
   id: VoucherID
 }

@@ -4,7 +4,8 @@ import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 import { Seller, sellerDecoder } from "../../../App/Seller"
 import { SellerID, sellerIDDecoder } from "../../../App/Seller/SellerID"
 
-export { NoUrlParams, noUrlParamsDecoder }
+export type { NoUrlParams }
+export { noUrlParamsDecoder }
 
 export type Contract = AuthApi<
   AuthAdmin,

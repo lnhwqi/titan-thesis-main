@@ -4,7 +4,7 @@ import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 
 import { VoucherID, voucherIDDecoder } from "../../../App/Voucher/VoucherID"
 
-export { NoUrlParams }
+export type { NoUrlParams }
 
 export type Contract = AuthApi<
   AuthUser,

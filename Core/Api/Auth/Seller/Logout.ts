@@ -14,7 +14,7 @@ import {
   noUrlParamsDecoder,
 } from "../../../Data/Api"
 
-export { NoUrlParams, NoBodyParams }
+export type { NoUrlParams, NoBodyParams }
 
 export type Contract = AuthApi<
   AuthSeller,

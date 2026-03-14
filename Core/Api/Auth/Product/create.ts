@@ -23,8 +23,8 @@ import {
 import { SKU, skuDecoder } from "../../../App/ProductVariant/ProductVarirantSKU"
 import { Stock, stockDecoder } from "../../../App/ProductVariant/Stock"
 
-export { NoUrlParams, noUrlParamsDecoder }
-
+export type { NoUrlParams }
+export { noUrlParamsDecoder }
 export type Contract = AuthApi<
   AuthSeller,
   "POST",

@@ -8,7 +8,8 @@ import {
 } from "../../../Data/Api"
 
 import { Voucher, voucherDecoder } from "../../../App/Voucher"
-export { NoUrlParams, noUrlParamsDecoder, NoBodyParams, noBodyParamsDecoder }
+export type { NoUrlParams, NoBodyParams }
+export { noUrlParamsDecoder, noBodyParamsDecoder }
 export type Contract = AuthApi<
   AuthUser,
   "GET",

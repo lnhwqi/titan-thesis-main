@@ -8,7 +8,8 @@ import { NoBodyParams, noBodyParamsDecoder } from "../../../Data/Api"
 
 import { ProductID, productIDDecoder } from "../../../App/Product/ProductID"
 
-export { NoBodyParams, noBodyParamsDecoder }
+export type { NoBodyParams }
+export { noBodyParamsDecoder }
 
 export type Contract = AuthApi<
   AuthSeller,

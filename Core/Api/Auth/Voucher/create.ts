@@ -32,7 +32,8 @@ import {
   expiredDateDecoder,
 } from "../../../App/Voucher/VoucherExpiredDate"
 
-export { NoUrlParams, noUrlParamsDecoder }
+export type { NoUrlParams }
+export { noUrlParamsDecoder }
 
 export type Contract = AuthApi<
   AuthSeller,
