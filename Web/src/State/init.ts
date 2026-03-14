@@ -7,6 +7,7 @@ import { User } from "../../../Core/App/User"
 import { initUpdateProfileState } from "./UpdateProfile"
 import { initCategoryState } from "./Category"
 import { initCartState } from "./Cart"
+import { initRegisterState } from "./Register"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -14,6 +15,7 @@ export function initState(route: Route): State {
     _t: token == null ? "Public" : "LoadingAuth",
     route,
     login: initLoginState(),
+    register: initRegisterState(),
     product: initProductState(),
     category: initCategoryState(),
     cart: initCartState(),

@@ -7,6 +7,9 @@ import { HomeLayout } from "./View/Layout/Home"
 import ProfilePage from "./Page/Profile"
 import NotFoundPage from "./Page/NotFound"
 import LoginPage from "./Page/Login"
+import RegisterPage from "./Page/Register"
+import AdminLoginPage from "./Page/AdminLogin"
+import AdminDashboardPage from "./Page/AdminDashboard"
 import HomePage from "./Page/Home"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
@@ -31,6 +34,27 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={NotFoundPage}
+        />
+      )
+    case "AdminLogin":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminLoginPage}
+        />
+      )
+    case "Register":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={RegisterPage}
+        />
+      )
+    case "AdminDashboard":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminDashboardPage}
         />
       )
     case "Login":

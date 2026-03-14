@@ -7,7 +7,7 @@ import * as LogoutApi from "../Api/Auth/User/Logout"
 import { ApiError } from "../Api"
 import * as RD from "../../../Core/Data/RemoteData"
 import * as AuthToken from "../App/AuthToken"
-import { toRoute, goBack } from "../Route"
+import { toRoute, goBack, navigateTo } from "../Route"
 import { initAuthState, initState } from "../State/init"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 
@@ -125,7 +125,10 @@ function onSubmitSellerResponse(response: LoginSellerApi.Response): Action {
       refreshToken,
     })
 
-    return [initState(toRoute("Home", {})), cmd()]
+    return [
+      _LoginState(state, { loginResponse: RD.notAsked() }),
+      cmd(perform(navigateTo(toRoute("Home", {})))),
+    ]
   }
 }
 
@@ -149,7 +152,10 @@ function onSubmitAdminResponse(response: LoginAdminApi.Response): Action {
       refreshToken,
     })
 
-    return [initState(toRoute("Home", {})), cmd()]
+    return [
+      _LoginState(state, { loginResponse: RD.notAsked() }),
+      cmd(perform(navigateTo(toRoute("AdminDashboard", {})))),
+    ]
   }
 }
 

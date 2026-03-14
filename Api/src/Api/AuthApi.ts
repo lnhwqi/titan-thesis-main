@@ -224,7 +224,13 @@ export const sellerAuthApi = <
   authApi<AuthSeller, SellerID, M, Route, U, B, E, P>(
     app,
     api,
-    SellerRow.getByID,
+    async (id) => {
+      const seller = await SellerRow.getByID(id)
+      if (seller == null || seller.verified.unwrap() === false) {
+        return null
+      }
+      return seller
+    },
     sellerIDDecoder,
   )
 

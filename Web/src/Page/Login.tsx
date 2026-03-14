@@ -12,6 +12,7 @@ import InputText from "../View/Form/InputText"
 import { gradient } from "../View/Theme/Keyframe"
 import Button from "../View/Form/Button"
 import { parseNotValidate } from "../State/Login"
+import { navigateTo, toRoute } from "../Route"
 
 export type Props = { state: State }
 export default function LoginPage(props: Props): JSX.Element {
@@ -66,6 +67,14 @@ export default function LoginPage(props: Props): JSX.Element {
             }}
             disabled={isSubmitting === true || loginParams == null}
           />
+
+          <button
+            type="button"
+            className={styles.registerLink}
+            onClick={() => emit(navigateTo(toRoute("Register", {})))}
+          >
+            New here? Create account
+          </button>
         </form>
       </div>
     </div>
@@ -157,5 +166,14 @@ const styles = {
   }),
   fieldLabel: css({
     ...font.regular14,
+  }),
+  registerLink: css({
+    border: "none",
+    background: "none",
+    cursor: "pointer",
+    ...font.medium14,
+    color: color.secondary500,
+    textDecoration: "underline",
+    padding: 0,
   }),
 }

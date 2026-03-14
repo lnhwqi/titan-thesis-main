@@ -6,11 +6,13 @@ import { CartState } from "./State/Cart"
 import { Route } from "./Route"
 import { Action, Cmd } from "./Action"
 import { UpdateProfileState } from "./State/UpdateProfile"
+import { RegisterState } from "./State/Register"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
   route: Route
   login: LoginState
+  register: RegisterState
   product: ProductState
   category: CategoryState
   cart: CartState

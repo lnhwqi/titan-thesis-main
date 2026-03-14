@@ -6,11 +6,11 @@ import * as Register from "../Api/Public/Seller/Register"
 import * as Logout from "../Api/Auth/Seller/Logout"
 import * as Profile from "../Api/Auth/Seller/Profile"
 import * as UpdateProfile from "../Api/Auth/Seller/UpdateSellerShop"
-import * as RefreshToken from "../Api/Public/RefreshTokenUser"
+import * as RefreshToken from "../Api/Public/RefreshTokenSeller"
 import * as HomeSeller from "../Api/Auth/Seller/HomeSeller"
 import { sellerAuthApi } from "../Api/AuthApi"
 
-export function userRoutes(app: Express): void {
+export function sellerRoutes(app: Express): void {
   publicApi(app, Login)
   publicApi(app, Register)
   publicApi(app, RefreshToken)

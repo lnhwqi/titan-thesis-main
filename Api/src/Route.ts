@@ -1,5 +1,7 @@
 import { Express } from "express"
 import { userRoutes } from "./Route/User"
+import { sellerRoutes } from "./Route/Seller"
+import { adminRoutes } from "./Route/Admin"
 import { productRoutes } from "./Route/Product"
 import { categoryRoutes } from "./Route/Category"
 import { voucherRoute } from "./Route/Voucher"
@@ -25,6 +27,8 @@ export function routes(app: Express): void {
   })
 
   userRoutes(app)
+  sellerRoutes(app)
+  adminRoutes(app)
   productRoutes(app)
   categoryRoutes(app)
   voucherRoute(app)

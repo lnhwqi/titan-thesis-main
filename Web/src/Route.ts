@@ -8,6 +8,13 @@ import type { State } from "./State"
 export type Route =
   | { _t: "Home"; path: "/"; params: NoParams }
   | { _t: "NotFound"; path: "/not-found"; params: NoParams }
+  | { _t: "Register"; path: "/register"; params: NoParams }
+  | { _t: "AdminLogin"; path: "/admin/login"; params: NoParams }
+  | {
+      _t: "AdminDashboard"
+      path: "/admin/dashboard"
+      params: NoParams
+    }
   | {
       _t: "Login"
       path: "/login?redirect=:redirect"
@@ -49,6 +56,30 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("NotFound"),
       path: JD.always("/not-found"),
+      params: JD.object({}),
+    }),
+  },
+  Register: {
+    path: "/register",
+    decoder: JD.object({
+      _t: JD.always("Register"),
+      path: JD.always("/register"),
+      params: JD.object({}),
+    }),
+  },
+  AdminLogin: {
+    path: "/admin/login",
+    decoder: JD.object({
+      _t: JD.always("AdminLogin"),
+      path: JD.always("/admin/login"),
+      params: JD.object({}),
+    }),
+  },
+  AdminDashboard: {
+    path: "/admin/dashboard",
+    decoder: JD.object({
+      _t: JD.always("AdminDashboard"),
+      path: JD.always("/admin/dashboard"),
       params: JD.object({}),
     }),
   },

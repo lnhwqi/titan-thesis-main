@@ -24,6 +24,10 @@ export async function handler(
   )
   if (isValidPassword === false) return err("INVALID_PASSWORD")
 
+  if (sellerRow.verified.unwrap() === false) {
+    return err("ACCOUNT_BANNED")
+  }
+
   return ok(await loginPayload(sellerRow))
 }
 
