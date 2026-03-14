@@ -5,6 +5,9 @@ import * as RegisterSellerApi from "../Api/Public/RegisterSeller"
 import * as AuthToken from "../App/AuthToken"
 import { navigateTo, toRoute } from "../Route"
 
+const sellerPendingApprovalMessage =
+  "Seller account created. Please wait for admin approval before using seller features. Please check your email for updates."
+
 export function onChangeRole(role: RegisterRole): Action {
   return (state) => [
     _RegisterState(state, {
@@ -64,6 +67,10 @@ export function onSubmit(): Action {
   }
 }
 
+export function clearStatus(): Action {
+  return (state) => [_RegisterState(state, { status: { _t: "Idle" } }), cmd()]
+}
+
 async function submit(register: {
   role: RegisterRole
   name: string
@@ -118,14 +125,16 @@ async function submit(register: {
 
   return (_state) => [
     _RegisterState(_state, {
+      name: "",
+      email: "",
       password: "",
+      shopName: "",
       status: {
         _t: "Success",
-        message:
-          "Seller account created. Waiting for admin approval before seller features are enabled.",
+        message: sellerPendingApprovalMessage,
       },
     }),
-    cmd(),
+    cmd(perform(navigateTo(toRoute("Home", {})))),
   ]
 }
 

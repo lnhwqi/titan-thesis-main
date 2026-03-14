@@ -29,11 +29,12 @@ import { Withdrawn, withdrawnDecoder } from "../../../Core/App/Seller/Withdrawn"
 import { Profit, profitDecoder } from "../../../Core/App/Seller/Profit"
 import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
 import {
+  createDescription,
   Description,
-  descriptionDecoder,
 } from "../../../Core/App/Seller/ShopDescription"
 
 const tableName = "seller"
+const defaultShopDescription = "No shop description yet"
 
 export type SellerRow = {
   id: SellerID
@@ -69,7 +70,14 @@ export const sellerRowDecoder: JD.Decoder<SellerRow> = JD.object({
   wallet: walletDecoder,
   active: activeDecoder,
   shopName: shopNameDecoder,
-  shopDescription: descriptionDecoder,
+  shopDescription: JD.string.transform((s) => {
+    const normalized = s.trim() === "" ? defaultShopDescription : s
+    const description = createDescription(normalized)
+    if (description == null) {
+      throw new Error("INVALID_SHOP_DESCRIPTION")
+    }
+    return description
+  }),
   verified: verifyDecoder,
   vacationMode: vacationModeDecoder,
   revenue: revenueDecoder,
@@ -94,7 +102,7 @@ export async function create(params: CreateParams): Promise<SellerRow> {
       wallet: 0,
       active: true,
       shopName: shopName.unwrap(),
-      shopDescription: "",
+      shopDescription: defaultShopDescription,
       verified: false,
       vacationMode: false,
       revenue: 0,
