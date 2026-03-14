@@ -75,6 +75,23 @@ export default function LoginPage(props: Props): JSX.Element {
           >
             New here? Create account
           </button>
+
+          <div className={styles.altLoginLinks}>
+            <button
+              type="button"
+              className={styles.registerLink}
+              onClick={() => emit(navigateTo(toRoute("SellerLogin", {})))}
+            >
+              Seller login
+            </button>
+            <button
+              type="button"
+              className={styles.registerLink}
+              onClick={() => emit(navigateTo(toRoute("AdminLogin", {})))}
+            >
+              Admin login
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -175,5 +192,11 @@ const styles = {
     color: color.secondary500,
     textDecoration: "underline",
     padding: 0,
+  }),
+  altLoginLinks: css({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: theme.s1,
   }),
 }

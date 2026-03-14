@@ -10,6 +10,7 @@ export type Route =
   | { _t: "NotFound"; path: "/not-found"; params: NoParams }
   | { _t: "Register"; path: "/register"; params: NoParams }
   | { _t: "AdminLogin"; path: "/admin/login"; params: NoParams }
+  | { _t: "SellerLogin"; path: "/seller/login"; params: NoParams }
   | {
       _t: "AdminDashboard"
       path: "/admin/dashboard"
@@ -72,6 +73,14 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("AdminLogin"),
       path: JD.always("/admin/login"),
+      params: JD.object({}),
+    }),
+  },
+  SellerLogin: {
+    path: "/seller/login",
+    decoder: JD.object({
+      _t: JD.always("SellerLogin"),
+      path: JD.always("/seller/login"),
       params: JD.object({}),
     }),
   },

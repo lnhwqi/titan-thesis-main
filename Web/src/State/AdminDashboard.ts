@@ -9,6 +9,7 @@ export type AdminDashboardState = {
     ListPendingSellersApi.Payload
   >
   approvingSellerIDs: string[]
+  sendingVerifyEmailSellerIDs: string[]
   flashMessage: string | null
 }
 
@@ -16,6 +17,7 @@ export function initAdminDashboardState(): AdminDashboardState {
   return {
     pendingSellersResponse: RD.notAsked(),
     approvingSellerIDs: [],
+    sendingVerifyEmailSellerIDs: [],
     flashMessage: null,
   }
 }

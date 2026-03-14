@@ -100,7 +100,7 @@ export async function create(params: CreateParams): Promise<SellerRow> {
       name: name.unwrap(),
       password: hashedPassword.unwrap(),
       wallet: 0,
-      active: true,
+      active: false,
       shopName: shopName.unwrap(),
       shopDescription: defaultShopDescription,
       verified: false,
@@ -223,6 +223,25 @@ export async function updateVerified(
     .then((row) => (row ? sellerRowDecoder.verify(row) : null))
     .catch((e) => {
       Logger.error(`#${tableName}.updateVerified error: ${e}`)
+      return null
+    })
+}
+
+export async function approveSeller(id: SellerID): Promise<Maybe<SellerRow>> {
+  return db
+    .updateTable(tableName)
+    .set({
+      verified: true,
+      active: true,
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) => (row == null ? null : sellerRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.approveSeller error: ${e}`)
       return null
     })
 }

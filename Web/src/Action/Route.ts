@@ -14,6 +14,7 @@ export function onUrlChange(s: State): [State, Cmd] {
   switch (route._t) {
     case "Home":
     case "AdminLogin":
+    case "SellerLogin":
     case "Register":
     case "Login":
     case "NotFound":

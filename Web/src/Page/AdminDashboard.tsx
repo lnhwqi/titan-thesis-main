@@ -16,6 +16,7 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
   const isAdmin = auth != null && auth.role === "ADMIN"
   const pending = state.adminDashboard.pendingSellersResponse
   const approving = state.adminDashboard.approvingSellerIDs
+  const sendingVerifyEmail = state.adminDashboard.sendingVerifyEmailSellerIDs
   const flashMessage = state.adminDashboard.flashMessage
 
   if (!isAdmin) {
@@ -81,7 +82,7 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
             Refresh queue
           </button>
 
-          {renderPendingSellers(pending, approving)}
+          {renderPendingSellers(pending, approving, sendingVerifyEmail)}
         </article>
 
         <article className={styles.card}>
@@ -286,6 +287,7 @@ const styles = {
 function renderPendingSellers(
   pending: State["adminDashboard"]["pendingSellersResponse"],
   approving: string[],
+  sendingVerifyEmail: string[],
 ): JSX.Element {
   switch (pending._t) {
     case "NotAsked":
@@ -293,10 +295,16 @@ function renderPendingSellers(
     case "Loading":
       return <div className={styles.sellerMeta}>Loading pending sellers...</div>
     case "Failure":
-      return <div className={styles.sellerMeta}>Failed to load pending sellers.</div>
+      return (
+        <div className={styles.sellerMeta}>Failed to load pending sellers.</div>
+      )
     case "Success": {
       if (pending.data.sellers.length === 0) {
-        return <div className={styles.sellerMeta}>No sellers waiting for approval.</div>
+        return (
+          <div className={styles.sellerMeta}>
+            No sellers waiting for approval.
+          </div>
+        )
       }
 
       return (
@@ -304,17 +312,40 @@ function renderPendingSellers(
           {pending.data.sellers.map((seller) => {
             const id = seller.id.unwrap()
             const isApproving = approving.includes(id)
+            const isSendingVerifyEmail = sendingVerifyEmail.includes(id)
             return (
-              <div key={id} className={styles.sellerItem}>
+              <div
+                key={id}
+                className={styles.sellerItem}
+              >
                 <strong>{seller.shopName.unwrap()}</strong>
-                <div className={styles.sellerMeta}>Owner: {seller.name.unwrap()}</div>
-                <div className={styles.sellerMeta}>Email: {seller.email.unwrap()}</div>
+                <div className={styles.sellerMeta}>
+                  Owner: {seller.name.unwrap()}
+                </div>
+                <div className={styles.sellerMeta}>
+                  Email: {seller.email.unwrap()}
+                </div>
+                <button
+                  className={`${styles.sellerItemAction} ${
+                    isSendingVerifyEmail ? styles.sellerItemActionDisabled : ""
+                  }`}
+                  disabled={isSendingVerifyEmail}
+                  onClick={() =>
+                    emit(AdminDashboardAction.sendVerifyEmail(seller.id))
+                  }
+                >
+                  {isSendingVerifyEmail
+                    ? "Sending verify email..."
+                    : "Send Verify Email"}
+                </button>
                 <button
                   className={`${styles.sellerItemAction} ${
                     isApproving ? styles.sellerItemActionDisabled : ""
                   }`}
                   disabled={isApproving}
-                  onClick={() => emit(AdminDashboardAction.approveSeller(seller.id))}
+                  onClick={() =>
+                    emit(AdminDashboardAction.approveSeller(seller.id))
+                  }
                 >
                   {isApproving ? "Approving..." : "Approve Seller"}
                 </button>
