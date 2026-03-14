@@ -1,7 +1,10 @@
 import { Action, cmd, perform } from "../Action"
 import { _LoginState } from "../State/Login"
 import * as LoginApi from "../Api/Public/LoginUser"
+import * as LoginSellerApi from "../Api/Public/LoginSeller"
+import * as LoginAdminApi from "../Api/Public/LoginAdmin"
 import * as LogoutApi from "../Api/Auth/User/Logout"
+import { ApiError } from "../Api"
 import * as RD from "../../../Core/Data/RemoteData"
 import * as AuthToken from "../App/AuthToken"
 import { toRoute, goBack } from "../Route"
@@ -51,6 +54,24 @@ export function onSubmit(params: LoginApi.BodyParams): Action {
   }
 }
 
+export function onSubmitSeller(params: LoginSellerApi.BodyParams): Action {
+  return (state) => {
+    return [
+      _LoginState(state, { loginResponse: RD.loading() }),
+      cmd(LoginSellerApi.call(params).then(onSubmitSellerResponse)),
+    ]
+  }
+}
+
+export function onSubmitAdmin(params: LoginAdminApi.BodyParams): Action {
+  return (state) => {
+    return [
+      _LoginState(state, { loginResponse: RD.loading() }),
+      cmd(LoginAdminApi.call(params).then(onSubmitAdminResponse)),
+    ]
+  }
+}
+
 export function onSubmitResponse(response: LoginApi.Response): Action {
   return (state) => {
     if (response._t === "Err") {
@@ -65,6 +86,7 @@ export function onSubmitResponse(response: LoginApi.Response): Action {
     const { user, accessToken, refreshToken } = response.value
 
     AuthToken.set({
+      role: "USER",
       userID: user.id,
       accessToken,
       refreshToken,
@@ -81,4 +103,56 @@ export function onSubmitResponse(response: LoginApi.Response): Action {
 
     return [nextState, navigateCmd]
   }
+}
+
+function onSubmitSellerResponse(response: LoginSellerApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _LoginState(state, {
+          loginResponse: RD.failure(normalizeLoginError(response.error)),
+        }),
+        cmd(),
+      ]
+    }
+
+    const { seller, accessToken, refreshToken } = response.value
+
+    AuthToken.set({
+      role: "SELLER",
+      sellerID: seller.id,
+      accessToken,
+      refreshToken,
+    })
+
+    return [initState(toRoute("Home", {})), cmd()]
+  }
+}
+
+function onSubmitAdminResponse(response: LoginAdminApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _LoginState(state, {
+          loginResponse: RD.failure(normalizeLoginError(response.error)),
+        }),
+        cmd(),
+      ]
+    }
+
+    const { admin, accessToken, refreshToken } = response.value
+
+    AuthToken.set({
+      role: "ADMIN",
+      adminID: admin.id,
+      accessToken,
+      refreshToken,
+    })
+
+    return [initState(toRoute("Home", {})), cmd()]
+  }
+}
+
+function normalizeLoginError(_error: unknown): ApiError<LoginApi.ErrorCode> {
+  return "UNAUTHORISED"
 }

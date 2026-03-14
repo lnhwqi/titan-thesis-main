@@ -22,10 +22,10 @@ export function ProductCard(props: Props): JSX.Element {
       return state.product.currentCategoryTree.name.unwrap()
     }
 
-    const firstCatId = product.categoryIDs[0]
-    if (firstCatId && treeResponse._t === "Success") {
+    const categoryId = product.categoryID
+    if (categoryId != null && treeResponse._t === "Success") {
       const found = treeResponse.data.find(
-        (c) => c.id.unwrap() === firstCatId.unwrap(),
+        (c) => c.id.unwrap() === categoryId.unwrap(),
       )
       if (found) return found.name.unwrap()
     }

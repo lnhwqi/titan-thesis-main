@@ -1,4 +1,6 @@
-import { contract } from "../../../../Core/Api/Public/RefreshTokenUser"
+import * as RefreshTokenUser from "../../../../Core/Api/Public/RefreshTokenUser"
+import * as RefreshTokenSeller from "../../../../Core/Api/Public/RefreshTokenSeller"
+import * as RefreshTokenAdmin from "../../../../Core/Api/Public/RefreshTokenAdmin"
 import { Result, err, ok } from "../../../../Core/Data/Result"
 import { Nat900 } from "../../../../Core/Data/Number/Nat"
 import * as Queue from "../../../../Core/Data/Queue/AggregateQueue"
@@ -33,41 +35,109 @@ export async function _requestNewAccessToken(): Promise<
   const authToken = AuthToken.get()
   if (authToken == null) return err("MISSING_AUTH_TOKEN")
 
-  const { accessToken } = authToken
-  if (expiringWithin(Nat900, accessToken) === false) {
-    return ok(authToken)
+  switch (authToken.role) {
+    case "USER": {
+      if (expiringWithin(Nat900, authToken.accessToken) === false) {
+        return ok(authToken)
+      }
+
+      const response = await publicApi(
+        RefreshTokenUser.contract,
+        {},
+        {
+          userID: authToken.userID,
+          refreshToken: authToken.refreshToken,
+        },
+      )
+
+      if (response._t === "Err") {
+        return onRefreshError(response.error)
+      }
+
+      const newAuthToken: AuthToken.UserAuthToken = {
+        role: "USER",
+        userID: authToken.userID,
+        accessToken: response.value.accessToken,
+        refreshToken: response.value.refreshToken,
+      }
+
+      AuthToken.set(newAuthToken)
+      return ok(newAuthToken)
+    }
+
+    case "SELLER": {
+      if (expiringWithin(Nat900, authToken.accessToken) === false) {
+        return ok(authToken)
+      }
+
+      const response = await publicApi(
+        RefreshTokenSeller.contract,
+        {},
+        {
+          sellerID: authToken.sellerID,
+          refreshToken: authToken.refreshToken,
+        },
+      )
+
+      if (response._t === "Err") {
+        return onRefreshError(response.error)
+      }
+
+      const newAuthToken: AuthToken.SellerAuthToken = {
+        role: "SELLER",
+        sellerID: authToken.sellerID,
+        accessToken: response.value.accessToken,
+        refreshToken: response.value.refreshToken,
+      }
+
+      AuthToken.set(newAuthToken)
+      return ok(newAuthToken)
+    }
+
+    case "ADMIN": {
+      if (expiringWithin(Nat900, authToken.accessToken) === false) {
+        return ok(authToken)
+      }
+
+      const response = await publicApi(
+        RefreshTokenAdmin.contract,
+        {},
+        {
+          adminID: authToken.adminID,
+          refreshToken: authToken.refreshToken,
+        },
+      )
+
+      if (response._t === "Err") {
+        return onRefreshError(response.error)
+      }
+
+      const newAuthToken: AuthToken.AdminAuthToken = {
+        role: "ADMIN",
+        adminID: authToken.adminID,
+        accessToken: response.value.accessToken,
+        refreshToken: response.value.refreshToken,
+      }
+
+      AuthToken.set(newAuthToken)
+      return ok(newAuthToken)
+    }
   }
+}
 
-  const response = await publicApi(
-    contract,
-    {},
-    {
-      userID: authToken.userID,
-      refreshToken: authToken.refreshToken,
-    },
-  )
-
-  if (response._t === "Err") {
-    switch (response.error) {
-      case "PAYLOAD_TOO_LARGE":
-      case "UNAUTHORISED":
-      case "INVALID":
-        AuthToken.remove()
-        return err("INVALID")
-      case "SERVER_ERROR":
-      case "DECODE_ERROR":
-        return err("SERVER_ERROR")
-      case "NETWORK_ERROR":
-        return err("NETWORK_ERROR")
-    }
-  } else {
-    const newAuthToken = {
-      userID: authToken.userID,
-      accessToken: response.value.accessToken,
-      refreshToken: response.value.refreshToken,
-    }
-
-    AuthToken.set(newAuthToken)
-    return ok(newAuthToken)
+function onRefreshError(error: string): Result<ErrorCode, AuthToken.AuthToken> {
+  switch (error) {
+    case "PAYLOAD_TOO_LARGE":
+    case "UNAUTHORISED":
+    case "INVALID":
+      AuthToken.remove()
+      return err("INVALID")
+    case "SERVER_ERROR":
+    case "DECODE_ERROR":
+      return err("SERVER_ERROR")
+    case "NETWORK_ERROR":
+      return err("NETWORK_ERROR")
+    default:
+      return err("SERVER_ERROR")
   }
 }

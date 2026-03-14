@@ -9,7 +9,7 @@ import {
 import { State } from "../../State"
 import { localImage } from "../ImageLocalSrc"
 import Link from "../Link"
-import { toRoute } from "../../Route"
+import { navigateTo, toPath, toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as LoginAction from "../../Action/Login"
@@ -118,13 +118,13 @@ export default function Header(props: Props): JSX.Element {
           className={styles.iconItem}
           onClick={() => {
             if (state._t !== "AuthUser") {
-              const currentPath = window.location.pathname
-              window.history.pushState(
-                {},
-                "",
-                `/login?redirect=${encodeURIComponent(currentPath)}`,
+              emit(
+                navigateTo(
+                  toRoute("Login", {
+                    redirect: toPath(state.route),
+                  }),
+                ),
               )
-              window.dispatchEvent(new PopStateEvent("popstate"))
             }
           }}
         >
