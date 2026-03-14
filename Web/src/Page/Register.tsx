@@ -30,13 +30,21 @@ export default function RegisterPage(props: Props): JSX.Element {
 
         <div className={styles.roleToggle}>
           <button
-            className={register.role === "USER" ? styles.roleButtonActive : styles.roleButton}
+            className={
+              register.role === "USER"
+                ? styles.roleButtonActive
+                : styles.roleButton
+            }
             onClick={() => emit(RegisterAction.onChangeRole("USER"))}
           >
             User
           </button>
           <button
-            className={register.role === "SELLER" ? styles.roleButtonActive : styles.roleButton}
+            className={
+              register.role === "SELLER"
+                ? styles.roleButtonActive
+                : styles.roleButton
+            }
             onClick={() => emit(RegisterAction.onChangeRole("SELLER"))}
           >
             Seller
@@ -99,8 +107,8 @@ export default function RegisterPage(props: Props): JSX.Element {
               isLoading
                 ? "Submitting..."
                 : isSeller
-                ? "Register Seller"
-                : "Register User"
+                  ? "Register Seller"
+                  : "Register User"
             }
             onClick={() => emit(RegisterAction.onSubmit())}
             disabled={isLoading || canSubmit === false}
