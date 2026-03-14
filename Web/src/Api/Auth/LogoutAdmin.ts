@@ -1,5 +1,9 @@
 import { authApi, apiErrorString, ApiError, ApiResponse } from "../AuthApi"
-import { contract, ErrorCode, Payload } from "../../../../Core/Api/Auth/Logout"
+import {
+  contract,
+  ErrorCode,
+  Payload,
+} from "../../../../Core/Api/Auth/Admin/Logout"
 
 export type { ErrorCode, Payload }
 export type Response = ApiResponse<ErrorCode, Payload>

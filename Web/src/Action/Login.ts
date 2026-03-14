@@ -1,7 +1,7 @@
 import { Action, cmd, perform } from "../Action"
 import { _LoginState } from "../State/Login"
 import * as LoginApi from "../Api/Public/Login"
-import * as LogoutApi from "../Api/Auth/Logout"
+import * as LogoutApi from "../Api/Auth/LogoutUser"
 import * as RD from "../../../Core/Data/RemoteData"
 import * as AuthToken from "../App/AuthToken"
 import { toRoute, goBack } from "../Route"
