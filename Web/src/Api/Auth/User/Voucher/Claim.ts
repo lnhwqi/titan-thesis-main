@@ -1,15 +1,10 @@
-import {
-  authApi,
-  apiErrorString,
-  ApiError,
-  ApiResponse,
-} from "../../../AuthApi"
+import { authApi, apiErrorString, ApiError, ApiResponse } from "../../../AuthApi"
 import {
   contract,
   ErrorCode,
   Payload,
   BodyParams,
-} from "../../../../../../Core/Api/Auth/Product/create"
+} from "../../../../../../Core/Api/Auth/Voucher/claim"
 
 export type { ErrorCode, Payload, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>
@@ -23,10 +18,14 @@ export async function call(params: BodyParams): Promise<Response> {
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
-      case "CATEGORY_NOT_FOUND":
-        return "Category not found."
-      case "SKU_ALREADY_EXISTS":
-        return "SKU already exists."
+      case "VOUCHER_NOT_FOUND":
+        return "Voucher not found."
+      case "VOUCHER_FULLY_CLAIMED":
+        return "Voucher is fully claimed."
+      case "VOUCHER_ALREADY_CLAIMED":
+        return "Voucher already claimed."
+      case "VOUCHER_EXPIRED":
+        return "Voucher has expired."
     }
   })
 }

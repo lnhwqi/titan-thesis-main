@@ -1,4 +1,9 @@
-import { authApi, apiErrorString, ApiError, ApiResponse } from "../../../AuthApi"
+import {
+  authApi,
+  apiErrorString,
+  ApiError,
+  ApiResponse,
+} from "../../../AuthApi"
 import {
   contract,
   ErrorCode,
