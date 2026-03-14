@@ -1,5 +1,5 @@
 import { Action, cmd, Cmd } from "../Action"
-import * as ProfileApi from "../Api/Auth/Profile"
+import * as ProfileApi from "../Api/Auth/User/Profile"
 import * as ProductApi from "../Api/Public/Product"
 import { _ProductState } from "../State/Product"
 

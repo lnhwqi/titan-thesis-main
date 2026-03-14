@@ -1,4 +1,4 @@
-import * as UpdateProfileApi from "../../../Core/Api/Auth/UpdateProfile"
+import * as UpdateProfileApi from "../../../Core/Api/Auth/User/UpdateProfile"
 import { User } from "../../../Core/App/User"
 import { createNameE, ErrorName, Name } from "../../../Core/App/Admin/Name"
 import {

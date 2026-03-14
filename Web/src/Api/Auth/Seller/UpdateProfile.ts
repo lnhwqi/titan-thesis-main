@@ -1,10 +1,10 @@
-import { authApi, apiErrorString, ApiError, ApiResponse } from "../AuthApi"
+import { authApi, apiErrorString, ApiError, ApiResponse } from "../../AuthApi"
 import {
   contract,
   ErrorCode,
   Payload,
   BodyParams,
-} from "../../../../Core/Api/Auth/UpdateProfile"
+} from "../../../../../Core/Api/Auth/Seller/UpdateSellerShop"
 
 export type { ErrorCode, Payload, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>
@@ -18,10 +18,8 @@ export async function call(params: BodyParams): Promise<Response> {
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
-      case "INVALID_PASSWORD":
-        return "Password is incorrect. Please try again."
-      case "EMAIL_ALREADY_EXISTS":
-        return "Email is already in use."
+      case "SHOP_NAME_ALREADY_EXISTS":
+        return "Shop name is already in use."
     }
   })
 }

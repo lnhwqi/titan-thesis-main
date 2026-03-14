@@ -1,6 +1,6 @@
 import { Action, cmd, Cmd } from "../Action"
 import { _AuthState, AuthState, State } from "../State"
-import * as ProfileApi from "../Api/Auth/Profile"
+import * as ProfileApi from "../Api/Auth/User/Profile"
 
 // This onEnterRoute just for presentation purposes
 export function onEnterRoute(authState: AuthState): [State, Cmd] {

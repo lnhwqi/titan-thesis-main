@@ -4,7 +4,7 @@ import {
   initUpdateProfileState,
 } from "../State/UpdateProfile"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
-import * as UpdateProfileApi from "../Api/Auth/UpdateProfile"
+import * as UpdateProfileApi from "../Api/Auth/User/UpdateProfile"
 import * as RD from "../../../Core/Data/RemoteData"
 import { _AuthState, AuthState } from "../State"
 
