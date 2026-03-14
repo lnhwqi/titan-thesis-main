@@ -28,7 +28,7 @@ export type BodyParams = {
 }
 
 export type ErrorCode = "SHOP_NAME_ALREADY_EXISTS"
-
+export type UrlParams = NoUrlParams
 export type Payload = {
   seller: Seller
 }

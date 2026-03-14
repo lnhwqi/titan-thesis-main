@@ -5,6 +5,7 @@ import { Wallet, walletDecoder } from "./Seller/Wallet"
 import { Active, activeDecoder } from "./Seller/Active"
 import { Email, emailDecoder } from "../Data/User/Email"
 import { ShopName, shopNameDecoder } from "./Seller/ShopName"
+import { Description, descriptionDecoder } from "./Seller/ShopDescription"
 import { Verify, verifyDecoder } from "./Seller/Verify"
 import { VacationMode, vacationModeDecoder } from "./Seller/VacationMode"
 import { Revenue, revenueDecoder } from "./Seller/Revenue"
@@ -18,6 +19,7 @@ export type Seller = {
   wallet: Wallet
   active: Active
   shopName: ShopName
+  shopDescription: Description
   verified: Verify
   vacationMode: VacationMode
   revenue: Revenue
@@ -32,6 +34,7 @@ export const sellerDecoder: JD.Decoder<Seller> = JD.object({
   wallet: walletDecoder,
   active: activeDecoder,
   shopName: shopNameDecoder,
+  shopDescription: descriptionDecoder,
   verified: verifyDecoder,
   vacationMode: vacationModeDecoder,
   revenue: revenueDecoder,

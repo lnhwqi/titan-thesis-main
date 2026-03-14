@@ -1,5 +1,5 @@
 import { handler as refreshHandler } from "../../../../Api/src/Api/Public/RefreshTokenUser"
-import { handler as loginHandler } from "../../../../Api/src/Api/Public/Login"
+import { handler as loginHandler } from "../../../../Api/src/Api/Public/User/Login"
 import { createEmail } from "../../../../Core/Data/User/Email"
 import {
   _createUser,
@@ -13,6 +13,8 @@ import { refreshTokenDecoder } from "../../../../Core/Data/Security/RefreshToken
 import * as RefreshTokenRow from "../../../../Api/src/Database/RefreshTokenRow"
 
 describe("Api/Public/RefreshToken", () => {
+  const actorType: RefreshTokenRow.ActorType = "USER"
+
   test("refreshes the tokens as 1 row per session", async () => {
     const email = _notNull(createEmail("user@example.com"))
     const user = await _createUser(email.unwrap())
@@ -25,9 +27,11 @@ describe("Api/Public/RefreshToken", () => {
       password: _defaultPassword,
     }).then(_fromOk)
 
-    const result = await refreshHandler({ userID: user.id, refreshToken }).then(
-      _fromOk,
-    )
+    const result = await refreshHandler({
+      userID: user.id,
+      refreshToken,
+    }).then(_fromOk)
+
     expect(result.refreshToken.unwrap().length > 0).toBe(true)
     expect(result.refreshToken.unwrap() != refreshToken.unwrap()).toBe(true)
     expect(result.user).toBeDefined()
@@ -46,25 +50,24 @@ describe("Api/Public/RefreshToken", () => {
       password: _defaultPassword,
     }).then(_fromOk)
 
-    // Using firstToken to get once
     const { refreshToken: secondToken } = await refreshHandler({
       userID: user.id,
       refreshToken: firstToken,
     }).then(_fromOk)
-    // Using firstToken to get twice
+
     const { refreshToken: secondToken_ } = await refreshHandler({
       userID: user.id,
       refreshToken: firstToken,
     }).then(_fromOk)
+
     expect(secondToken_.unwrap() != firstToken.unwrap()).toBe(true)
     expect(secondToken_.unwrap() === secondToken.unwrap()).toBe(true)
 
-    // Using secondToken now
     await refreshHandler({
       userID: user.id,
       refreshToken: secondToken,
     }).then(_fromOk)
-    // Try to use firstToken again
+
     const result = await refreshHandler({
       userID: user.id,
       refreshToken: firstToken,
@@ -110,7 +113,11 @@ describe("Api/Public/RefreshToken", () => {
   test("cannot refresh with expired refreshToken", async () => {
     const email = _notNull(createEmail("user@gmail.com"))
     const user = await _createUser(email.unwrap())
-    const refreshToken = await RefreshTokenRow._createExpired(user.id)
+
+    const refreshToken = await RefreshTokenRow._createExpired(
+      user.id,
+      actorType,
+    )
 
     const result = await refreshHandler({
       userID: user.id,

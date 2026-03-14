@@ -14,7 +14,7 @@ import {
   RefreshToken,
   refreshTokenDecoder,
 } from "../../Data/Security/RefreshToken"
-export { NoUrlParams, noUrlParamsDecoder }
+export type UrlParams = NoUrlParams
 export type Contract = Api<
   "POST",
   "/register",

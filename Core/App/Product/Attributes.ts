@@ -1,6 +1,6 @@
 import * as JD from "decoders"
 import { Opaque, jsonValueCreate } from "../../Data/Opaque"
-import { Result, toMaybe, err, ok } from "../../Data/Result"
+import { Result, toMaybe, ok } from "../../Data/Result"
 import { Maybe } from "../../Data/Maybe"
 
 // Lấy type chuẩn từ thư viện

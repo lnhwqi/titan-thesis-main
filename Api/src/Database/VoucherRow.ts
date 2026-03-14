@@ -11,7 +11,7 @@ import {
 } from "../../../Core/Data/Time/Timestamp"
 
 import { SellerID, sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
-import { UserID, userIDDecoder } from "../../../Core/App/User/UserID"
+import { UserID } from "../../../Core/App/User/UserID"
 
 import {
   VoucherID,

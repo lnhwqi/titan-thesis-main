@@ -28,6 +28,10 @@ import { Revenue, revenueDecoder } from "../../../Core/App/Seller/Revenue"
 import { Withdrawn, withdrawnDecoder } from "../../../Core/App/Seller/Withdrawn"
 import { Profit, profitDecoder } from "../../../Core/App/Seller/Profit"
 import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
+import {
+  Description,
+  descriptionDecoder,
+} from "../../../Core/App/Seller/ShopDescription"
 
 const tableName = "seller"
 
@@ -39,6 +43,7 @@ export type SellerRow = {
   wallet: Wallet
   active: Active
   shopName: ShopName
+  shopDescription: Description
   verified: Verify
   vacationMode: VacationMode
   revenue: Revenue
@@ -64,6 +69,7 @@ export const sellerRowDecoder: JD.Decoder<SellerRow> = JD.object({
   wallet: walletDecoder,
   active: activeDecoder,
   shopName: shopNameDecoder,
+  shopDescription: descriptionDecoder,
   verified: verifyDecoder,
   vacationMode: vacationModeDecoder,
   revenue: revenueDecoder,
@@ -88,6 +94,7 @@ export async function create(params: CreateParams): Promise<SellerRow> {
       wallet: 0,
       active: true,
       shopName: shopName.unwrap(),
+      shopDescription: "",
       verified: false,
       vacationMode: false,
       revenue: 0,
@@ -194,5 +201,29 @@ export async function updateVerified(
     .catch((e) => {
       Logger.error(`#${tableName}.updateVerified error: ${e}`)
       return null
+    })
+}
+export async function updateShopProfile(
+  id: SellerID,
+  newShopName: ShopName,
+  newShopDescription: Description,
+): Promise<SellerRow> {
+  const now = toDate(createNow())
+
+  return db
+    .updateTable(tableName)
+    .set({
+      shopName: newShopName.unwrap(),
+      shopDescription: newShopDescription.unwrap(),
+      updatedAt: now,
+    })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(sellerRowDecoder.verify)
+    .catch((e: unknown) => {
+      Logger.error(`#${tableName}.updateShopProfile error: ${e}`)
+      throw e
     })
 }

@@ -3,6 +3,7 @@ import { Result, err, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
 import * as ProductImageRow from "../../../Database/ProductImageRow"
 import * as ProductCategoryRow from "../../../Database/ProductCategoryRow"
+import * as ProductVariantRow from "../../../Database/ProductVariantRow"
 import { toDetailProduct } from "../../../App/ProductDetail"
 import { DetailProduct } from "../../../../../Core/App/ProductDetail"
 
@@ -14,20 +15,26 @@ export async function handler(
   const { id } = params
 
   const productRow = await ProductRow.getByID(id)
-
   if (productRow == null) {
     return err("PRODUCT_NOT_FOUND")
   }
 
-  const [imagesResult, categoriesResult] = await Promise.all([
+  const [images, categoryRow, variantRows] = await Promise.all([
     ProductImageRow.getByProductID(productRow.id),
     ProductCategoryRow.getByProductID(productRow.id),
+    ProductVariantRow.getByProductID(productRow.id),
   ])
 
-  const images = imagesResult ?? []
-  const categories = categoriesResult ?? []
+  if (categoryRow == null) {
+    return err("PRODUCT_NOT_FOUND")
+  }
 
-  const product: DetailProduct = toDetailProduct(productRow, images, categories)
+  const product: DetailProduct = toDetailProduct(
+    productRow,
+    images ?? [],
+    categoryRow,
+    variantRows ?? [],
+  )
 
   return ok(product)
 }
@@ -35,7 +42,8 @@ export async function handler(
 export async function getProductPayload(
   productRow: ProductRow.ProductRow,
   productImageRows: ProductImageRow.ProductImageRow[],
-  productCategoryRows: ProductCategoryRow.ProductCategoryRow[],
+  categoryRow: ProductCategoryRow.ProductCategoryRow,
+  variantRows: ProductVariantRow.ProductVariantRow[],
 ): Promise<API.Payload> {
-  return toDetailProduct(productRow, productImageRows, productCategoryRows)
+  return toDetailProduct(productRow, productImageRows, categoryRow, variantRows)
 }

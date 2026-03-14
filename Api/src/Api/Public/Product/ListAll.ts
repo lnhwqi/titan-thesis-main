@@ -1,12 +1,12 @@
 import * as API from "../../../../../Core/Api/Public/Product/ListAll"
-import { Result, err, ok } from "../../../../../Core/Data/Result"
+import { Result, ok } from "../../../../../Core/Data/Result"
 import * as ProductRow from "../../../Database/ProductRow"
 import * as ProductImageRow from "../../../Database/ProductImageRow"
 import * as ProductCategoryRow from "../../../Database/ProductCategoryRow"
 import { toBasicProduct } from "../../../App/ProductBasic"
 import { UrlParams } from "../../../../../Core/Api/Public/Product/ListAll"
 import { BasicProduct } from "../../../../../Core/App/ProductBasic"
-
+import * as ProductVariantRow from "../../../Database/ProductVariantRow"
 export const contract = API.contract
 
 export async function handler(
@@ -15,7 +15,7 @@ export async function handler(
   const productRows = await ProductRow.getAll()
 
   if (productRows.length === 0) {
-    return err("NO_PRODUCTS_FOUND")
+    return ok({ items: [] })
   }
 
   return ok(await getlistPayload(productRows))
@@ -26,28 +26,30 @@ export async function getlistPayload(
 ): Promise<API.Payload> {
   const productIds = productRows.map((p) => p.id)
 
-  const [allImages, allCategories] = await Promise.all([
+  const [allImages, allCategories, allVariants] = await Promise.all([
     ProductImageRow.getByProductIDs(productIds),
     ProductCategoryRow.getByProductIDs(productIds),
+    ProductVariantRow.getByProductIDs(productIds),
   ])
 
   const imageMap = _groupBy(allImages, (img) => String(img.productID.unwrap()))
   const categoryMap = _groupBy(allCategories, (cat) =>
     String(cat.productID.unwrap()),
   )
+  const variantMap = _groupBy(allVariants, (v) => String(v.productID.unwrap()))
 
   const products: BasicProduct[] = productRows.map((row) => {
     const idStr = String(row.id.unwrap())
 
     const images = imageMap[idStr] ?? []
     const categories = categoryMap[idStr] ?? []
+    const variantRows = variantMap[idStr] ?? []
 
-    return toBasicProduct(row, images[0], categories)
+    return toBasicProduct(row, images[0], categories[0], variantRows)
   })
 
   return { items: products }
 }
-
 function _groupBy<T>(
   array: T[],
   keyGetter: (item: T) => string,

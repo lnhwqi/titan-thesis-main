@@ -9,13 +9,10 @@ import { toUser } from "../../../App/User"
 export const contract = API.contract
 const actor_type: RefreshTokenRow.ActorType = "USER"
 
-export async function handler({
-  bodyParams,
-}: {
-  bodyParams: API.BodyParams
-  urlParams: API.NoUrlParams
-}): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { email, password, name } = bodyParams
+export async function handler(
+  params: API.UrlParams & API.BodyParams,
+): Promise<Result<API.ErrorCode, API.Payload>> {
+  const { email, password, name } = params
 
   const existingUser = await UserRow.getByEmail(email)
   if (existingUser != null) {

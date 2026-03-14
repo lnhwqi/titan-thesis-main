@@ -1,6 +1,6 @@
-import * as API from "../../../../Core/Api/Auth/User/Profile"
-import { Result, ok } from "../../../../Core/Data/Result"
-import { AuthUser } from "../AuthApi"
+import * as API from "../../../../../Core/Api/Auth/User/Profile"
+import { Result, ok } from "../../../../../Core/Data/Result"
+import { AuthUser } from "../../AuthApi"
 
 export const contract = API.contract
 

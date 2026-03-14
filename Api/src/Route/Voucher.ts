@@ -12,7 +12,7 @@ import * as validateVoucher from "../Api/Auth/Voucher/validate"
 
 import { userAuthApi, sellerAuthApi } from "../Api/AuthApi"
 
-export function VoucherRoutes(app: Express): void {
+export function voucherRoute(app: Express): void {
   userAuthApi(app, applyVoucher)
   userAuthApi(app, claimVoucher)
   userAuthApi(app, listAvailableVoucher)

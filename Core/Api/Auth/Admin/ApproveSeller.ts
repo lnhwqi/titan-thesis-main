@@ -1,16 +1,13 @@
 import * as JD from "decoders"
-import {
-  responseDecoder,
-  Api,
-  NoUrlParams,
-  noUrlParamsDecoder,
-} from "../../../Data/Api"
+import { AuthApi, authResponseDecoder, AuthAdmin } from "../../../Data/Api/Auth"
+import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 import { Seller, sellerDecoder } from "../../../App/Seller"
-import { UserID, userIDDecoder } from "../../../App/Admin/AdminID"
+import { SellerID, sellerIDDecoder } from "../../../App/Seller/SellerID"
 
 export { NoUrlParams, noUrlParamsDecoder }
 
-export type Contract = Api<
+export type Contract = AuthApi<
+  AuthAdmin,
   "POST",
   "/admin/approve-seller",
   NoUrlParams,
@@ -20,23 +17,22 @@ export type Contract = Api<
 >
 
 export type BodyParams = {
-  sellerID: UserID
+  sellerID: SellerID
 }
 
-export type ErrorCode = "SELLER_NOT_FOUND" | "ALREADY_VERIFIED" | "UNAUTHORIZED"
+export type ErrorCode = "SELLER_NOT_FOUND" | "ALREADY_VERIFIED"
 
 export type Payload = {
   seller: Seller
 }
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
-  sellerID: userIDDecoder,
+  sellerID: sellerIDDecoder,
 })
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "SELLER_NOT_FOUND",
   "ALREADY_VERIFIED",
-  "UNAUTHORIZED",
 ])
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
@@ -48,5 +44,5 @@ export const contract: Contract = {
   route: "/admin/approve-seller",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
-  responseDecoder: responseDecoder(errorCodeDecoder, payloadDecoder),
+  responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),
 }

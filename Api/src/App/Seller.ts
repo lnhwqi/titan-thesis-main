@@ -9,6 +9,7 @@ export function toSeller(row: SellerRow): Seller {
     wallet: row.wallet,
     active: row.active,
     shopName: row.shopName,
+    shopDescription: row.shopDescription,
     verified: row.verified,
     vacationMode: row.vacationMode,
     revenue: row.revenue,

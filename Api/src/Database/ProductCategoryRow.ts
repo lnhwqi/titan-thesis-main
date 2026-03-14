@@ -16,6 +16,8 @@ import {
 import db from "../Database"
 import * as Logger from "../Logger"
 
+import { Maybe } from "../../../Core/Data/Maybe"
+
 const tableName = "productCategory"
 
 export type ProductCategoryRow = {
@@ -57,14 +59,14 @@ export async function create(
 
 export async function getByProductID(
   productID: ProductID,
-): Promise<ProductCategoryRow[]> {
+): Promise<Maybe<ProductCategoryRow>> {
   return db
     .selectFrom(tableName)
     .selectAll()
     .where("productID", "=", productID.unwrap())
     .where("isDeleted", "=", false)
-    .execute()
-    .then((rows) => JD.array(productCategoryRowDecoder).verify(rows))
+    .executeTakeFirst()
+    .then((row) => (row == null ? null : productCategoryRowDecoder.verify(row)))
     .catch((e) => {
       Logger.error(`#${tableName}.getByProductID error ${e}`)
       throw e

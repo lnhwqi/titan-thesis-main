@@ -1,8 +1,8 @@
-import * as API from "../../../../Core/Api/Auth/UpdateProfile"
-import { Result, err, ok } from "../../../../Core/Data/Result"
-import { AuthUser } from "../AuthApi"
-import * as Hash from "../../Data/Hash"
-import * as UserRow from "../../Database/UserRow"
+import * as API from "../../../../../Core/Api/Auth/User/UpdateProfile"
+import { Result, err, ok } from "../../../../../Core/Data/Result"
+import { AuthUser } from "../../AuthApi"
+import * as Hash from "../../../Data/Hash"
+import * as UserRow from "../../../Database/UserRow"
 
 export const contract = API.contract
 

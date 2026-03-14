@@ -9,13 +9,10 @@ import * as RefreshTokenRow from "../../../Database/RefreshTokenRow"
 export const contract = API.contract
 const actor_type: RefreshTokenRow.ActorType = "SELLER"
 
-export async function handler({
-  bodyParams,
-}: {
-  bodyParams: API.BodyParams
-  urlParams: API.NoUrlParams
-}): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { email, shopName, password, name } = bodyParams
+export async function handler(
+  params: API.UrlParams & API.BodyParams,
+): Promise<Result<API.ErrorCode, API.Payload>> {
+  const { email, shopName, password, name } = params
 
   const existingEmail = await SellerRow.getByEmail(email)
   if (existingEmail != null) return err("EMAIL_ALREADY_EXISTS")

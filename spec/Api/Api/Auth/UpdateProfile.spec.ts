@@ -1,7 +1,7 @@
-import { handler } from "../../../../Api/src/Api/Auth/UpdateProfile"
-import { handler as loginHandler } from "../../../../Api/src/Api/Public/Login"
+import { handler } from "../../../../Api/src/Api/Auth/User/UpdateProfile"
+import { handler as loginHandler } from "../../../../Api/src/Api/Public/User/Login"
 import { emailDecoder } from "../../../../Core/Data/User/Email"
-import { passwordDecoder } from "../../../../Core/App/Admin/Password"
+import { passwordDecoder } from "../../../../Core/App/User/Password"
 import {
   _createUser,
   _notNull,
@@ -9,7 +9,7 @@ import {
   _fromOk,
   _hashPassword,
 } from "../../../Fixture"
-import { nameDecoder } from "../../../../Core/App/Admin/Name"
+import { nameDecoder } from "../../../../Core/App/User/Name"
 
 describe("Api/Auth/UpdateProfile", () => {
   test("update profile success", async () => {
@@ -29,6 +29,7 @@ describe("Api/Auth/UpdateProfile", () => {
       currentPassword,
       newPassword,
     }).then(_fromOk)
+
     expect(updatedUser.id.unwrap()).toEqual(user.id.unwrap())
     expect(updatedUser.email.unwrap()).toEqual(email.unwrap())
     expect(updatedUser.name.unwrap()).toEqual(name.unwrap())
@@ -37,6 +38,7 @@ describe("Api/Auth/UpdateProfile", () => {
       email,
       password: newPassword,
     }).then(_fromOk)
+
     expect(loginUser.id.unwrap()).toEqual(user.id.unwrap())
   })
 
@@ -62,6 +64,7 @@ describe("Api/Auth/UpdateProfile", () => {
     await _createUser("new@example.com", {
       password: hashedPassword.unwrap(),
     })
+
     const emailExisted = await handler(user, {
       name,
       email,

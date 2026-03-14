@@ -38,6 +38,7 @@ type SellerTable = {
   wallet: number
   active: boolean
   shopName: string
+  shopDescription: string
   verified: boolean
   vacationMode: boolean
   revenue: number
