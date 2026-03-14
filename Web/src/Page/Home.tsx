@@ -16,7 +16,9 @@ export default function HomePage(props: HomePageProps): JSX.Element {
       {hasAnnouncement ? (
         <div className={styles.announcementCard}>
           <div className={styles.announcementTitle}>Registration Submitted</div>
-          <div className={styles.announcementBody}>{registerStatus.message}</div>
+          <div className={styles.announcementBody}>
+            {registerStatus.message}
+          </div>
           <button
             className={styles.announcementClose}
             onClick={() => emit(RegisterAction.clearStatus())}
