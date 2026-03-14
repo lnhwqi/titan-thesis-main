@@ -22,6 +22,7 @@ export type { ApiResponse, ApiError } from "../Api"
 export { apiErrorString } from "../Api"
 
 export async function authApi<
+  _A,
   M extends Method,
   Route extends string,
   UrlParams extends UrlRecord<Route>,
@@ -29,7 +30,7 @@ export async function authApi<
   ErrorCode,
   Payload,
 >(
-  contract: AuthApi<M, Route, UrlParams, RequestBody, ErrorCode, Payload>,
+  contract: AuthApi<_A, M, Route, UrlParams, RequestBody, ErrorCode, Payload>,
   urlData: UrlParams,
   bodyData: RequestBody,
 ): Promise<ApiResponse<ErrorCode, Payload>> {
