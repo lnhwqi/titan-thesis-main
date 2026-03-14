@@ -20,7 +20,11 @@ import {
 } from "../../../Core/Data/Security/RefreshToken"
 import db from "../Database"
 
-const tableName = "refresh_token"
+const tableName = "RefreshTokenRow"
+
+const userTableName = "user_refresh_token"
+const sellerTableName = "seller_refresh_token"
+const adminTableName = "admin_refresh_token"
 
 export const refreshTokenExpiryMS = 90 * 24 * 60 * 60 * 1000
 
@@ -49,45 +53,116 @@ export async function create(
   const now = toDate(createNow())
   const refreshToken = createRefreshToken()
 
-  return db
-    .insertInto(tableName)
-    .values({
-      id: refreshToken.unwrap(),
-      previousID: refreshToken.unwrap(),
-      previousCreatedAt: now,
-      actorID: actorID.unwrap(),
-      actorType: actorType,
-      createdAt: now,
-    })
-    .executeTakeFirstOrThrow()
-    .then(() => refreshToken)
-    .catch((e) => {
-      Logger.error(`#${tableName}.create error ${e}`)
-      throw e
-    })
+  try {
+    switch (actorType) {
+      case "USER":
+        await db
+          .insertInto(userTableName)
+          .values({
+            id: refreshToken.unwrap(),
+            userId: actorID.unwrap(),
+            previousId: refreshToken.unwrap(),
+            previousCreatedAt: now,
+            createdAt: now,
+          })
+          .executeTakeFirstOrThrow()
+        break
+
+      case "SELLER":
+        await db
+          .insertInto(sellerTableName)
+          .values({
+            id: refreshToken.unwrap(),
+            sellerId: actorID.unwrap(),
+            previousId: refreshToken.unwrap(),
+            previousCreatedAt: now,
+            createdAt: now,
+          })
+          .executeTakeFirstOrThrow()
+        break
+
+      case "ADMIN":
+        await db
+          .insertInto(adminTableName)
+          .values({
+            id: refreshToken.unwrap(),
+            adminId: actorID.unwrap(),
+            previousId: refreshToken.unwrap(),
+            previousCreatedAt: now,
+            createdAt: now,
+          })
+          .executeTakeFirstOrThrow()
+        break
+    }
+
+    return refreshToken
+  } catch (e) {
+    Logger.error(`#${tableName}.create error ${e}`)
+    throw e
+  }
 }
 
 export async function replace(row: RefreshTokenRow): Promise<RefreshTokenRow> {
   const now = toDate(createNow())
   const refreshToken = createRefreshToken()
-  return db
-    .updateTable(tableName)
-    .set({
-      id: refreshToken.unwrap(),
-      previousID: row.id.unwrap(),
-      previousCreatedAt: toDate(row.createdAt),
-      createdAt: now,
-    })
-    .where("id", "=", row.id.unwrap())
-    .where("actorID", "=", row.actorID.unwrap())
-    .where("actorType", "=", row.actorType)
-    .returningAll()
-    .executeTakeFirstOrThrow()
-    .then(rowDecoder.verify)
-    .catch((e) => {
-      Logger.error(`#${tableName}.replace error ${e}`)
-      throw e
-    })
+
+  try {
+    switch (row.actorType) {
+      case "USER": {
+        const updated = await db
+          .updateTable(userTableName)
+          .set({
+            id: refreshToken.unwrap(),
+            previousId: row.id.unwrap(),
+            previousCreatedAt: toDate(row.createdAt),
+            createdAt: now,
+          })
+          .where("id", "=", row.id.unwrap())
+          .where("userId", "=", row.actorID.unwrap())
+          .returningAll()
+          .executeTakeFirstOrThrow()
+
+        return toRefreshTokenRow(updated, "USER")
+      }
+
+      case "SELLER": {
+        const updated = await db
+          .updateTable(sellerTableName)
+          .set({
+            id: refreshToken.unwrap(),
+            previousId: row.id.unwrap(),
+            previousCreatedAt: toDate(row.createdAt),
+            createdAt: now,
+          })
+          .where("id", "=", row.id.unwrap())
+          .where("sellerId", "=", row.actorID.unwrap())
+          .returningAll()
+          .executeTakeFirstOrThrow()
+
+        return toRefreshTokenRow(updated, "SELLER")
+      }
+
+      case "ADMIN": {
+        const updated = await db
+          .updateTable(adminTableName)
+          .set({
+            id: refreshToken.unwrap(),
+            previousId: row.id.unwrap(),
+            previousCreatedAt: toDate(row.createdAt),
+            createdAt: now,
+          })
+          .where("id", "=", row.id.unwrap())
+          .where("adminId", "=", row.actorID.unwrap())
+          .returningAll()
+          .executeTakeFirstOrThrow()
+
+        return toRefreshTokenRow(updated, "ADMIN")
+      }
+    }
+  } catch (e) {
+    Logger.error(`#${tableName}.replace error ${e}`)
+    throw e
+  }
 }
 
 export function isExpired(row: RefreshTokenRow): boolean {
@@ -103,18 +178,45 @@ export async function get(
   actorType: ActorType,
   refreshToken: RefreshToken,
 ): Promise<RefreshTokenRow | null> {
-  return db
-    .selectFrom(tableName)
-    .selectAll()
-    .where("id", "=", refreshToken.unwrap())
-    .where("actorID", "=", actorID.unwrap())
-    .where("actorType", "=", actorType)
-    .executeTakeFirstOrThrow()
-    .then(rowDecoder.verify)
-    .catch((e) => {
-      Logger.error(`#${tableName}.get error ${e}`)
-      return null
-    })
+  try {
+    switch (actorType) {
+      case "USER": {
+        const row = await db
+          .selectFrom(userTableName)
+          .selectAll()
+          .where("id", "=", refreshToken.unwrap())
+          .where("userId", "=", actorID.unwrap())
+          .executeTakeFirst()
+
+        return row == null ? null : toRefreshTokenRow(row, "USER")
+      }
+
+      case "SELLER": {
+        const row = await db
+          .selectFrom(sellerTableName)
+          .selectAll()
+          .where("id", "=", refreshToken.unwrap())
+          .where("sellerId", "=", actorID.unwrap())
+          .executeTakeFirst()
+
+        return row == null ? null : toRefreshTokenRow(row, "SELLER")
+      }
+
+      case "ADMIN": {
+        const row = await db
+          .selectFrom(adminTableName)
+          .selectAll()
+          .where("id", "=", refreshToken.unwrap())
+          .where("adminId", "=", actorID.unwrap())
+          .executeTakeFirst()
+
+        return row == null ? null : toRefreshTokenRow(row, "ADMIN")
+      }
+    }
+  } catch (e) {
+    Logger.error(`#${tableName}.get error ${e}`)
+    return null
+  }
 }
 
 export async function getByPrevious(
@@ -122,18 +224,45 @@ export async function getByPrevious(
   actorType: ActorType,
   refreshToken: RefreshToken,
 ): Promise<RefreshTokenRow | null> {
-  return db
-    .selectFrom(tableName)
-    .selectAll()
-    .where("previousID", "=", refreshToken.unwrap())
-    .where("actorID", "=", actorID.unwrap())
-    .where("actorType", "=", actorType)
-    .executeTakeFirstOrThrow()
-    .then(rowDecoder.verify)
-    .catch((e) => {
-      Logger.error(`#${tableName}.getByPrevious error ${e}`)
-      return null
-    })
+  try {
+    switch (actorType) {
+      case "USER": {
+        const row = await db
+          .selectFrom(userTableName)
+          .selectAll()
+          .where("previousId", "=", refreshToken.unwrap())
+          .where("userId", "=", actorID.unwrap())
+          .executeTakeFirst()
+
+        return row == null ? null : toRefreshTokenRow(row, "USER")
+      }
+
+      case "SELLER": {
+        const row = await db
+          .selectFrom(sellerTableName)
+          .selectAll()
+          .where("previousId", "=", refreshToken.unwrap())
+          .where("sellerId", "=", actorID.unwrap())
+          .executeTakeFirst()
+
+        return row == null ? null : toRefreshTokenRow(row, "SELLER")
+      }
+
+      case "ADMIN": {
+        const row = await db
+          .selectFrom(adminTableName)
+          .selectAll()
+          .where("previousId", "=", refreshToken.unwrap())
+          .where("adminId", "=", actorID.unwrap())
+          .executeTakeFirst()
+
+        return row == null ? null : toRefreshTokenRow(row, "ADMIN")
+      }
+    }
+  } catch (e) {
+    Logger.error(`#${tableName}.getByPrevious error ${e}`)
+    return null
+  }
 }
 
 export async function remove(
@@ -141,33 +270,69 @@ export async function remove(
   actorType: ActorType,
   refreshToken: RefreshToken,
 ): Promise<number> {
-  return db
-    .deleteFrom(tableName)
-    .where("id", "=", refreshToken.unwrap())
-    .where("actorID", "=", actorID.unwrap())
-    .where("actorType", "=", actorType)
-    .executeTakeFirst()
-    .then((r) => Number(r.numDeletedRows) || 0)
-    .catch((e) => {
-      Logger.error(`#${tableName}.remove error ${e}`)
-      throw e
-    })
+  try {
+    switch (actorType) {
+      case "USER":
+        return db
+          .deleteFrom(userTableName)
+          .where("id", "=", refreshToken.unwrap())
+          .where("userId", "=", actorID.unwrap())
+          .executeTakeFirst()
+          .then((r) => Number(r.numDeletedRows) || 0)
+
+      case "SELLER":
+        return db
+          .deleteFrom(sellerTableName)
+          .where("id", "=", refreshToken.unwrap())
+          .where("sellerId", "=", actorID.unwrap())
+          .executeTakeFirst()
+          .then((r) => Number(r.numDeletedRows) || 0)
+
+      case "ADMIN":
+        return db
+          .deleteFrom(adminTableName)
+          .where("id", "=", refreshToken.unwrap())
+          .where("adminId", "=", actorID.unwrap())
+          .executeTakeFirst()
+          .then((r) => Number(r.numDeletedRows) || 0)
+    }
+  } catch (e) {
+    Logger.error(`#${tableName}.remove error ${e}`)
+    throw e
+  }
 }
 
 export async function removeAllByActor(
   actorID: ActorID,
   actorType: ActorType,
 ): Promise<number> {
-  return db
-    .deleteFrom(tableName)
-    .where("actorID", "=", actorID.unwrap())
-    .where("actorType", "=", actorType)
-    .executeTakeFirst()
-    .then((r) => Number(r.numDeletedRows) || 0)
-    .catch((e) => {
-      Logger.error(`#${tableName}.removeAllByActor error ${e}`)
-      throw e
-    })
+  try {
+    switch (actorType) {
+      case "USER":
+        return db
+          .deleteFrom(userTableName)
+          .where("userId", "=", actorID.unwrap())
+          .executeTakeFirst()
+          .then((r) => Number(r.numDeletedRows) || 0)
+
+      case "SELLER":
+        return db
+          .deleteFrom(sellerTableName)
+          .where("sellerId", "=", actorID.unwrap())
+          .executeTakeFirst()
+          .then((r) => Number(r.numDeletedRows) || 0)
+
+      case "ADMIN":
+        return db
+          .deleteFrom(adminTableName)
+          .where("adminId", "=", actorID.unwrap())
+          .executeTakeFirst()
+          .then((r) => Number(r.numDeletedRows) || 0)
+    }
+  } catch (e) {
+    Logger.error(`#${tableName}.removeAllByActor error ${e}`)
+    throw e
+  }
 }
 
 export async function removeAllExpired(): Promise<number> {
@@ -180,15 +345,33 @@ export async function removeAllExpired(): Promise<number> {
     throw new Error(lastCreatedAt.error)
   }
 
-  return db
-    .deleteFrom(tableName)
-    .where("createdAt", "<=", toDate(lastCreatedAt.value))
-    .executeTakeFirst()
-    .then((r) => Number(r.numDeletedRows) || 0)
-    .catch((e) => {
-      Logger.error(`#${tableName}.removeAllExpired error ${e}`)
-      throw e
-    })
+  const cutoff = toDate(lastCreatedAt.value)
+
+  try {
+    const [u, s, a] = await Promise.all([
+      db
+        .deleteFrom(userTableName)
+        .where("createdAt", "<=", cutoff)
+        .executeTakeFirst(),
+      db
+        .deleteFrom(sellerTableName)
+        .where("createdAt", "<=", cutoff)
+        .executeTakeFirst(),
+      db
+        .deleteFrom(adminTableName)
+        .where("createdAt", "<=", cutoff)
+        .executeTakeFirst(),
+    ])
+
+    return (
+      (Number(u.numDeletedRows) || 0) +
+      (Number(s.numDeletedRows) || 0) +
+      (Number(a.numDeletedRows) || 0)
+    )
+  } catch (e) {
+    Logger.error(`#${tableName}.removeAllExpired error ${e}`)
+    throw e
+  }
 }
 
 /** For testing */
@@ -198,22 +381,54 @@ export async function _createExpired(
 ): Promise<RefreshToken> {
   const expiredCreatedAt = new Date(Date.now() - refreshTokenExpiryMS - 1000)
   const refreshToken = createRefreshToken()
-  return db
-    .insertInto(tableName)
-    .values({
-      id: refreshToken.unwrap(),
-      previousID: refreshToken.unwrap(),
-      previousCreatedAt: expiredCreatedAt,
-      actorID: actorID.unwrap(),
-      actorType: actorType,
-      createdAt: expiredCreatedAt,
-    })
-    .executeTakeFirstOrThrow()
-    .then(() => refreshToken)
-    .catch((e) => {
-      Logger.error(`#${tableName}._createExpired error ${e}`)
-      throw e
-    })
+
+  try {
+    switch (actorType) {
+      case "USER":
+        await db
+          .insertInto(userTableName)
+          .values({
+            id: refreshToken.unwrap(),
+            userId: actorID.unwrap(),
+            previousId: refreshToken.unwrap(),
+            previousCreatedAt: expiredCreatedAt,
+            createdAt: expiredCreatedAt,
+          })
+          .executeTakeFirstOrThrow()
+        break
+
+      case "SELLER":
+        await db
+          .insertInto(sellerTableName)
+          .values({
+            id: refreshToken.unwrap(),
+            sellerId: actorID.unwrap(),
+            previousId: refreshToken.unwrap(),
+            previousCreatedAt: expiredCreatedAt,
+            createdAt: expiredCreatedAt,
+          })
+          .executeTakeFirstOrThrow()
+        break
+
+      case "ADMIN":
+        await db
+          .insertInto(adminTableName)
+          .values({
+            id: refreshToken.unwrap(),
+            adminId: actorID.unwrap(),
+            previousId: refreshToken.unwrap(),
+            previousCreatedAt: expiredCreatedAt,
+            createdAt: expiredCreatedAt,
+          })
+          .executeTakeFirstOrThrow()
+        break
+    }
+
+    return refreshToken
+  } catch (e) {
+    Logger.error(`#${tableName}._createExpired error ${e}`)
+    throw e
+  }
 }
 
 function buildActorID(val: string, type: ActorType): ActorID {
@@ -224,59 +439,51 @@ function buildActorID(val: string, type: ActorType): ActorID {
 
 const rawRowDecoder = JD.object({
   id: refreshTokenDecoder,
-  previousID: refreshTokenDecoder,
+  previousId: refreshTokenDecoder,
   previousCreatedAt: JD.date.transform(fromDate),
-  actorID: JD.string,
-  actorType: actorTypeDecoder,
   createdAt: JD.date.transform(fromDate),
 })
 
-export const rowDecoder: JD.Decoder<RefreshTokenRow> = rawRowDecoder.transform(
-  (raw) => ({
-    id: raw.id,
-    previousID: raw.previousID,
-    previousCreatedAt: raw.previousCreatedAt,
-    actorID: buildActorID(raw.actorID, raw.actorType),
-    actorType: raw.actorType,
-    createdAt: raw.createdAt,
-  }),
-)
+const userActorDecoder = JD.object({ userId: JD.string })
+const sellerActorDecoder = JD.object({ sellerId: JD.string })
+const adminActorDecoder = JD.object({ adminId: JD.string })
+
+function getActorIDRaw(rawRow: unknown, actorType: ActorType): string {
+  switch (actorType) {
+    case "USER":
+      return userActorDecoder.verify(rawRow).userId
+    case "SELLER":
+      return sellerActorDecoder.verify(rawRow).sellerId
+    case "ADMIN":
+      return adminActorDecoder.verify(rawRow).adminId
+  }
+}
+
+function toRefreshTokenRow(
+  rawRow: unknown,
+  actorType: ActorType,
+): RefreshTokenRow {
+  const row = rawRowDecoder.verify(rawRow)
+  const actorIDRaw = getActorIDRaw(rawRow, actorType)
+
+  return {
+    id: row.id,
+    previousID: row.previousId,
+    previousCreatedAt: row.previousCreatedAt,
+    actorID: buildActorID(actorIDRaw, actorType),
+    actorType,
+    createdAt: row.createdAt,
+  }
+}
 
 export async function removeAllByUser(userID: UserID): Promise<number> {
-  return db
-    .deleteFrom(tableName)
-    .where("actorID", "=", userID.unwrap())
-    .where("actorType", "=", "USER")
-    .executeTakeFirst()
-    .then((r) => Number(r.numDeletedRows) || 0)
-    .catch((e) => {
-      Logger.error(`#${tableName}.removeAllByUser error ${e}`)
-      throw e
-    })
+  return removeAllByActor(userID, "USER")
 }
 
 export async function removeAllBySeller(sellerID: SellerID): Promise<number> {
-  return db
-    .deleteFrom(tableName)
-    .where("actorID", "=", sellerID.unwrap())
-    .where("actorType", "=", "SELLER")
-    .executeTakeFirst()
-    .then((r) => Number(r.numDeletedRows) || 0)
-    .catch((e) => {
-      Logger.error(`#${tableName}.removeAllBySeller error ${e}`)
-      throw e
-    })
+  return removeAllByActor(sellerID, "SELLER")
 }
 
 export async function removeAllByAdmin(adminID: AdminID): Promise<number> {
-  return db
-    .deleteFrom(tableName)
-    .where("actorID", "=", adminID.unwrap())
-    .where("actorType", "=", "ADMIN")
-    .executeTakeFirst()
-    .then((r) => Number(r.numDeletedRows) || 0)
-    .catch((e) => {
-      Logger.error(`#${tableName}.removeAllByAdmin error ${e}`)
-      throw e
-    })
+  return removeAllByActor(adminID, "ADMIN")
 }

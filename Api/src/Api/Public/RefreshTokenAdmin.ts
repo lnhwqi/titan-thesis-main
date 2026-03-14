@@ -8,7 +8,7 @@ import { AdminID } from "../../../../Core/App/Admin/AdminID"
 import { RefreshToken } from "../../../../Core/Data/Security/RefreshToken"
 
 export const contract = API.contract
-const actor_type: RefreshTokenRow.ActorType = "SELLER"
+const actor_type: RefreshTokenRow.ActorType = "ADMIN"
 
 /** It is VERY IMPORTANT to ensure that admin has received the new RefreshToken
  * or provide a way for admin to recover

@@ -44,7 +44,21 @@ export async function getByProductID(
     .where("productId", "=", productID.unwrap())
     .where("isDeleted", "=", false)
     .execute()
-    .then((rows) => JD.array(productVariantRowDecoder).verify(rows))
+    .then((rows) =>
+      rows.flatMap((row) => {
+        try {
+          return [
+            productVariantRowDecoder.verify({
+              ...row,
+              productID: row.productId,
+            }),
+          ]
+        } catch (e) {
+          Logger.warn(`#${tableName}.getByProductID skip invalid row ${e}`)
+          return []
+        }
+      }),
+    )
     .catch((e) => {
       Logger.error(`#${tableName}.getByProductID error ${e}`)
       throw e
@@ -66,7 +80,21 @@ export async function getByProductIDs(
     .where("productId", "in", idStrings)
     .where("isDeleted", "=", false)
     .execute()
-    .then((rows) => JD.array(productVariantRowDecoder).verify(rows))
+    .then((rows) =>
+      rows.flatMap((row) => {
+        try {
+          return [
+            productVariantRowDecoder.verify({
+              ...row,
+              productID: row.productId,
+            }),
+          ]
+        } catch (e) {
+          Logger.warn(`#${tableName}.getByProductIDs skip invalid row ${e}`)
+          return []
+        }
+      }),
+    )
     .catch((e) => {
       Logger.error(`#${tableName}.getByProductIDs error ${e}`)
       throw e

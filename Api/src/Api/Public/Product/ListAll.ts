@@ -7,6 +7,7 @@ import { toBasicProduct } from "../../../App/ProductBasic"
 import { UrlParams } from "../../../../../Core/Api/Public/Product/ListAll"
 import { BasicProduct } from "../../../../../Core/App/ProductBasic"
 import * as ProductVariantRow from "../../../Database/ProductVariantRow"
+import * as Logger from "../../../Logger"
 export const contract = API.contract
 
 export async function handler(
@@ -26,10 +27,26 @@ export async function getlistPayload(
 ): Promise<API.Payload> {
   const productIds = productRows.map((p) => p.id)
 
+  const safeLoad = async <T>(
+    label: string,
+    fn: () => Promise<T[]>,
+  ): Promise<T[]> => {
+    try {
+      return await fn()
+    } catch (e) {
+      Logger.warn(`#public.product.listAll skip ${label}: ${e}`)
+      return []
+    }
+  }
+
   const [allImages, allCategories, allVariants] = await Promise.all([
-    ProductImageRow.getByProductIDs(productIds),
-    ProductCategoryRow.getByProductIDs(productIds),
-    ProductVariantRow.getByProductIDs(productIds),
+    safeLoad("productImage", () => ProductImageRow.getByProductIDs(productIds)),
+    safeLoad("productCategory", () =>
+      ProductCategoryRow.getByProductIDs(productIds),
+    ),
+    safeLoad("productVariant", () =>
+      ProductVariantRow.getByProductIDs(productIds),
+    ),
   ])
 
   const imageMap = _groupBy(allImages, (img) => String(img.productID.unwrap()))

@@ -6,7 +6,9 @@ export type Schema = {
   user: UserTable
   seller: SellerTable
   admin: AdminTable
-  refresh_token: RefreshTokenTable
+  user_refresh_token: UserRefreshTokenTable
+  seller_refresh_token: SellerRefreshTokenTable
+  admin_refresh_token: AdminRefreshTokenTable
   product: ProductTable
   productImage: ProductImageTable
   productCategory: ProductCategoryTable
@@ -108,12 +110,27 @@ export type UserVoucherTable = {
   createdAt: Date
 }
 
-type RefreshTokenTable = {
+type UserRefreshTokenTable = {
   id: string
-  previousID: string
+  userId: string
+  previousId: string
   previousCreatedAt: Date
-  actorID: string
-  actorType: "USER" | "SELLER" | "ADMIN"
+  createdAt: Date
+}
+
+type SellerRefreshTokenTable = {
+  id: string
+  sellerId: string
+  previousId: string
+  previousCreatedAt: Date
+  createdAt: Date
+}
+
+type AdminRefreshTokenTable = {
+  id: string
+  adminId: string
+  previousId: string
+  previousCreatedAt: Date
   createdAt: Date
 }
 

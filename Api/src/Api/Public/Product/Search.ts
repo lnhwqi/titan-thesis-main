@@ -5,6 +5,7 @@ import * as ProductImageRow from "../../../Database/ProductImageRow"
 import * as ProductCategoryRow from "../../../Database/ProductCategoryRow"
 
 import * as ProductVariantRow from "../../../Database/ProductVariantRow"
+import * as Logger from "../../../Logger"
 
 import { toBasicProduct } from "../../../App/ProductBasic"
 import { BasicProduct } from "../../../../../Core/App/ProductBasic"
@@ -38,10 +39,26 @@ export async function getlistPayload(
 
   if (productIds.length === 0) return { items: [] }
 
+  const safeLoad = async <T>(
+    label: string,
+    fn: () => Promise<T[]>,
+  ): Promise<T[]> => {
+    try {
+      return await fn()
+    } catch (e) {
+      Logger.warn(`#public.product.search skip ${label}: ${e}`)
+      return []
+    }
+  }
+
   const [allImages, allCategories, allVariants] = await Promise.all([
-    ProductImageRow.getByProductIDs(productIds),
-    ProductCategoryRow.getByProductIDs(productIds),
-    ProductVariantRow.getByProductIDs(productIds),
+    safeLoad("productImage", () => ProductImageRow.getByProductIDs(productIds)),
+    safeLoad("productCategory", () =>
+      ProductCategoryRow.getByProductIDs(productIds),
+    ),
+    safeLoad("productVariant", () =>
+      ProductVariantRow.getByProductIDs(productIds),
+    ),
   ])
 
   const imageMap = _groupBy(allImages, (img) => img.productID.unwrap())
