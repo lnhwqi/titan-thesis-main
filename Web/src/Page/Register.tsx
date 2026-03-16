@@ -6,6 +6,22 @@ import { emit } from "../Runtime/React"
 import Button from "../View/Form/Button"
 import InputText from "../View/Form/InputText"
 import * as RegisterAction from "../Action/Register"
+import {
+  createNameE as createUserNameE,
+  ErrorName as ErrorUserName,
+} from "../../../Core/App/User/Name"
+import {
+  createEmailE,
+  ErrorEmail,
+} from "../../../Core/Data/User/Email"
+import {
+  passwordErrors,
+  passwordErrorString,
+} from "../../../Core/App/User/Password"
+import {
+  createShopNameE,
+  ErrorShopName,
+} from "../../../Core/App/Seller/ShopName"
 
 export type Props = { state: State }
 
@@ -13,11 +29,11 @@ export default function RegisterPage(props: Props): JSX.Element {
   const { register } = props.state
   const isSeller = register.role === "SELLER"
   const isLoading = register.status._t === "Loading"
-  const canSubmit =
-    register.name.trim() !== "" &&
-    register.email.trim() !== "" &&
-    register.password.trim() !== "" &&
-    (isSeller === false || register.shopName.trim() !== "")
+  const errors = getRegisterErrors(register)
+  const hasErrors = Object.values(errors).some((msg) => msg != null)
+  const showError = (field: keyof typeof register.touched) =>
+    register.touched[field] && errors[field] != null
+  const canSubmit = !isLoading && hasErrors === false
 
   return (
     <div className={styles.container}>
@@ -55,33 +71,42 @@ export default function RegisterPage(props: Props): JSX.Element {
             <span className={styles.fieldLabel}>Name</span>
             <InputText
               value={register.name}
-              invalid={false}
+              invalid={showError("name")}
               type="text"
               placeholder={isSeller ? "Owner name" : "Your full name"}
               onChange={(v) => emit(RegisterAction.onChangeName(v))}
             />
+            {showError("name") ? (
+              <span className={styles.fieldError}>{errors.name}</span>
+            ) : null}
           </div>
 
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Email</span>
             <InputText
               value={register.email}
-              invalid={false}
+              invalid={showError("email")}
               type="email"
               placeholder="you@example.com"
               onChange={(v) => emit(RegisterAction.onChangeEmail(v))}
             />
+            {showError("email") ? (
+              <span className={styles.fieldError}>{errors.email}</span>
+            ) : null}
           </div>
 
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Password</span>
             <InputText
               value={register.password}
-              invalid={false}
+              invalid={showError("password")}
               type="password"
               placeholder="Min 8 chars"
               onChange={(v) => emit(RegisterAction.onChangePassword(v))}
             />
+            {showError("password") ? (
+              <span className={styles.fieldError}>{errors.password}</span>
+            ) : null}
           </div>
 
           {isSeller ? (
@@ -89,11 +114,14 @@ export default function RegisterPage(props: Props): JSX.Element {
               <span className={styles.fieldLabel}>Shop Name</span>
               <InputText
                 value={register.shopName}
-                invalid={false}
+                invalid={showError("shopName")}
                 type="text"
                 placeholder="Your shop brand"
                 onChange={(v) => emit(RegisterAction.onChangeShopName(v))}
               />
+              {showError("shopName") ? (
+                <span className={styles.fieldError}>{errors.shopName}</span>
+              ) : null}
             </div>
           ) : null}
 
@@ -110,7 +138,7 @@ export default function RegisterPage(props: Props): JSX.Element {
                   : "Register User"
             }
             onClick={() => emit(RegisterAction.onSubmit())}
-            disabled={isLoading || canSubmit === false}
+            disabled={canSubmit === false}
           />
         </div>
 
@@ -138,6 +166,64 @@ function renderStatus(status: State["register"]["status"]): JSX.Element {
     case "Success":
       return <div className={styles.successText}>{status.message}</div>
   }
+}
+
+type RegisterErrors = Record<keyof State["register"]["touched"], string | null>
+
+function getRegisterErrors(register: State["register"]): RegisterErrors {
+  const trimmedName = register.name.trim()
+  const trimmedEmail = register.email.trim().toLowerCase()
+  const passwordIssues = passwordErrors(register.password)
+  const trimmedShopName = register.shopName.trim()
+
+  return {
+    name:
+      trimmedName === ""
+        ? "Name is required."
+        : userNameError(createUserNameE(trimmedName)),
+    email:
+      trimmedEmail === ""
+        ? "Email is required."
+        : emailError(createEmailE(trimmedEmail)),
+    password:
+      register.password.trim() === ""
+        ? "Password is required."
+        : passwordIssues.length === 0
+          ? null
+          : passwordErrorString(passwordIssues[0]),
+    shopName:
+      register.role === "SELLER"
+        ? trimmedShopName === ""
+          ? "Shop name is required for sellers."
+          : shopNameError(createShopNameE(trimmedShopName))
+        : null,
+  }
+}
+
+function userNameError(result: ReturnType<typeof createUserNameE>): string | null {
+  return result._t === "Err" ? mapUserNameError(result.error) : null
+}
+
+function emailError(result: ReturnType<typeof createEmailE>): string | null {
+  return result._t === "Err" ? mapEmailError(result.error) : null
+}
+
+function shopNameError(
+  result: ReturnType<typeof createShopNameE>,
+): string | null {
+  return result._t === "Err" ? mapShopNameError(result.error) : null
+}
+
+function mapUserNameError(_error: ErrorUserName): string {
+  return "Name must be between 1 and 100 characters."
+}
+
+function mapEmailError(_error: ErrorEmail): string {
+  return "Enter a valid email address."
+}
+
+function mapShopNameError(_error: ErrorShopName): string {
+  return "Shop name must be between 1 and 100 characters."
 }
 
 const styles = {
@@ -212,6 +298,10 @@ const styles = {
   }),
   errorText: css({
     ...font.medium14,
+    color: color.semantics.error.red500,
+  }),
+  fieldError: css({
+    ...font.regular12,
     color: color.semantics.error.red500,
   }),
   successText: css({

@@ -1,6 +1,8 @@
 import * as JD from "decoders"
-import { BasicProduct } from "../../../Core/App/ProductBasic"
-import { basicProductDecoder } from "../../../Core/App/ProductBasic"
+import {
+  BasicProduct,
+  basicProductDecoder,
+} from "../../../Core/App/ProductBasic"
 import type { State } from "../State"
 
 export type CartItem = {

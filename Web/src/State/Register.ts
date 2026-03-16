@@ -8,6 +8,13 @@ export type RegisterStatus =
   | { _t: "Error"; message: string }
   | { _t: "Success"; message: string }
 
+export type RegisterTouched = {
+  name: boolean
+  email: boolean
+  password: boolean
+  shopName: boolean
+}
+
 export type RegisterState = {
   role: RegisterRole
   name: string
@@ -15,6 +22,16 @@ export type RegisterState = {
   password: string
   shopName: string
   status: RegisterStatus
+  touched: RegisterTouched
+}
+
+export function initRegisterTouched(): RegisterTouched {
+  return {
+    name: false,
+    email: false,
+    password: false,
+    shopName: false,
+  }
 }
 
 export function initRegisterState(): RegisterState {
@@ -25,6 +42,7 @@ export function initRegisterState(): RegisterState {
     password: "",
     shopName: "",
     status: { _t: "Idle" },
+    touched: initRegisterTouched(),
   }
 }
 

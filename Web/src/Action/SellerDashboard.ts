@@ -6,7 +6,10 @@ import * as UpdateProfileApi from "../Api/Auth/Seller/UpdateProfile"
 import * as ProductListApi from "../Api/Public/Product/ListAll"
 import * as CategoryAction from "./Category"
 import { _ProductState } from "../State/Product"
-import { _SellerDashboardState } from "../State/SellerDashboard"
+import {
+  _SellerDashboardState,
+  initCreateProductTouched,
+} from "../State/SellerDashboard"
 
 export function onEnterRoute(): Action {
   return (state) => {
@@ -175,6 +178,7 @@ export function onChangeName(value: string): Action {
     _SellerDashboardState(state, {
       name: value,
       flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, name: true },
     }),
     cmd(),
   ]
@@ -185,6 +189,7 @@ export function onChangePrice(value: string): Action {
     _SellerDashboardState(state, {
       price: value,
       flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, price: true },
     }),
     cmd(),
   ]
@@ -195,6 +200,10 @@ export function onChangeDescription(value: string): Action {
     _SellerDashboardState(state, {
       description: value,
       flashMessage: null,
+      createTouched: {
+        ...state.sellerDashboard.createTouched,
+        description: true,
+      },
     }),
     cmd(),
   ]
@@ -205,6 +214,10 @@ export function onChangeImageUrl(value: string): Action {
     _SellerDashboardState(state, {
       imageUrl: value,
       flashMessage: null,
+      createTouched: {
+        ...state.sellerDashboard.createTouched,
+        imageUrl: true,
+      },
     }),
     cmd(),
   ]
@@ -215,6 +228,7 @@ export function onChangeSku(value: string): Action {
     _SellerDashboardState(state, {
       sku: value,
       flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, sku: true },
     }),
     cmd(),
   ]
@@ -225,6 +239,7 @@ export function onChangeStock(value: string): Action {
     _SellerDashboardState(state, {
       stock: value,
       flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, stock: true },
     }),
     cmd(),
   ]
@@ -320,6 +335,7 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
         imageUrl: "",
         sku: "",
         stock: "",
+        createTouched: initCreateProductTouched(),
       }),
       cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
     ]

@@ -15,6 +15,14 @@ export type SellerDashboardState = {
   imageUrl: string
   sku: string
   stock: string
+  createTouched: {
+    name: boolean
+    price: boolean
+    description: boolean
+    imageUrl: boolean
+    sku: boolean
+    stock: boolean
+  }
   profileResponse: RD.RemoteData<
     ApiError<SellerProfileApi.ErrorCode>,
     SellerProfileApi.Payload
@@ -30,6 +38,17 @@ export type SellerDashboardState = {
   flashMessage: string | null
 }
 
+export function initCreateProductTouched(): SellerDashboardState["createTouched"] {
+  return {
+    name: false,
+    price: false,
+    description: false,
+    imageUrl: false,
+    sku: false,
+    stock: false,
+  }
+}
+
 export function initSellerDashboardState(): SellerDashboardState {
   return {
     shopName: "",
@@ -41,6 +60,7 @@ export function initSellerDashboardState(): SellerDashboardState {
     imageUrl: "",
     sku: "",
     stock: "",
+    createTouched: initCreateProductTouched(),
     profileResponse: RD.notAsked(),
     updateShopResponse: RD.notAsked(),
     createResponse: RD.notAsked(),

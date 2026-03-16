@@ -9,6 +9,30 @@ import * as LoginAction from "../Action/Login"
 import * as SellerDashboardAction from "../Action/SellerDashboard"
 import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
+import {
+  createNameE as createProductNameE,
+  ErrorName as ErrorProductName,
+} from "../../../Core/App/Product/Name"
+import {
+  createPriceE,
+  ErrorPrice,
+} from "../../../Core/App/Product/Price"
+import {
+  createDescriptionE,
+  ErrorDescription,
+} from "../../../Core/App/Product/Description"
+import {
+  createSKUE,
+  ErrorSKU,
+} from "../../../Core/App/ProductVariant/ProductVarirantSKU"
+import {
+  createStockE,
+  ErrorStock,
+} from "../../../Core/App/ProductVariant/Stock"
+import {
+  createWebLinkE,
+  ErrorWebLink,
+} from "../../../Core/Data/Url"
 
 export type Props = { state: State }
 
@@ -46,6 +70,13 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
   const myProductsCount = myProducts.length
 
   const createState = state.sellerDashboard
+  const createErrors = getCreateProductErrors(createState)
+  const showCreateError = (
+    field: keyof State["sellerDashboard"]["createTouched"],
+  ) => createState.createTouched[field] && createErrors[field] != null
+  const isCreateDisabled =
+    createState.createResponse._t === "Loading" ||
+    Object.values(createErrors).some((msg) => msg != null)
   const seller =
     createState.profileResponse._t === "Success"
       ? createState.profileResponse.data.seller
@@ -195,68 +226,88 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
             <span className={styles.label}>Product Name</span>
             <InputText
               value={createState.name}
-              invalid={false}
+              invalid={showCreateError("name")}
               type="text"
               placeholder="Product name"
               onChange={(v) => emit(SellerDashboardAction.onChangeName(v))}
             />
+            {showCreateError("name") ? (
+              <span className={styles.fieldError}>{createErrors.name}</span>
+            ) : null}
           </div>
 
           <div className={styles.field}>
             <span className={styles.label}>Price</span>
             <InputText
               value={createState.price}
-              invalid={false}
+              invalid={showCreateError("price")}
               type="number"
               placeholder="100000"
               onChange={(v) => emit(SellerDashboardAction.onChangePrice(v))}
             />
+            {showCreateError("price") ? (
+              <span className={styles.fieldError}>{createErrors.price}</span>
+            ) : null}
           </div>
 
           <div className={styles.field}>
             <span className={styles.label}>SKU</span>
             <InputText
               value={createState.sku}
-              invalid={false}
+              invalid={showCreateError("sku")}
               type="text"
               placeholder="SKU-001"
               onChange={(v) => emit(SellerDashboardAction.onChangeSku(v))}
             />
+            {showCreateError("sku") ? (
+              <span className={styles.fieldError}>{createErrors.sku}</span>
+            ) : null}
           </div>
 
           <div className={styles.field}>
             <span className={styles.label}>Stock</span>
             <InputText
               value={createState.stock}
-              invalid={false}
+              invalid={showCreateError("stock")}
               type="number"
               placeholder="10"
               onChange={(v) => emit(SellerDashboardAction.onChangeStock(v))}
             />
+            {showCreateError("stock") ? (
+              <span className={styles.fieldError}>{createErrors.stock}</span>
+            ) : null}
           </div>
 
           <div className={styles.fieldFull}>
             <span className={styles.label}>Description</span>
             <InputText
               value={createState.description}
-              invalid={false}
+              invalid={showCreateError("description")}
               type="text"
               placeholder="Product description"
               onChange={(v) =>
                 emit(SellerDashboardAction.onChangeDescription(v))
               }
             />
+            {showCreateError("description") ? (
+              <span className={styles.fieldError}>
+                {createErrors.description}
+              </span>
+            ) : null}
           </div>
 
           <div className={styles.fieldFull}>
             <span className={styles.label}>Image URL</span>
             <InputText
               value={createState.imageUrl}
-              invalid={false}
+              invalid={showCreateError("imageUrl")}
               type="text"
               placeholder="https://..."
               onChange={(v) => emit(SellerDashboardAction.onChangeImageUrl(v))}
             />
+            {showCreateError("imageUrl") ? (
+              <span className={styles.fieldError}>{createErrors.imageUrl}</span>
+            ) : null}
           </div>
         </div>
 
@@ -270,7 +321,7 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
                 : "Create Product"
             }
             onClick={() => emit(SellerDashboardAction.submitCreateProduct())}
-            disabled={createState.createResponse._t === "Loading"}
+            disabled={isCreateDisabled}
           />
         </div>
       </section>
@@ -336,6 +387,108 @@ function formatCurrency(value: number): string {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(value)
+}
+
+type CreateErrors = Record<
+  keyof State["sellerDashboard"]["createTouched"],
+  string | null
+>
+
+function getCreateProductErrors(
+  sellerState: State["sellerDashboard"],
+): CreateErrors {
+  const trimmedName = sellerState.name.trim()
+  const trimmedDescription = sellerState.description.trim()
+  const trimmedSku = sellerState.sku.trim()
+  const trimmedImage = sellerState.imageUrl.trim()
+  const priceValue = Number(sellerState.price)
+  const stockValue = Number(sellerState.stock)
+
+  return {
+    name:
+      trimmedName === ""
+        ? "Product name is required."
+        : mapProductNameError(createProductNameE(trimmedName)),
+    price:
+      sellerState.price.trim() === ""
+        ? "Price is required."
+        : Number.isFinite(priceValue) === false
+          ? "Enter a valid number for price."
+          : mapPriceError(createPriceE(priceValue)),
+    description:
+      trimmedDescription === ""
+        ? "Description is required."
+        : mapDescriptionError(createDescriptionE(trimmedDescription)),
+    imageUrl:
+      trimmedImage === ""
+        ? "Image URL is required."
+        : mapImageError(createWebLinkE(trimmedImage)),
+    sku:
+      trimmedSku === ""
+        ? "SKU is required."
+        : mapSkuError(createSKUE(trimmedSku)),
+    stock:
+      sellerState.stock.trim() === ""
+        ? "Stock is required."
+        : Number.isFinite(stockValue) === false
+          ? "Enter a valid number for stock."
+          : mapStockError(createStockE(stockValue)),
+  }
+}
+
+function mapProductNameError(
+  result: ReturnType<typeof createProductNameE>,
+): string | null {
+  if (result._t === "Ok") return null
+  return productNameErrorMessage(result.error)
+}
+
+function mapPriceError(result: ReturnType<typeof createPriceE>): string | null {
+  return result._t === "Err" ? priceErrorMessage(result.error) : null
+}
+
+function mapDescriptionError(
+  result: ReturnType<typeof createDescriptionE>,
+): string | null {
+  return result._t === "Err" ? descriptionErrorMessage(result.error) : null
+}
+
+function mapImageError(
+  result: ReturnType<typeof createWebLinkE>,
+): string | null {
+  return result._t === "Err" ? imageUrlErrorMessage(result.error) : null
+}
+
+function mapSkuError(result: ReturnType<typeof createSKUE>): string | null {
+  return result._t === "Err" ? skuErrorMessage(result.error) : null
+}
+
+function mapStockError(result: ReturnType<typeof createStockE>): string | null {
+  return result._t === "Err" ? stockErrorMessage(result.error) : null
+}
+
+function productNameErrorMessage(_error: ErrorProductName): string {
+  return "Product name must be between 1 and 100 characters."
+}
+
+function priceErrorMessage(_error: ErrorPrice): string {
+  return "Price must be a positive whole number."
+}
+
+function descriptionErrorMessage(_error: ErrorDescription): string {
+  return "Description must be 1-1024 characters."
+}
+
+function imageUrlErrorMessage(_error: ErrorWebLink): string {
+  return "Provide a valid URL including http or https."
+}
+
+function skuErrorMessage(_error: ErrorSKU): string {
+  return "SKU must be 1-100 characters with no spaces."
+}
+
+function stockErrorMessage(_error: ErrorStock): string {
+  return "Stock must be a whole number between 0 and 1,000,000."
 }
 
 const styles = {
@@ -450,6 +603,10 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: theme.s1,
+  }),
+  fieldError: css({
+    ...font.regular12,
+    color: color.semantics.error.red500,
   }),
   fieldFull: css({
     display: "flex",

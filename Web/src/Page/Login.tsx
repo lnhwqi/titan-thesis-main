@@ -13,12 +13,19 @@ import { gradient } from "../View/Theme/Keyframe"
 import Button from "../View/Form/Button"
 import { parseNotValidate } from "../State/Login"
 import { navigateTo, toRoute } from "../Route"
+import { ErrorEmail } from "../../../Core/Data/User/Email"
+import {
+  _ErrorPassword,
+  passwordErrorString,
+} from "../../../Core/App/User/Password"
 
 export type Props = { state: State }
 export default function LoginPage(props: Props): JSX.Element {
   const { email, password, loginResponse } = props.state.login
   const loginParams = parseNotValidate(props.state.login)
   const isSubmitting = loginResponse._t === "Loading"
+  const emailError = FieldString.error(email)
+  const passwordError = FieldString.error(password)
 
   return (
     <div className={styles.container}>
@@ -40,21 +47,31 @@ export default function LoginPage(props: Props): JSX.Element {
             <span className={styles.fieldLabel}>Email</span>
             <InputText
               value={email.unwrap()}
-              invalid={FieldString.error(email) != null}
+              invalid={emailError != null}
               type="email"
               placeholder="Enter email"
               onChange={(value) => emit(LoginAction.onChangeEmail(value))}
             />
+            {emailError != null ? (
+              <span className={styles.fieldError}>
+                {emailErrorMessage(emailError)}
+              </span>
+            ) : null}
           </div>
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Password</span>
             <InputText
               value={password.unwrap()}
-              invalid={FieldString.error(password) != null}
+              invalid={passwordError != null}
               type="password"
               placeholder="Enter password"
               onChange={(value) => emit(LoginAction.onChangePassword(value))}
             />
+            {passwordError != null ? (
+              <span className={styles.fieldError}>
+                {passwordErrorString(passwordError)}
+              </span>
+            ) : null}
           </div>
           <Button
             theme_={"Red"}
@@ -112,6 +129,10 @@ function responseMessage(
         </div>
       )
   }
+}
+
+function emailErrorMessage(_error: ErrorEmail): string {
+  return "Enter a valid email address."
 }
 
 const styles = {
@@ -176,6 +197,10 @@ const styles = {
   }),
   fieldLabel: css({
     ...font.regular14,
+  }),
+  fieldError: css({
+    ...font.regular12,
+    color: color.semantics.error.red500,
   }),
   registerLink: css({
     border: "none",

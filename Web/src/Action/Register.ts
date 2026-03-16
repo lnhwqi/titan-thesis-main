@@ -1,5 +1,9 @@
 import { Action, cmd, perform } from "../Action"
-import { _RegisterState, RegisterRole } from "../State/Register"
+import {
+  _RegisterState,
+  RegisterRole,
+  initRegisterTouched,
+} from "../State/Register"
 import * as RegisterUserApi from "../Api/Public/RegisterUser"
 import * as RegisterSellerApi from "../Api/Public/RegisterSeller"
 import * as AuthToken from "../App/AuthToken"
@@ -13,6 +17,10 @@ export function onChangeRole(role: RegisterRole): Action {
     _RegisterState(state, {
       role,
       status: { _t: "Idle" },
+      touched:
+        role === "SELLER"
+          ? state.register.touched
+          : { ...state.register.touched, shopName: false },
     }),
     cmd(),
   ]
@@ -23,6 +31,7 @@ export function onChangeName(name: string): Action {
     _RegisterState(state, {
       name,
       status: { _t: "Idle" },
+      touched: { ...state.register.touched, name: true },
     }),
     cmd(),
   ]
@@ -33,6 +42,7 @@ export function onChangeEmail(email: string): Action {
     _RegisterState(state, {
       email,
       status: { _t: "Idle" },
+      touched: { ...state.register.touched, email: true },
     }),
     cmd(),
   ]
@@ -43,6 +53,7 @@ export function onChangePassword(password: string): Action {
     _RegisterState(state, {
       password,
       status: { _t: "Idle" },
+      touched: { ...state.register.touched, password: true },
     }),
     cmd(),
   ]
@@ -53,6 +64,7 @@ export function onChangeShopName(shopName: string): Action {
     _RegisterState(state, {
       shopName,
       status: { _t: "Idle" },
+      touched: { ...state.register.touched, shopName: true },
     }),
     cmd(),
   ]
@@ -102,7 +114,10 @@ async function submit(register: {
     })
 
     return (_state) => [
-      _RegisterState(_state, { status: { _t: "Idle" } }),
+      _RegisterState(_state, {
+        status: { _t: "Idle" },
+        touched: initRegisterTouched(),
+      }),
       cmd(perform(navigateTo(toRoute("Home", {})))),
     ]
   }
@@ -133,6 +148,7 @@ async function submit(register: {
         _t: "Success",
         message: sellerPendingApprovalMessage,
       },
+      touched: initRegisterTouched(),
     }),
     cmd(),
   ]
