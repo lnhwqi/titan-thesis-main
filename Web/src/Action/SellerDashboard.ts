@@ -231,7 +231,10 @@ export function onChangeStock(value: string): Action {
 }
 
 export function clearFlashMessage(): Action {
-  return (state) => [_SellerDashboardState(state, { flashMessage: null }), cmd()]
+  return (state) => [
+    _SellerDashboardState(state, { flashMessage: null }),
+    cmd(),
+  ]
 }
 
 export function submitCreateProduct(): Action {
@@ -245,7 +248,8 @@ export function submitCreateProduct(): Action {
     if (categoryID == null) {
       return [
         _SellerDashboardState(state, {
-          flashMessage: "No category available yet. Please create categories first.",
+          flashMessage:
+            "No category available yet. Please create categories first.",
         }),
         cmd(),
       ]

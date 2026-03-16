@@ -41,7 +41,9 @@ function parseSavedCart(saved: string | null): CartItem[] {
   try {
     const parsed = JSON.parse(saved)
     const items = JD.array(cartItemDecoder).verify(parsed)
-    return items.filter((item) => Number.isFinite(item.quantity) && item.quantity > 0)
+    return items.filter(
+      (item) => Number.isFinite(item.quantity) && item.quantity > 0,
+    )
   } catch (_e) {
     return []
   }

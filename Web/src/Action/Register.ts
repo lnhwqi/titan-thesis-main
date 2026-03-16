@@ -134,7 +134,7 @@ async function submit(register: {
         message: sellerPendingApprovalMessage,
       },
     }),
-    cmd(perform(navigateTo(toRoute("Home", {})))),
+    cmd(),
   ]
 }
 

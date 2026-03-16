@@ -145,14 +145,14 @@ export default function Header(props: Props): JSX.Element {
             ) : (
               <>
                 <Link
-                  route={toRoute("Login", { redirect: null })}
+                  route={toRoute("Login", { redirect: toPath(state.route) })}
                   className={styles.actionItem}
                 >
                   Login
                 </Link>
                 <span className={styles.separator}>or</span>
                 <Link
-                  route={toRoute("Login", { redirect: null })}
+                  route={toRoute("Register", {})}
                   className={styles.actionItem}
                 >
                   Register

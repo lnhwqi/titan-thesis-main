@@ -304,8 +304,13 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
             {myProducts.map((product) => {
               const firstVariant = product.variants[0]
               return (
-                <article key={product.id.unwrap()} className={styles.productCard}>
-                  <div className={styles.productName}>{product.name.unwrap()}</div>
+                <article
+                  key={product.id.unwrap()}
+                  className={styles.productCard}
+                >
+                  <div className={styles.productName}>
+                    {product.name.unwrap()}
+                  </div>
                   <div className={styles.productMeta}>
                     Price: {formatCurrency(product.price.unwrap())}
                   </div>

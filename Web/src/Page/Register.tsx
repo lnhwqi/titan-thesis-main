@@ -3,7 +3,6 @@ import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
 import { emit } from "../Runtime/React"
-import { navigateTo, toRoute } from "../Route"
 import Button from "../View/Form/Button"
 import InputText from "../View/Form/InputText"
 import * as RegisterAction from "../Action/Register"
@@ -117,7 +116,10 @@ export default function RegisterPage(props: Props): JSX.Element {
 
         <button
           className={styles.loginLink}
-          onClick={() => emit(navigateTo(toRoute("Login", { redirect: null })))}
+          onClick={() => {
+            window.history.pushState(null, "", "/login")
+            window.dispatchEvent(new PopStateEvent("popstate"))
+          }}
         >
           Already have account? Go to login
         </button>
