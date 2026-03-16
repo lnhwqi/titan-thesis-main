@@ -83,7 +83,9 @@ function onSendVerifyEmailResponse(
 ): Action {
   return (state) => {
     const sendingVerifyEmailSellerIDs =
-      state.adminDashboard.sendingVerifyEmailSellerIDs.filter((x) => x !== sellerID)
+      state.adminDashboard.sendingVerifyEmailSellerIDs.filter(
+        (x) => x !== sellerID,
+      )
 
     if (response._t === "Err") {
       return [

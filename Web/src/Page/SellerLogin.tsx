@@ -72,7 +72,9 @@ export default function SellerLoginPage(props: Props): JSX.Element {
         <div className={styles.links}>
           <button
             className={styles.linkButton}
-            onClick={() => emit(navigateTo(toRoute("Login", { redirect: null })))}
+            onClick={() =>
+              emit(navigateTo(toRoute("Login", { redirect: null })))
+            }
           >
             Go to user login
           </button>
@@ -124,7 +126,7 @@ function responseMessage(
     case "Success":
       return (
         <div className={styles.responseSuccess}>
-          Login success. Redirecting to seller home...
+          Login success. Redirecting to seller dashboard...
         </div>
       )
   }

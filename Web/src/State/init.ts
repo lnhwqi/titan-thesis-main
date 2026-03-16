@@ -9,6 +9,7 @@ import { initCategoryState } from "./Category"
 import { initCartState } from "./Cart"
 import { initRegisterState } from "./Register"
 import { initAdminDashboardState } from "./AdminDashboard"
+import { initSellerDashboardState } from "./SellerDashboard"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -18,6 +19,7 @@ export function initState(route: Route): State {
     login: initLoginState(),
     register: initRegisterState(),
     adminDashboard: initAdminDashboardState(),
+    sellerDashboard: initSellerDashboardState(),
     product: initProductState(),
     category: initCategoryState(),
     cart: initCartState(),

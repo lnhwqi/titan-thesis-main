@@ -127,7 +127,7 @@ function onSubmitSellerResponse(response: LoginSellerApi.Response): Action {
 
     return [
       _LoginState(state, { loginResponse: RD.notAsked() }),
-      cmd(perform(navigateTo(toRoute("Home", {})))),
+      cmd(perform(navigateTo(toRoute("SellerDashboard", {})))),
     ]
   }
 }

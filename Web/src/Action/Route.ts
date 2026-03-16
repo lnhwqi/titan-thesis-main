@@ -5,6 +5,7 @@ import { _AuthState, _PublicState, State } from "../State"
 import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
 import * as AdminDashboardAction from "./AdminDashboard"
+import * as SellerDashboardAction from "./SellerDashboard"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 
 export function onUrlChange(s: State): [State, Cmd] {
@@ -15,6 +16,9 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "Home":
     case "AdminLogin":
     case "SellerLogin":
+    case "SellerDashboard":
+      return SellerDashboardAction.onEnterRoute()(state)
+
     case "Register":
     case "Login":
     case "NotFound":
