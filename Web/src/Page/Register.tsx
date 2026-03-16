@@ -10,10 +10,7 @@ import {
   createNameE as createUserNameE,
   ErrorName as ErrorUserName,
 } from "../../../Core/App/User/Name"
-import {
-  createEmailE,
-  ErrorEmail,
-} from "../../../Core/Data/User/Email"
+import { createEmailE, ErrorEmail } from "../../../Core/Data/User/Email"
 import {
   passwordErrors,
   passwordErrorString,
@@ -200,7 +197,9 @@ function getRegisterErrors(register: State["register"]): RegisterErrors {
   }
 }
 
-function userNameError(result: ReturnType<typeof createUserNameE>): string | null {
+function userNameError(
+  result: ReturnType<typeof createUserNameE>,
+): string | null {
   return result._t === "Err" ? mapUserNameError(result.error) : null
 }
 

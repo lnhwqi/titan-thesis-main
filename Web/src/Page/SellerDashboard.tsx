@@ -13,10 +13,7 @@ import {
   createNameE as createProductNameE,
   ErrorName as ErrorProductName,
 } from "../../../Core/App/Product/Name"
-import {
-  createPriceE,
-  ErrorPrice,
-} from "../../../Core/App/Product/Price"
+import { createPriceE, ErrorPrice } from "../../../Core/App/Product/Price"
 import {
   createDescriptionE,
   ErrorDescription,
@@ -29,10 +26,7 @@ import {
   createStockE,
   ErrorStock,
 } from "../../../Core/App/ProductVariant/Stock"
-import {
-  createWebLinkE,
-  ErrorWebLink,
-} from "../../../Core/Data/Url"
+import { createWebLinkE, ErrorWebLink } from "../../../Core/Data/Url"
 
 export type Props = { state: State }
 
