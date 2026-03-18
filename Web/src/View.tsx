@@ -11,6 +11,7 @@ import RegisterPage from "./Page/Register"
 import AdminLoginPage from "./Page/AdminLogin"
 import SellerLoginPage from "./Page/SellerLogin"
 import AdminDashboardPage from "./Page/AdminDashboard"
+import AdminCategoryManagementPage from "./Page/AdminCategoryManagement"
 import SellerDashboardPage from "./Page/SellerDashboard"
 import HomePage from "./Page/Home"
 import SearchPage from "./Page/Search"
@@ -64,6 +65,13 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={AdminDashboardPage}
+        />
+      )
+    case "AdminCategoryManagement":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminCategoryManagementPage}
         />
       )
     case "SellerDashboard":

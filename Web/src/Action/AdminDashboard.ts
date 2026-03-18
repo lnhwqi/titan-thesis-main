@@ -1,14 +1,33 @@
 import { SellerID } from "../../../Core/App/Seller/SellerID"
+import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, Cmd } from "../Action"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
 import * as ApproveSellerApi from "../Api/Auth/Admin/ApproveSeller"
 import * as SendSellerVerifyEmailApi from "../Api/Auth/Admin/SendSellerVerifyEmail"
+import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
+import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
+import * as DeleteCategoryApi from "../Api/Auth/Admin/DeleteCategoryApi"
+import * as CategoryAction from "./Category"
 import { _AdminDashboardState } from "../State/AdminDashboard"
 import { State } from "../State"
+import { createName } from "../../../Core/App/Category/Name"
+import { slugify } from "../../../Core/App/Category/Slug"
 
 export function onEnterRoute(state: State): [State, Cmd] {
   return loadPendingSellers()(state)
+}
+
+export function onEnterCategoryManagementRoute(state: State): [State, Cmd] {
+  return reloadCategoryTree()(
+    _AdminDashboardState(state, {
+      flashMessage: null,
+    }),
+  )
+}
+
+export function reloadCategoryTree(): Action {
+  return (state) => CategoryAction.loadTree()(state)
 }
 
 export function loadPendingSellers(): Action {
@@ -153,6 +172,365 @@ function onApproveResponse(
       }),
       cmd(),
     ]
+  }
+}
+
+export function onChangeCategoryRootName(value: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryRootName: value,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function submitCreateRootCategory(): Action {
+  return (state) => {
+    const nameRaw = state.adminDashboard.categoryRootName.trim()
+    const name = createName(nameRaw)
+    const slug = slugify(nameRaw)
+
+    if (nameRaw === "" || name == null || slug == null) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Root category name is invalid.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        creatingCategoryResponse: RD.loading(),
+        flashMessage: null,
+      }),
+      cmd(
+        CreateCategoryApi.call({
+          name,
+          slug,
+          parentID: null,
+        }).then((response) => onCreateCategoryResponse("root", response)),
+      ),
+    ]
+  }
+}
+
+export function selectParentForChild(
+  parentID: CategoryID,
+  parentName: string,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryChildParentID: parentID,
+      categoryChildParentName: parentName,
+      categoryChildName: "",
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function clearParentForChild(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryChildParentID: null,
+      categoryChildParentName: null,
+      categoryChildName: "",
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeCategoryChildName(value: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryChildName: value,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function submitCreateChildCategory(): Action {
+  return (state) => {
+    const parentID = state.adminDashboard.categoryChildParentID
+    const nameRaw = state.adminDashboard.categoryChildName.trim()
+    const name = createName(nameRaw)
+    const slug = slugify(nameRaw)
+
+    if (parentID == null) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Select a parent category first.",
+        }),
+        cmd(),
+      ]
+    }
+
+    if (nameRaw === "" || name == null || slug == null) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Child category name is invalid.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        creatingCategoryResponse: RD.loading(),
+        flashMessage: null,
+      }),
+      cmd(
+        CreateCategoryApi.call({
+          name,
+          slug,
+          parentID,
+        }).then((response) => onCreateCategoryResponse("child", response)),
+      ),
+    ]
+  }
+}
+
+type CreateMode = "root" | "child"
+
+function onCreateCategoryResponse(
+  mode: CreateMode,
+  response: CreateCategoryApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          creatingCategoryResponse: RD.failure(response.error),
+          flashMessage: CreateCategoryApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const message =
+      mode === "root"
+        ? `Root category \"${response.value.category.name.unwrap()}\" created.`
+        : `Child category \"${response.value.category.name.unwrap()}\" created.`
+
+    const [nextState, loadTreeCmd] = CategoryAction.loadTree()(
+      _AdminDashboardState(state, {
+        creatingCategoryResponse: RD.success(response.value),
+        categoryRootName:
+          mode === "root" ? "" : state.adminDashboard.categoryRootName,
+        categoryChildName:
+          mode === "child" ? "" : state.adminDashboard.categoryChildName,
+        flashMessage: message,
+      }),
+    )
+
+    return [nextState, loadTreeCmd]
+  }
+}
+
+export function startEditCategory(id: CategoryID, currentName: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryEditID: id,
+      categoryEditName: currentName,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function cancelEditCategory(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryEditID: null,
+      categoryEditName: "",
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeEditCategoryName(value: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      categoryEditName: value,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function submitEditCategory(): Action {
+  return (state) => {
+    const id = state.adminDashboard.categoryEditID
+    const nameRaw = state.adminDashboard.categoryEditName.trim()
+    const name = createName(nameRaw)
+    const slug = slugify(nameRaw)
+
+    if (id == null) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Choose a category to edit.",
+        }),
+        cmd(),
+      ]
+    }
+
+    if (nameRaw === "" || name == null || slug == null) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Edited category name is invalid.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        updatingCategoryResponse: RD.loading(),
+        flashMessage: null,
+      }),
+      cmd(
+        UpdateCategoryApi.call({ id }, { name, slug }).then(
+          onUpdateCategoryResponse,
+        ),
+      ),
+    ]
+  }
+}
+
+export function requestDeleteCategory(id: CategoryID, name: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      deleteCategoryTarget: { id, name },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function cancelDeleteCategory(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      deleteCategoryTarget: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function confirmDeleteCategory(): Action {
+  return (state) => {
+    const target = state.adminDashboard.deleteCategoryTarget
+    if (target == null) {
+      return [state, cmd()]
+    }
+
+    return deleteCategory(
+      target.id,
+      target.name,
+    )(
+      _AdminDashboardState(state, {
+        deleteCategoryTarget: null,
+      }),
+    )
+  }
+}
+
+export function deleteCategory(id: CategoryID, name: string): Action {
+  return (state) => {
+    const idRaw = id.unwrap()
+    const deletingCategoryIDs =
+      state.adminDashboard.deletingCategoryIDs.includes(idRaw)
+        ? state.adminDashboard.deletingCategoryIDs
+        : [...state.adminDashboard.deletingCategoryIDs, idRaw]
+
+    return [
+      _AdminDashboardState(state, {
+        deletingCategoryIDs,
+        flashMessage: null,
+        deleteCategoryTarget: null,
+      }),
+      cmd(
+        DeleteCategoryApi.call({ id }).then((response) =>
+          onDeleteCategoryResponse(idRaw, name, response),
+        ),
+      ),
+    ]
+  }
+}
+
+function onDeleteCategoryResponse(
+  id: string,
+  name: string,
+  response: DeleteCategoryApi.Response,
+): Action {
+  return (state) => {
+    const deletingCategoryIDs = state.adminDashboard.deletingCategoryIDs.filter(
+      (item) => item !== id,
+    )
+
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          deletingCategoryIDs,
+          flashMessage: DeleteCategoryApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const shouldClearChildParent =
+      state.adminDashboard.categoryChildParentID?.unwrap() === id
+    const shouldClearEdit = state.adminDashboard.categoryEditID?.unwrap() === id
+
+    const [nextState, loadTreeCmd] = CategoryAction.loadTree()(
+      _AdminDashboardState(state, {
+        deletingCategoryIDs,
+        categoryChildParentID: shouldClearChildParent
+          ? null
+          : state.adminDashboard.categoryChildParentID,
+        categoryChildParentName: shouldClearChildParent
+          ? null
+          : state.adminDashboard.categoryChildParentName,
+        categoryEditID: shouldClearEdit
+          ? null
+          : state.adminDashboard.categoryEditID,
+        categoryEditName: shouldClearEdit
+          ? ""
+          : state.adminDashboard.categoryEditName,
+        flashMessage: `Category \"${name}\" deleted. If it had children, they were deleted as well.`,
+      }),
+    )
+
+    return [nextState, loadTreeCmd]
+  }
+}
+
+function onUpdateCategoryResponse(
+  response: UpdateCategoryApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          updatingCategoryResponse: RD.failure(response.error),
+          flashMessage: UpdateCategoryApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const [nextState, loadTreeCmd] = CategoryAction.loadTree()(
+      _AdminDashboardState(state, {
+        updatingCategoryResponse: RD.success(response.value),
+        categoryEditID: null,
+        categoryEditName: "",
+        flashMessage: `Category \"${response.value.category.name.unwrap()}\" updated.`,
+      }),
+    )
+
+    return [nextState, loadTreeCmd]
   }
 }
 

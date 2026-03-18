@@ -18,6 +18,11 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "AdminCategoryManagement"
+      path: "/admin/categories"
+      params: NoParams
+    }
+  | {
       _t: "Login"
       path: "/login?redirect=:redirect"
       params: {
@@ -98,6 +103,14 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("AdminDashboard"),
       path: JD.always("/admin/dashboard"),
+      params: JD.object({}),
+    }),
+  },
+  AdminCategoryManagement: {
+    path: "/admin/categories",
+    decoder: JD.object({
+      _t: JD.always("AdminCategoryManagement"),
+      path: JD.always("/admin/categories"),
       params: JD.object({}),
     }),
   },

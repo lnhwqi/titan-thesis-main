@@ -99,6 +99,22 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
         </article>
 
         <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Category Management</h2>
+          <p className={styles.cardText}>
+            Manage the full category tree from a dedicated page with
+            branch-based creation and edit tools.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() =>
+              emit(navigateTo(toRoute("AdminCategoryManagement", {})))
+            }
+          >
+            Open category manager
+          </button>
+        </article>
+
+        <article className={styles.card}>
           <h2 className={styles.cardTitle}>User Support</h2>
           <p className={styles.cardText}>
             Resolve account issues and keep marketplace trust high.

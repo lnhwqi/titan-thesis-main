@@ -26,6 +26,7 @@ import {
   createStockE,
   ErrorStock,
 } from "../../../Core/App/ProductVariant/Stock"
+import { Category } from "../../../Core/App/Category"
 
 const imageInputElementId = "seller-dashboard-image-input"
 
@@ -74,7 +75,16 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
   const myProductsCount = myProducts.length
 
   const createState = state.sellerDashboard
-  const createErrors = getCreateProductErrors(createState)
+  const categoryOptions =
+    state.category.treeResponse._t === "Success"
+      ? toCategoryOptions(state.category.treeResponse.data)
+      : []
+  const categoryOptionIDs = new Set(categoryOptions.map((item) => item.id))
+  const isCategoryLoading =
+    state.category.treeResponse._t === "NotAsked" ||
+    state.category.treeResponse._t === "Loading"
+  const hasCategories = categoryOptions.length > 0
+  const createErrors = getCreateProductErrors(createState, categoryOptionIDs)
   const showCreateError = (
     field: keyof State["sellerDashboard"]["createTouched"],
   ) => createState.createTouched[field] && createErrors[field] != null
@@ -247,6 +257,56 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
           </div>
 
           <div className={styles.field}>
+            <span className={styles.label}>Category</span>
+            <select
+              className={`${styles.selectInput} ${
+                showCreateError("categoryID") ? styles.selectInputInvalid : ""
+              }`}
+              value={createState.categoryID}
+              disabled={isCategoryLoading || !hasCategories}
+              onChange={(event) =>
+                emit(
+                  SellerDashboardAction.onChangeCategoryID(
+                    event.currentTarget.value,
+                  ),
+                )
+              }
+            >
+              <option value="">
+                {isCategoryLoading
+                  ? "Loading categories..."
+                  : hasCategories
+                    ? "Select a proper category c:"
+                    : "No categories available"}
+              </option>
+              {categoryOptions.map((category) => (
+                <option
+                  key={category.id}
+                  value={category.id}
+                >
+                  {category.label}
+                </option>
+              ))}
+            </select>
+            {!isCategoryLoading && !hasCategories ? (
+              <span className={styles.fieldHint}>
+                Ask admin to create categories before listing products.
+              </span>
+            ) : null}
+            {!isCategoryLoading && hasCategories ? (
+              <span className={styles.fieldHint}>
+                Choose the lowest-level child category that best matches this
+                product. Options are shown as Root - Parent - Leaf.
+              </span>
+            ) : null}
+            {showCreateError("categoryID") ? (
+              <span className={styles.fieldError}>
+                {createErrors.categoryID}
+              </span>
+            ) : null}
+          </div>
+
+          <div className={styles.field}>
             <span className={styles.label}>Price</span>
             <InputText
               value={createState.price}
@@ -333,17 +393,23 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
                 }}
                 disabled={uploadDisabled}
               >
-                {createState.isUploadingImages ? "Uploading..." : "Select images"}
+                {createState.isUploadingImages
+                  ? "Uploading..."
+                  : "Select images"}
               </button>
               <span className={styles.imageHint}>
                 {createState.imageUrls.length}/
-                {SellerDashboardAction.MAX_PRODUCT_IMAGES} uploaded | Up to {SellerDashboardAction.MAX_UPLOAD_SIZE_MB} MB each
+                {SellerDashboardAction.MAX_PRODUCT_IMAGES} uploaded | Up to{" "}
+                {SellerDashboardAction.MAX_UPLOAD_SIZE_MB} MB each
               </span>
             </div>
             {createState.imageUrls.length > 0 ? (
               <div className={styles.imagePreviewGrid}>
                 {createState.imageUrls.map((url) => (
-                  <div key={url} className={styles.imagePreviewCard}>
+                  <div
+                    key={url}
+                    className={styles.imagePreviewCard}
+                  >
                     <img
                       src={url}
                       alt="Product visual"
@@ -353,7 +419,9 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
                     <button
                       type="button"
                       className={styles.imageRemoveButton}
-                      onClick={() => emit(SellerDashboardAction.removeImageUrl(url))}
+                      onClick={() =>
+                        emit(SellerDashboardAction.removeImageUrl(url))
+                      }
                     >
                       Remove
                     </button>
@@ -366,7 +434,9 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
               </div>
             )}
             {showCreateError("imageUrls") ? (
-              <span className={styles.fieldError}>{createErrors.imageUrls}</span>
+              <span className={styles.fieldError}>
+                {createErrors.imageUrls}
+              </span>
             ) : null}
           </div>
         </div>
@@ -456,6 +526,7 @@ type CreateErrors = Record<
 
 function getCreateProductErrors(
   sellerState: State["sellerDashboard"],
+  categoryOptionIDs: Set<string>,
 ): CreateErrors {
   const trimmedName = sellerState.name.trim()
   const trimmedDescription = sellerState.description.trim()
@@ -468,6 +539,12 @@ function getCreateProductErrors(
       trimmedName === ""
         ? "Product name is required."
         : mapProductNameError(createProductNameE(trimmedName)),
+    categoryID:
+      sellerState.categoryID.trim() === ""
+        ? "Please select a lowest-level child category."
+        : categoryOptionIDs.has(sellerState.categoryID.trim()) === false
+          ? "Only lowest-level child categories can be selected."
+          : null,
     price:
       sellerState.price.trim() === ""
         ? "Price is required."
@@ -538,6 +615,26 @@ function skuErrorMessage(_error: ErrorSKU): string {
 
 function stockErrorMessage(_error: ErrorStock): string {
   return "Stock must be a whole number between 0 and 1,000,000."
+}
+
+type CategoryOption = {
+  id: string
+  label: string
+}
+
+function toCategoryOptions(
+  categories: Category[],
+  parents: string[] = [],
+): CategoryOption[] {
+  return categories.flatMap((item) => {
+    const path = [...parents, item.name.unwrap()]
+
+    if (item.children.length === 0) {
+      return [{ id: item.id.unwrap(), label: path.join(" - ") }]
+    }
+
+    return toCategoryOptions(item.children, path)
+  })
 }
 
 const styles = {
@@ -657,6 +754,10 @@ const styles = {
     ...font.regular12,
     color: color.semantics.error.red500,
   }),
+  fieldHint: css({
+    ...font.regular12,
+    color: color.neutral600,
+  }),
   fieldFull: css({
     display: "flex",
     flexDirection: "column",
@@ -668,6 +769,17 @@ const styles = {
   label: css({
     ...font.regular14,
     color: color.neutral700,
+  }),
+  selectInput: css({
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.neutral900,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.regular14,
+  }),
+  selectInputInvalid: css({
+    borderColor: color.semantics.error.red500,
   }),
   hiddenFileInput: css({
     position: "absolute",

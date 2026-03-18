@@ -80,9 +80,9 @@ async function persistFile(
   }
 }
 
-function parseDataUrl(dataUrl: string):
-  | { mimeType: string; buffer: Buffer }
-  | null {
+function parseDataUrl(
+  dataUrl: string,
+): { mimeType: string; buffer: Buffer } | null {
   const trimmed = dataUrl.trim()
   const match = trimmed.match(/^data:(.+);base64,(.+)$/)
   if (match == null) {
@@ -112,9 +112,10 @@ function extensionFromMime(mime: string): string | null {
 
 function buildPublicUrl(filename: string): string {
   const baseEnv = process.env.ASSET_BASE_URL
-  const base = baseEnv != null && baseEnv.trim() !== ""
-    ? baseEnv.replace(/\/$/, "")
-    : `http://localhost:${ENV.APP_PORT}`
+  const base =
+    baseEnv != null && baseEnv.trim() !== ""
+      ? baseEnv.replace(/\/$/, "")
+      : `http://localhost:${ENV.APP_PORT}`
 
   return `${base}/uploads/${filename}`
 }

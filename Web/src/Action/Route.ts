@@ -27,6 +27,9 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "AdminDashboard":
       return AdminDashboardAction.onEnterRoute(state)
 
+    case "AdminCategoryManagement":
+      return AdminDashboardAction.onEnterCategoryManagementRoute(state)
+
     case "Profile":
       return _AuthState(ProfileAction.onEnterRoute)(state)
 

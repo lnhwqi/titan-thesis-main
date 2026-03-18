@@ -33,6 +33,7 @@ const tableName = "product"
 export type ProductRow = {
   id: ProductID
   sellerId: SellerID
+  categoryId: string
   name: Name
   price: Price
   description: Description
@@ -44,6 +45,7 @@ export type ProductRow = {
 
 export type CreateParams = {
   sellerId: SellerID
+  categoryId: string
   name: Name
   price: Price
   description: Description
@@ -51,7 +53,7 @@ export type CreateParams = {
 }
 
 export async function create(params: CreateParams): Promise<ProductRow> {
-  const { sellerId, name, price, description, attributes } = params
+  const { sellerId, categoryId, name, price, description, attributes } = params
 
   const now = toDate(createNow())
   return db
@@ -59,6 +61,7 @@ export async function create(params: CreateParams): Promise<ProductRow> {
     .values({
       id: createProductID().unwrap(),
       sellerId: sellerId.unwrap(),
+      categoryId,
       name: name.unwrap(),
       price: price.unwrap(),
       description: description.unwrap(),
@@ -189,6 +192,7 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
     .values({
       id: row.id.unwrap(),
       sellerId: row.sellerId.unwrap(),
+      categoryId: row.categoryId,
       name: row.name.unwrap(),
       price: row.price.unwrap(),
       description: row.description.unwrap(),
@@ -209,6 +213,7 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
 export const productRowDecoder: JD.Decoder<ProductRow> = JD.object({
   id: productIDDecoder,
   sellerId: sellerIDDecoder,
+  categoryId: JD.string,
   name: nameDecoder,
   price: priceDecoder,
   description: descriptionDecoder,

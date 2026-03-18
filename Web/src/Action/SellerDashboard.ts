@@ -6,6 +6,7 @@ import * as UpdateProfileApi from "../Api/Auth/Seller/UpdateProfile"
 import * as UploadImagesApi from "../Api/Auth/Seller/Product/UploadImages"
 import * as ProductListApi from "../Api/Public/Product/ListAll"
 import * as CategoryAction from "./Category"
+import { Category } from "../../../Core/App/Category"
 import { _ProductState } from "../State/Product"
 import {
   _SellerDashboardState,
@@ -189,6 +190,20 @@ export function onChangeName(value: string): Action {
   ]
 }
 
+export function onChangeCategoryID(value: string): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      categoryID: value,
+      flashMessage: null,
+      createTouched: {
+        ...state.sellerDashboard.createTouched,
+        categoryID: true,
+      },
+    }),
+    cmd(),
+  ]
+}
+
 export function onChangePrice(value: string): Action {
   return (state) => [
     _SellerDashboardState(state, {
@@ -239,7 +254,8 @@ export function uploadProductImages(files: File[]): Action {
       return [
         _SellerDashboardState(state, {
           flashMessage:
-            warning ?? `Select at least one valid image under ${MAX_UPLOAD_SIZE_MB} MB.`,
+            warning ??
+            `Select at least one valid image under ${MAX_UPLOAD_SIZE_MB} MB.`,
           createTouched: {
             ...state.sellerDashboard.createTouched,
             imageUrls: true,
@@ -354,7 +370,8 @@ function readFilesAsDataUrl(
               dataUrl: reader.result,
             })
           }
-          reader.onerror = () => reject(reader.error ?? new Error("Failed to read file"))
+          reader.onerror = () =>
+            reject(reader.error ?? new Error("Failed to read file"))
           reader.readAsDataURL(file)
         }),
     ),
@@ -397,17 +414,42 @@ function onUploadImagesReadFailed(): Action {
 
 export function submitCreateProduct(): Action {
   return (state) => {
-    const categoryID =
-      state.category.treeResponse._t === "Success" &&
-      state.category.treeResponse.data.length > 0
-        ? state.category.treeResponse.data[0].id.unwrap()
-        : null
+    const availableCategoryIDs =
+      state.category.treeResponse._t === "Success"
+        ? flattenLeafCategoryIDs(state.category.treeResponse.data)
+        : []
 
-    if (categoryID == null) {
+    if (availableCategoryIDs.length === 0) {
       return [
         _SellerDashboardState(state, {
           flashMessage:
             "No category available yet. Please create categories first.",
+          createTouched: {
+            ...state.sellerDashboard.createTouched,
+            categoryID: true,
+          },
+        }),
+        cmd(),
+      ]
+    }
+
+    const categoryID =
+      state.sellerDashboard.categoryID.trim() === ""
+        ? null
+        : state.sellerDashboard.categoryID.trim()
+
+    if (
+      categoryID == null ||
+      availableCategoryIDs.includes(categoryID) === false
+    ) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage:
+            "Please select a lowest-level child category for this product.",
+          createTouched: {
+            ...state.sellerDashboard.createTouched,
+            categoryID: true,
+          },
         }),
         cmd(),
       ]
@@ -456,6 +498,16 @@ export function submitCreateProduct(): Action {
   }
 }
 
+function flattenLeafCategoryIDs(categories: Category[]): string[] {
+  return categories.flatMap((item) => {
+    if (item.children.length === 0) {
+      return [item.id.unwrap()]
+    }
+
+    return flattenLeafCategoryIDs(item.children)
+  })
+}
+
 function onCreateResponse(response: CreateProductApi.Response): Action {
   return (state) => {
     if (response._t === "Err") {
@@ -473,6 +525,7 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
         createResponse: RD.success(response.value),
         flashMessage: "Product created successfully.",
         name: "",
+        categoryID: "",
         price: "",
         description: "",
         imageUrls: [],

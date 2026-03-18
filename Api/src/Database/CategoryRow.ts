@@ -185,3 +185,17 @@ export async function count(): Promise<Nat> {
       throw e
     })
 }
+
+export async function deleteByID(id: CategoryID): Promise<Maybe<CategoryRow>> {
+  return db
+    .deleteFrom(tableName)
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) => (row == null ? null : categoryRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.deleteByID error ${e}`)
+      throw e
+    })
+}

@@ -66,6 +66,7 @@ type AdminTable = {
 type ProductTable = {
   id: string
   sellerId: string
+  categoryId: string
   name: string
   price: number
   description: string

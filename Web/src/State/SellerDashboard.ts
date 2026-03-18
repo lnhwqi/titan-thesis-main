@@ -10,6 +10,7 @@ export type SellerDashboardState = {
   shopDescription: string
   isEditingShop: boolean
   name: string
+  categoryID: string
   price: string
   description: string
   imageUrls: string[]
@@ -17,6 +18,7 @@ export type SellerDashboardState = {
   stock: string
   createTouched: {
     name: boolean
+    categoryID: boolean
     price: boolean
     description: boolean
     imageUrls: boolean
@@ -42,6 +44,7 @@ export type SellerDashboardState = {
 export function initCreateProductTouched(): SellerDashboardState["createTouched"] {
   return {
     name: false,
+    categoryID: false,
     price: false,
     description: false,
     imageUrls: false,
@@ -56,6 +59,7 @@ export function initSellerDashboardState(): SellerDashboardState {
     shopDescription: "",
     isEditingShop: false,
     name: "",
+    categoryID: "",
     price: "",
     description: "",
     imageUrls: [],

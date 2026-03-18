@@ -14,9 +14,7 @@ import Button from "../View/Form/Button"
 import { parseNotValidate } from "../State/Login"
 import { navigateTo, toRoute } from "../Route"
 import { ErrorEmail } from "../../../Core/Data/User/Email"
-import {
-  passwordErrorString,
-} from "../../../Core/App/User/Password"
+import { passwordErrorString } from "../../../Core/App/User/Password"
 
 export type Props = { state: State }
 export default function LoginPage(props: Props): JSX.Element {

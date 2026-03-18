@@ -47,6 +47,7 @@ export async function createFull(
         .values({
           id: newProductID.unwrap(),
           sellerId: sellerId.unwrap(),
+          categoryId: params.categoryID.unwrap(),
           name: params.name.unwrap(),
           price: params.price.unwrap(),
           description: params.description.unwrap(),
@@ -180,6 +181,7 @@ export async function updateFull(
       const productRow = await trx
         .updateTable("product")
         .set({
+          categoryId: params.categoryID.unwrap(),
           name: params.name.unwrap(),
           price: params.price.unwrap(),
           description: params.description.unwrap(),

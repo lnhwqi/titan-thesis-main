@@ -2,6 +2,9 @@ import * as RD from "../../../Core/Data/RemoteData"
 import type { State } from "../State"
 import { ApiError } from "../Api"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
+import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
+import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
+import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
 export type AdminDashboardState = {
   pendingSellersResponse: RD.RemoteData<
@@ -10,6 +13,25 @@ export type AdminDashboardState = {
   >
   approvingSellerIDs: string[]
   sendingVerifyEmailSellerIDs: string[]
+  categoryRootName: string
+  categoryChildParentID: CategoryID | null
+  categoryChildParentName: string | null
+  categoryChildName: string
+  categoryEditID: CategoryID | null
+  categoryEditName: string
+  deleteCategoryTarget: {
+    id: CategoryID
+    name: string
+  } | null
+  deletingCategoryIDs: string[]
+  creatingCategoryResponse: RD.RemoteData<
+    ApiError<CreateCategoryApi.ErrorCode>,
+    CreateCategoryApi.Payload
+  >
+  updatingCategoryResponse: RD.RemoteData<
+    ApiError<UpdateCategoryApi.ErrorCode>,
+    UpdateCategoryApi.Payload
+  >
   flashMessage: string | null
 }
 
@@ -18,6 +40,16 @@ export function initAdminDashboardState(): AdminDashboardState {
     pendingSellersResponse: RD.notAsked(),
     approvingSellerIDs: [],
     sendingVerifyEmailSellerIDs: [],
+    categoryRootName: "",
+    categoryChildParentID: null,
+    categoryChildParentName: null,
+    categoryChildName: "",
+    categoryEditID: null,
+    categoryEditName: "",
+    deleteCategoryTarget: null,
+    deletingCategoryIDs: [],
+    creatingCategoryResponse: RD.notAsked(),
+    updatingCategoryResponse: RD.notAsked(),
     flashMessage: null,
   }
 }
