@@ -7,4 +7,4 @@ concurrently \
   'tsc --watch --noEmit --preserveWatchOutput' \
   'esw ./ --ext .ts --ext .tsx --watch' \
   'cd Api && tsx watch src/index.ts' \
-  'cd Web && vite serve --mode development'
+  'cd Web && vite serve --mode development --port 3000 --strictPort'

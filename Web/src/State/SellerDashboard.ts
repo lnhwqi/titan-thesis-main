@@ -15,7 +15,7 @@ export type SellerDashboardState = {
   description: string
   imageUrls: string[]
   sku: string
-  stock: string
+  variantStocks: Record<"S" | "M" | "L" | "XL", string>
   createTouched: {
     name: boolean
     categoryID: boolean
@@ -64,7 +64,12 @@ export function initSellerDashboardState(): SellerDashboardState {
     description: "",
     imageUrls: [],
     sku: "",
-    stock: "",
+    variantStocks: {
+      S: "",
+      M: "",
+      L: "",
+      XL: "",
+    },
     createTouched: initCreateProductTouched(),
     isUploadingImages: false,
     profileResponse: RD.notAsked(),

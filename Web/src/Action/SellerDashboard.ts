@@ -7,6 +7,7 @@ import * as UploadImagesApi from "../Api/Auth/Seller/Product/UploadImages"
 import * as ProductListApi from "../Api/Public/Product/ListAll"
 import * as CategoryAction from "./Category"
 import { Category } from "../../../Core/App/Category"
+import { createStockE } from "../../../Core/App/ProductVariant/Stock"
 import { _ProductState } from "../State/Product"
 import {
   _SellerDashboardState,
@@ -16,6 +17,8 @@ import {
 export const MAX_PRODUCT_IMAGES = 5
 const MAX_UPLOAD_SIZE_BYTES = 2 * 1024 * 1024
 export const MAX_UPLOAD_SIZE_MB = MAX_UPLOAD_SIZE_BYTES / (1024 * 1024)
+type VariantSize = "S" | "M" | "L" | "XL"
+const VARIANT_SIZES: VariantSize[] = ["S", "M", "L", "XL"]
 
 export function onEnterRoute(): Action {
   return (state) => {
@@ -308,10 +311,13 @@ export function onChangeSku(value: string): Action {
   ]
 }
 
-export function onChangeStock(value: string): Action {
+export function onChangeVariantStock(size: VariantSize, value: string): Action {
   return (state) => [
     _SellerDashboardState(state, {
-      stock: value,
+      variantStocks: {
+        ...state.sellerDashboard.variantStocks,
+        [size]: value,
+      },
       flashMessage: null,
       createTouched: { ...state.sellerDashboard.createTouched, stock: true },
     }),
@@ -456,7 +462,45 @@ export function submitCreateProduct(): Action {
     }
 
     const price = Number(state.sellerDashboard.price)
-    const stock = Number(state.sellerDashboard.stock)
+    const invalidVariantSizes = VARIANT_SIZES.filter((size) => {
+      const raw = state.sellerDashboard.variantStocks[size].trim()
+      if (raw === "") {
+        return false
+      }
+
+      const parsed = Number(raw)
+      return Number.isFinite(parsed) === false || createStockE(parsed)._t === "Err"
+    })
+
+    if (invalidVariantSizes.length > 0) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: `Invalid stock for size: ${invalidVariantSizes.join(", ")}.`,
+          createTouched: {
+            ...state.sellerDashboard.createTouched,
+            stock: true,
+          },
+        }),
+        cmd(),
+      ]
+    }
+
+    const variants = VARIANT_SIZES.map((size) => {
+      const stockValue = Number(state.sellerDashboard.variantStocks[size])
+      const baseSku = state.sellerDashboard.sku.trim()
+      const resolvedSku =
+        baseSku === "" ? `${size}` : `${baseSku}-${size.toLowerCase()}`
+      const baseName = state.sellerDashboard.name.trim()
+      const resolvedName =
+        baseName === "" ? `Size ${size}` : `${baseName} - ${size}`
+
+      return {
+        name: resolvedName,
+        sku: resolvedSku,
+        price,
+        stock: stockValue,
+      }
+    })
 
     const candidate = {
       name: state.sellerDashboard.name,
@@ -465,17 +509,7 @@ export function submitCreateProduct(): Action {
       urls: state.sellerDashboard.imageUrls,
       categoryID,
       attributes: {},
-      variants: [
-        {
-          name:
-            state.sellerDashboard.name.trim() === ""
-              ? "Default"
-              : state.sellerDashboard.name,
-          sku: state.sellerDashboard.sku,
-          price,
-          stock,
-        },
-      ],
+      variants,
     }
 
     const decoded = CreateProductApi.paramsDecoder.decode(candidate)
@@ -530,7 +564,12 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
         description: "",
         imageUrls: [],
         sku: "",
-        stock: "",
+        variantStocks: {
+          S: "",
+          M: "",
+          L: "",
+          XL: "",
+        },
         isUploadingImages: false,
         createTouched: initCreateProductTouched(),
       }),

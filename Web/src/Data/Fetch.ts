@@ -10,9 +10,22 @@ export async function fetchE(
   options: RequestInit,
 ): Promise<FetchResult> {
   return fetch(url, options)
-    .then((response) =>
-      response.json().then((data) => ok({ httpStatus: response.status, data })),
-    )
+    .then(async (response) => {
+      const raw = await response.text()
+      const trimmed = raw.trim()
+      const data: unknown =
+        trimmed === ""
+          ? null
+          : (() => {
+              try {
+                return JSON.parse(trimmed)
+              } catch {
+                return raw
+              }
+            })()
+
+      return ok({ httpStatus: response.status, data })
+    })
     .catch((error) => {
       Logger.error(error)
       return err("NETWORK_ERROR")

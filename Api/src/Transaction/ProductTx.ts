@@ -35,6 +35,7 @@ export type CreateFullResult = {
 export async function createFull(
   sellerId: SellerID,
   params: API.BodyParams,
+  categoryID: string,
 ): Promise<CreateFullResult> {
   const now = toDate(createNow())
   const newProductID = createProductID()
@@ -47,7 +48,7 @@ export async function createFull(
         .values({
           id: newProductID.unwrap(),
           sellerId: sellerId.unwrap(),
-          categoryId: params.categoryID.unwrap(),
+          categoryId: categoryID,
           name: params.name.unwrap(),
           price: params.price.unwrap(),
           description: params.description.unwrap(),
@@ -65,7 +66,7 @@ export async function createFull(
           .insertInto("productCategory")
           .values({
             productID: newProductID.unwrap(),
-            categoryID: params.categoryID.unwrap(),
+            categoryID: categoryID,
             isDeleted: false,
             createdAt: now,
             updatedAt: now,
@@ -112,7 +113,12 @@ export async function createFull(
           .returningAll()
           .execute()
           .then((rows) =>
-            rows.map((row) => productVariantRowDecoder.verify(row)),
+            rows.map((row) =>
+              productVariantRowDecoder.verify({
+                ...row,
+                productID: row.productId,
+              }),
+            ),
           ),
       ])
 
@@ -269,7 +275,12 @@ export async function updateFull(
               .returningAll()
               .execute()
               .then((rows) =>
-                rows.map((row) => productVariantRowDecoder.verify(row)),
+                rows.map((row) =>
+                  productVariantRowDecoder.verify({
+                    ...row,
+                    productID: row.productId,
+                  }),
+                ),
               )
           : Promise.resolve([]),
       ])

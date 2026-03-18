@@ -24,11 +24,12 @@ import {
 } from "../../../Core/App/ProductVariant/ProductVarirantSKU"
 import {
   createStockE,
-  ErrorStock,
 } from "../../../Core/App/ProductVariant/Stock"
 import { Category } from "../../../Core/App/Category"
 
 const imageInputElementId = "seller-dashboard-image-input"
+type VariantSize = "S" | "M" | "L" | "XL"
+const variantSizeOrder: VariantSize[] = ["S", "M", "L", "XL"]
 
 export type Props = { state: State }
 
@@ -276,7 +277,7 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
                 {isCategoryLoading
                   ? "Loading categories..."
                   : hasCategories
-                    ? "Select a proper category c:"
+                    ? "Select a lowest-level child category"
                     : "No categories available"}
               </option>
               {categoryOptions.map((category) => (
@@ -334,15 +335,30 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
             ) : null}
           </div>
 
-          <div className={styles.field}>
-            <span className={styles.label}>Stock</span>
-            <InputText
-              value={createState.stock}
-              invalid={showCreateError("stock")}
-              type="number"
-              placeholder="10"
-              onChange={(v) => emit(SellerDashboardAction.onChangeStock(v))}
-            />
+          <div className={styles.fieldFull}>
+            <span className={styles.label}>Variant Stocks (S/M/L/XL)</span>
+            <div className={styles.variantGrid}>
+              {variantSizeOrder.map((size) => (
+                <div
+                  key={size}
+                  className={styles.variantCard}
+                >
+                  <span className={styles.variantLabel}>Size {size}</span>
+                  <InputText
+                    value={createState.variantStocks[size]}
+                    invalid={showCreateError("stock")}
+                    type="number"
+                    placeholder="0"
+                    onChange={(v) =>
+                      emit(SellerDashboardAction.onChangeVariantStock(size, v))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+            <span className={styles.fieldHint}>
+              Each variant uses base SKU + size suffix and base product price.
+            </span>
             {showCreateError("stock") ? (
               <span className={styles.fieldError}>{createErrors.stock}</span>
             ) : null}
@@ -532,7 +548,19 @@ function getCreateProductErrors(
   const trimmedDescription = sellerState.description.trim()
   const trimmedSku = sellerState.sku.trim()
   const priceValue = Number(sellerState.price)
-  const stockValue = Number(sellerState.stock)
+  const invalidSizes = variantSizeOrder.filter((size) => {
+    const value = sellerState.variantStocks[size]
+    if (value.trim() === "") {
+      return false
+    }
+
+    const parsed = Number(value)
+    if (Number.isFinite(parsed) === false) {
+      return true
+    }
+
+    return createStockE(parsed)._t === "Err"
+  })
 
   return {
     name:
@@ -564,11 +592,9 @@ function getCreateProductErrors(
         ? "SKU is required."
         : mapSkuError(createSKUE(trimmedSku)),
     stock:
-      sellerState.stock.trim() === ""
-        ? "Stock is required."
-        : Number.isFinite(stockValue) === false
-          ? "Enter a valid number for stock."
-          : mapStockError(createStockE(stockValue)),
+      invalidSizes.length > 0
+        ? `Invalid stock for size: ${invalidSizes.join(", ")}. Use whole numbers between 0 and 1,000,000.`
+        : null,
   }
 }
 
@@ -593,10 +619,6 @@ function mapSkuError(result: ReturnType<typeof createSKUE>): string | null {
   return result._t === "Err" ? skuErrorMessage(result.error) : null
 }
 
-function mapStockError(result: ReturnType<typeof createStockE>): string | null {
-  return result._t === "Err" ? stockErrorMessage(result.error) : null
-}
-
 function productNameErrorMessage(_error: ErrorProductName): string {
   return "Product name must be between 1 and 100 characters."
 }
@@ -611,10 +633,6 @@ function descriptionErrorMessage(_error: ErrorDescription): string {
 
 function skuErrorMessage(_error: ErrorSKU): string {
   return "SKU must be 1-100 characters with no spaces."
-}
-
-function stockErrorMessage(_error: ErrorStock): string {
-  return "Stock must be a whole number between 0 and 1,000,000."
 }
 
 type CategoryOption = {
@@ -757,6 +775,29 @@ const styles = {
   fieldHint: css({
     ...font.regular12,
     color: color.neutral600,
+  }),
+  variantGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: theme.s2,
+    ...bp.md({
+      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    }),
+  }),
+  variantCard: css({
+    border: `1px solid ${color.secondary200}`,
+    borderRadius: theme.s2,
+    padding: theme.s2,
+    background: color.neutral50,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+  }),
+  variantLabel: css({
+    ...font.medium12,
+    color: color.secondary500,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
   }),
   fieldFull: css({
     display: "flex",

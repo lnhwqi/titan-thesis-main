@@ -20,8 +20,13 @@ export async function handler(
     return err("CATEGORY_NOT_FOUND")
   }
 
+  const categoryIDRaw = category.id.toJSON()
+  if (typeof categoryIDRaw !== "string" || categoryIDRaw.trim() === "") {
+    return err("CATEGORY_NOT_FOUND")
+  }
+
   try {
-    const result = await ProductTx.createFull(seller.id, params)
+    const result = await ProductTx.createFull(seller.id, params, categoryIDRaw)
 
     const mappedVariants = result.variantRows.map(toProductVariant)
 
