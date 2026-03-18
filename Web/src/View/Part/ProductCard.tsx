@@ -79,9 +79,8 @@ export function ProductCard(props: Props): JSX.Element {
   const variantSizes = getVariantSizes()
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
+    return new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 0,
     }).format(price)
   }
 
@@ -110,7 +109,8 @@ export function ProductCard(props: Props): JSX.Element {
           <div className={styles.categoryContainer}>
             <span className={styles.categoryItem}>{categoryName}</span>
             <div className={styles.price}>
-              {formatPrice(product.price.unwrap())}
+              <span className={styles.coinBadge}>T</span>
+              <span>{formatPrice(product.price.unwrap())}</span>
             </div>
           </div>
 
@@ -295,5 +295,20 @@ const styles = {
   price: css({
     ...font.bold17,
     color: color.primary500,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: theme.s1,
+  }),
+  coinBadge: css({
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    backgroundColor: color.primary500,
+    color: color.semantics.warning.yellow500,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...font.bold14,
+    lineHeight: 1,
   }),
 }

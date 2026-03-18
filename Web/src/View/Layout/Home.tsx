@@ -53,34 +53,35 @@ const styles = {
 
   sidebarOpen: css({
     width: "260px",
+    flexShrink: 0,
     opacity: 1,
     visibility: "visible",
-    flexShrink: 0,
     borderRight: `1px solid ${color.secondary100}`,
     backgroundColor: color.neutral0,
-    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
     overflowY: "auto",
+    transition: "width 0.28s ease, opacity 0.2s ease",
   }),
 
   sidebarClosed: css({
     width: "0px",
+    flexShrink: 0,
     opacity: 0,
     visibility: "hidden",
-    flexShrink: 0,
-    borderRight: "0px solid transparent",
     pointerEvents: "none",
-    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+    overflow: "hidden",
+    transition: "width 0.28s ease, opacity 0.2s ease",
   }),
 
   sidebarContent: css({
     width: "260px",
+    transition: "opacity 0.2s ease",
   }),
 
   mainContent: css({
     flex: 1,
+    height: "100%",
     overflowY: "auto",
     position: "relative",
     zIndex: 1,
-    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
   }),
 }

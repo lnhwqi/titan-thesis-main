@@ -88,10 +88,12 @@ export default function ProductDetailPage(
           <div className={styles.infoWrapper}>
             <h1 className={styles.productName}>{product.name.unwrap()}</h1>
             <div className={styles.priceTag}>
-              {new Intl.NumberFormat("vi-VN", {
-                style: "currency",
-                currency: "VND",
-              }).format(product.price.unwrap())}
+              <span className={styles.coinBadge}>T</span>
+              <span>
+                {new Intl.NumberFormat("en-US", {
+                  maximumFractionDigits: 0,
+                }).format(product.price.unwrap())}
+              </span>
             </div>
             <p className={styles.description}>{product.description.unwrap()}</p>
             <button
@@ -227,6 +229,22 @@ const styles = {
     ...font.bold17,
     color: color.primary500,
     fontSize: "24px",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: theme.s2,
+  }),
+  coinBadge: css({
+    width: "30px",
+    height: "30px",
+    borderRadius: "50%",
+    backgroundColor: color.primary500,
+    color: color.semantics.warning.yellow50,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...font.bold17,
+    fontSize: "18px",
+    lineHeight: 1,
   }),
   description: css({
     ...font.regular17,

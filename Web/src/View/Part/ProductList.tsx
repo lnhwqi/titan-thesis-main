@@ -101,7 +101,8 @@ const styles = {
 
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 220px))",
+    justifyContent: "start",
     gap: theme.s4,
     paddingBottom: theme.s10,
   }),

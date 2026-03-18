@@ -526,11 +526,9 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
 }
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
+  return `T ${new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
-  }).format(value)
+  }).format(value)}`
 }
 
 type CreateErrors = Record<

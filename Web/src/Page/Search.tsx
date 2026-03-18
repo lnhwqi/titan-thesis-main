@@ -71,7 +71,8 @@ const styles = {
   }),
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 240px))",
+    justifyContent: "start",
     gap: theme.s4,
   }),
   loading: css({
