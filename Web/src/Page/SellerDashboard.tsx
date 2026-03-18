@@ -22,9 +22,7 @@ import {
   createSKUE,
   ErrorSKU,
 } from "../../../Core/App/ProductVariant/ProductVarirantSKU"
-import {
-  createStockE,
-} from "../../../Core/App/ProductVariant/Stock"
+import { createStockE } from "../../../Core/App/ProductVariant/Stock"
 import { Category } from "../../../Core/App/Category"
 
 const imageInputElementId = "seller-dashboard-image-input"

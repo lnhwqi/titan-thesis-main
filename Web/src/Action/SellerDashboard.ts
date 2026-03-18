@@ -469,7 +469,9 @@ export function submitCreateProduct(): Action {
       }
 
       const parsed = Number(raw)
-      return Number.isFinite(parsed) === false || createStockE(parsed)._t === "Err"
+      return (
+        Number.isFinite(parsed) === false || createStockE(parsed)._t === "Err"
+      )
     })
 
     if (invalidVariantSizes.length > 0) {
