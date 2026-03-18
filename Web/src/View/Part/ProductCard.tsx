@@ -1,12 +1,14 @@
 import { css } from "@emotion/css"
 import { JSX } from "react"
 import { BasicProduct } from "../../../../Core/App/ProductBasic"
+import { Category } from "../../../../Core/App/Category"
 import Link from "../Link"
 import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 import { State } from "../../State"
 import { emit } from "../../Runtime/React"
 import * as CartAction from "../../Action/Cart"
+import { IoMdCart } from "react-icons/io"
 
 type Props = {
   product: BasicProduct
@@ -18,22 +20,63 @@ export function ProductCard(props: Props): JSX.Element {
   const { treeResponse } = state.category
 
   const getCategoryName = () => {
-    if (state.product.currentCategoryTree) {
-      return state.product.currentCategoryTree.name.unwrap()
-    }
-
     const categoryId = product.categoryID
     if (categoryId != null && treeResponse._t === "Success") {
-      const found = treeResponse.data.find(
-        (c) => c.id.unwrap() === categoryId.unwrap(),
-      )
-      if (found) return found.name.unwrap()
+      const found = findCategoryByID(treeResponse.data, categoryId.unwrap())
+      if (found != null) {
+        return found.name.unwrap()
+      }
     }
 
-    return "Fashion"
+    return "Uncategorized"
+  }
+
+  const getVariantSizes = () => {
+    const variantRows = product.variants.map((variant) => {
+      const fromName = variant.name.unwrap().split("-").pop()
+      const sizeFromName = fromName != null ? fromName.trim().toUpperCase() : ""
+
+      if (sizeFromName !== "") {
+        return {
+          size: sizeFromName,
+          stock: variant.stock.unwrap(),
+        }
+      }
+
+      const fromSku = variant.sku.unwrap().split("-").pop()
+      const sizeFromSku = (fromSku ?? "").trim().toUpperCase()
+
+      return {
+        size: sizeFromSku,
+        stock: variant.stock.unwrap(),
+      }
+    })
+
+    const bySize = new Map<string, number>()
+    variantRows.forEach((item) => {
+      if (item.size === "") {
+        return
+      }
+
+      const previous = bySize.get(item.size) ?? 0
+      bySize.set(item.size, previous + item.stock)
+    })
+
+    const unique = Array.from(bySize.keys())
+    const ordered = ["S", "M", "L", "XL"]
+    const byKnownOrder = unique
+      .filter((size) => ordered.includes(size))
+      .sort((a, b) => ordered.indexOf(a) - ordered.indexOf(b))
+    const custom = unique.filter((size) => ordered.includes(size) === false)
+
+    return [...byKnownOrder, ...custom].map((size) => ({
+      size,
+      isOutOfStock: (bySize.get(size) ?? 0) <= 0,
+    }))
   }
 
   const categoryName = getCategoryName()
+  const variantSizes = getVariantSizes()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -66,6 +109,9 @@ export function ProductCard(props: Props): JSX.Element {
         <div className={styles.content}>
           <div className={styles.categoryContainer}>
             <span className={styles.categoryItem}>{categoryName}</span>
+            <div className={styles.price}>
+              {formatPrice(product.price.unwrap())}
+            </div>
           </div>
 
           <h3
@@ -75,17 +121,30 @@ export function ProductCard(props: Props): JSX.Element {
             {product.name.unwrap()}
           </h3>
 
-          <div className={styles.bottom}>
-            <div className={styles.price}>
-              {formatPrice(product.price.unwrap())}
+          {variantSizes.length > 0 ? (
+            <div className={styles.variantRow}>
+              {variantSizes.map((variantSize) => (
+                <span
+                  key={variantSize.size}
+                  className={`${styles.variantItem} ${
+                    variantSize.isOutOfStock ? styles.variantItemOut : ""
+                  }`}
+                >
+                  {variantSize.size}
+                </span>
+              ))}
             </div>
-            <div
+          ) : null}
+
+          <div className={styles.bottom}>
+            <button
+              type="button"
               className={styles.addButton}
               onClick={handleAddToCart}
-              aria-label="Thêm vào giỏ hàng"
+              aria-label="Add to cart"
             >
-              +
-            </div>
+              <IoMdCart size={18} />
+            </button>
           </div>
         </div>
       </>
@@ -93,12 +152,28 @@ export function ProductCard(props: Props): JSX.Element {
   )
 }
 
-// --- STYLES ---
+function findCategoryByID(
+  categories: Category[],
+  categoryID: string,
+): Category | null {
+  for (const category of categories) {
+    if (category.id.unwrap() === categoryID) {
+      return category
+    }
+
+    const child = findCategoryByID(category.children, categoryID)
+    if (child != null) {
+      return child
+    }
+  }
+
+  return null
+}
 
 const nameClass = css({
   ...font.medium14,
   color: color.neutral900,
-  marginBottom: theme.s2,
+  marginBottom: theme.s1,
   display: "-webkit-box",
   WebkitLineClamp: 2,
   WebkitBoxOrient: "vertical",
@@ -108,16 +183,16 @@ const nameClass = css({
 })
 
 const addButtonClass = css({
-  width: "32px",
-  height: "32px",
-  borderRadius: "50%",
+  width: "90%",
+  height: "36px",
+  borderRadius: theme.br1,
   backgroundColor: color.secondary100,
   color: color.secondary500,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "20px",
-  fontWeight: "bold",
+  padding: 0,
+  border: "none",
   transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
   cursor: "pointer",
   zIndex: 2,
@@ -129,6 +204,7 @@ const addButtonClass = css({
   "&:active": {
     transform: "scale(0.95)",
   },
+  margin: "auto",
 })
 
 const styles = {
@@ -181,10 +257,11 @@ const styles = {
   }),
   categoryContainer: css({
     display: "flex",
-    marginBottom: theme.s1,
+    justifyContent: "space-between",
+    marginBottom: theme.s0,
   }),
   categoryItem: css({
-    padding: `${theme.s1} ${theme.s2}`,
+    padding: `${theme.s1} ${theme.s4}`,
     backgroundColor: color.secondary50,
     color: color.secondary500,
     borderRadius: theme.br1,
@@ -192,15 +269,31 @@ const styles = {
     textTransform: "uppercase",
     letterSpacing: "0.5px",
   }),
+  variantRow: css({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: theme.s1,
+  }),
+  variantItem: css({
+    border: `1px solid ${color.secondary200}`,
+    color: color.secondary500,
+    background: color.neutral0,
+    borderRadius: theme.br1,
+    padding: `2px ${theme.s2}`,
+    ...font.medium12,
+  }),
+  variantItemOut: css({
+    background: color.neutral200,
+    borderColor: color.neutral300,
+    color: color.neutral600,
+  }),
   bottom: css({
     marginTop: "auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
+    display: "block",
     paddingTop: theme.s2,
   }),
   price: css({
-    ...font.bold14,
+    ...font.bold17,
     color: color.primary500,
   }),
 }
