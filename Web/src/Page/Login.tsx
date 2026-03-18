@@ -15,7 +15,6 @@ import { parseNotValidate } from "../State/Login"
 import { navigateTo, toRoute } from "../Route"
 import { ErrorEmail } from "../../../Core/Data/User/Email"
 import {
-  _ErrorPassword,
   passwordErrorString,
 } from "../../../Core/App/User/Password"
 

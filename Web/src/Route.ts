@@ -206,6 +206,13 @@ export function toRoute<K extends keyof RouteTable>(
  * Converts a Route into a path
  */
 export function toPath(route: Route): string {
+  if (
+    route._t === "Login" &&
+    (route.params.redirect == null || route.params.redirect === "")
+  ) {
+    return "/login"
+  }
+
   const routeDef = router[route._t]
   const { path } = routeDef
   const { params } = route
@@ -219,6 +226,18 @@ export function toPath(route: Route): string {
  * WARN fullUrl must be a valid full url eg. `https://example.com/login?redirect=/home`
  */
 export function parseRoute(fullUrl: string): Route {
+  try {
+    const url = new URL(fullUrl)
+    if (url.pathname === "/login") {
+      const redirect = url.searchParams.get("redirect")
+      if (redirect == null || redirect === "") {
+        return toRoute("Login", { redirect: null })
+      }
+    }
+  } catch (_error) {
+    // Ignore URL parsing errors and fall back to router table
+  }
+
   for (const [routeT, routeDef] of Object.entries(router)) {
     const { path, decoder } = routeDef
     const parseResult = Teki.parse(path)(fullUrl)

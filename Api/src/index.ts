@@ -1,8 +1,10 @@
-import express, { Express, json } from "express"
+import express from "express"
+import { json, static as serveStatic, type Express } from "express"
 import cors from "cors"
 import { routes } from "./Route"
 import ENV from "./Env"
 import { HttpLogger } from "./Logger"
+import { ensureUploadsDir, uploadsRoot } from "./Uploads"
 
 const app: Express = express()
 const { APP_PORT, NODE_ENV } = ENV
@@ -23,9 +25,12 @@ if (NODE_ENV === "development") {
 // Logger agent
 app.use(HttpLogger)
 
+ensureUploadsDir()
+app.use("/uploads", serveStatic(uploadsRoot))
+
 // Set use json for all requests but request must have content-type application/json
 // Recommended by ExpressJS
-app.use(json({ limit: "5mb" }))
+app.use(json({ limit: "25mb" }))
 
 // All API routes are defined in this function
 routes(app)

@@ -12,17 +12,18 @@ export type SellerDashboardState = {
   name: string
   price: string
   description: string
-  imageUrl: string
+  imageUrls: string[]
   sku: string
   stock: string
   createTouched: {
     name: boolean
     price: boolean
     description: boolean
-    imageUrl: boolean
+    imageUrls: boolean
     sku: boolean
     stock: boolean
   }
+  isUploadingImages: boolean
   profileResponse: RD.RemoteData<
     ApiError<SellerProfileApi.ErrorCode>,
     SellerProfileApi.Payload
@@ -43,7 +44,7 @@ export function initCreateProductTouched(): SellerDashboardState["createTouched"
     name: false,
     price: false,
     description: false,
-    imageUrl: false,
+    imageUrls: false,
     sku: false,
     stock: false,
   }
@@ -57,10 +58,11 @@ export function initSellerDashboardState(): SellerDashboardState {
     name: "",
     price: "",
     description: "",
-    imageUrl: "",
+    imageUrls: [],
     sku: "",
     stock: "",
     createTouched: initCreateProductTouched(),
+    isUploadingImages: false,
     profileResponse: RD.notAsked(),
     updateShopResponse: RD.notAsked(),
     createResponse: RD.notAsked(),

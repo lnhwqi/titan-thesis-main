@@ -78,12 +78,6 @@ export default function SellerLoginPage(props: Props): JSX.Element {
           >
             Go to user login
           </button>
-          <button
-            className={styles.linkButton}
-            onClick={() => emit(navigateTo(toRoute("AdminLogin", {})))}
-          >
-            Go to admin login
-          </button>
         </div>
       </div>
     </div>

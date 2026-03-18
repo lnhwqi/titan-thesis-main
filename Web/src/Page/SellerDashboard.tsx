@@ -26,7 +26,8 @@ import {
   createStockE,
   ErrorStock,
 } from "../../../Core/App/ProductVariant/Stock"
-import { createWebLinkE, ErrorWebLink } from "../../../Core/Data/Url"
+
+const imageInputElementId = "seller-dashboard-image-input"
 
 export type Props = { state: State }
 
@@ -34,6 +35,15 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
   const { state } = props
   const auth = AuthToken.get()
   const isSeller = auth != null && auth.role === "SELLER"
+  const openImagePicker = () => {
+    if (typeof document === "undefined") {
+      return
+    }
+    const node = document.getElementById(imageInputElementId)
+    if (node instanceof HTMLInputElement) {
+      node.click()
+    }
+  }
 
   if (!isSeller) {
     return (
@@ -70,11 +80,17 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
   ) => createState.createTouched[field] && createErrors[field] != null
   const isCreateDisabled =
     createState.createResponse._t === "Loading" ||
+    createState.isUploadingImages ||
     Object.values(createErrors).some((msg) => msg != null)
   const seller =
     createState.profileResponse._t === "Success"
       ? createState.profileResponse.data.seller
       : null
+
+  const remainingImageSlots =
+    SellerDashboardAction.MAX_PRODUCT_IMAGES - createState.imageUrls.length
+  const uploadDisabled =
+    createState.isUploadingImages || remainingImageSlots <= 0
 
   const accountStatus =
     seller == null
@@ -291,16 +307,66 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
           </div>
 
           <div className={styles.fieldFull}>
-            <span className={styles.label}>Image URL</span>
-            <InputText
-              value={createState.imageUrl}
-              invalid={showCreateError("imageUrl")}
-              type="text"
-              placeholder="https://..."
-              onChange={(v) => emit(SellerDashboardAction.onChangeImageUrl(v))}
+            <span className={styles.label}>Product Images</span>
+            <input
+              id={imageInputElementId}
+              type="file"
+              accept="image/*"
+              multiple
+              className={styles.hiddenFileInput}
+              onChange={(event) => {
+                const files = Array.from(event.currentTarget.files ?? [])
+                if (files.length > 0) {
+                  emit(SellerDashboardAction.uploadProductImages(files))
+                }
+                event.currentTarget.value = ""
+              }}
             />
-            {showCreateError("imageUrl") ? (
-              <span className={styles.fieldError}>{createErrors.imageUrl}</span>
+            <div className={styles.imageUploadRow}>
+              <button
+                className={styles.uploadButton}
+                type="button"
+                onClick={() => {
+                  if (!uploadDisabled) {
+                    openImagePicker()
+                  }
+                }}
+                disabled={uploadDisabled}
+              >
+                {createState.isUploadingImages ? "Uploading..." : "Select images"}
+              </button>
+              <span className={styles.imageHint}>
+                {createState.imageUrls.length}/
+                {SellerDashboardAction.MAX_PRODUCT_IMAGES} uploaded | Up to {SellerDashboardAction.MAX_UPLOAD_SIZE_MB} MB each
+              </span>
+            </div>
+            {createState.imageUrls.length > 0 ? (
+              <div className={styles.imagePreviewGrid}>
+                {createState.imageUrls.map((url) => (
+                  <div key={url} className={styles.imagePreviewCard}>
+                    <img
+                      src={url}
+                      alt="Product visual"
+                      className={styles.imagePreview}
+                      loading="lazy"
+                    />
+                    <button
+                      type="button"
+                      className={styles.imageRemoveButton}
+                      onClick={() => emit(SellerDashboardAction.removeImageUrl(url))}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.emptyImagesText}>
+                No images uploaded yet.
+              </div>
+            )}
+            {showCreateError("imageUrls") ? (
+              <span className={styles.fieldError}>{createErrors.imageUrls}</span>
             ) : null}
           </div>
         </div>
@@ -394,7 +460,6 @@ function getCreateProductErrors(
   const trimmedName = sellerState.name.trim()
   const trimmedDescription = sellerState.description.trim()
   const trimmedSku = sellerState.sku.trim()
-  const trimmedImage = sellerState.imageUrl.trim()
   const priceValue = Number(sellerState.price)
   const stockValue = Number(sellerState.stock)
 
@@ -413,10 +478,10 @@ function getCreateProductErrors(
       trimmedDescription === ""
         ? "Description is required."
         : mapDescriptionError(createDescriptionE(trimmedDescription)),
-    imageUrl:
-      trimmedImage === ""
-        ? "Image URL is required."
-        : mapImageError(createWebLinkE(trimmedImage)),
+    imageUrls:
+      sellerState.imageUrls.length === 0
+        ? "Upload at least one product image."
+        : null,
     sku:
       trimmedSku === ""
         ? "SKU is required."
@@ -447,12 +512,6 @@ function mapDescriptionError(
   return result._t === "Err" ? descriptionErrorMessage(result.error) : null
 }
 
-function mapImageError(
-  result: ReturnType<typeof createWebLinkE>,
-): string | null {
-  return result._t === "Err" ? imageUrlErrorMessage(result.error) : null
-}
-
 function mapSkuError(result: ReturnType<typeof createSKUE>): string | null {
   return result._t === "Err" ? skuErrorMessage(result.error) : null
 }
@@ -471,10 +530,6 @@ function priceErrorMessage(_error: ErrorPrice): string {
 
 function descriptionErrorMessage(_error: ErrorDescription): string {
   return "Description must be 1-1024 characters."
-}
-
-function imageUrlErrorMessage(_error: ErrorWebLink): string {
-  return "Provide a valid URL including http or https."
 }
 
 function skuErrorMessage(_error: ErrorSKU): string {
@@ -613,6 +668,77 @@ const styles = {
   label: css({
     ...font.regular14,
     color: color.neutral700,
+  }),
+  hiddenFileInput: css({
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    border: 0,
+    clip: "rect(0 0 0 0)",
+  }),
+  imageUploadRow: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s2,
+    flexWrap: "wrap",
+  }),
+  uploadButton: css({
+    border: "none",
+    background: color.secondary500,
+    color: color.neutral0,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+    transition: "opacity 120ms ease",
+    ":disabled": {
+      opacity: 0.6,
+      cursor: "not-allowed",
+    },
+  }),
+  imageHint: css({
+    ...font.regular12,
+    color: color.neutral600,
+  }),
+  imagePreviewGrid: css({
+    marginTop: theme.s2,
+    display: "grid",
+    gap: theme.s2,
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+  }),
+  imagePreviewCard: css({
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s2,
+    overflow: "hidden",
+    background: color.neutral0,
+    display: "flex",
+    flexDirection: "column",
+  }),
+  imagePreview: css({
+    width: "100%",
+    height: "140px",
+    objectFit: "cover",
+    background: color.neutral100,
+  }),
+  imageRemoveButton: css({
+    border: "none",
+    background: "transparent",
+    color: color.semantics.error.red500,
+    ...font.medium12,
+    cursor: "pointer",
+    padding: `${theme.s1} ${theme.s2}`,
+    textAlign: "left",
+  }),
+  emptyImagesText: css({
+    marginTop: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    borderRadius: theme.s2,
+    border: `1px dashed ${color.secondary200}`,
+    ...font.regular12,
+    color: color.neutral600,
   }),
   actionsRow: css({
     marginTop: theme.s4,
