@@ -24,6 +24,7 @@ export type ProductState = {
   currentCategoryTree: Category | null
 
   currentImageIndex: number
+  selectedVariantSize: string | null
 }
 
 export function initProductState(): ProductState {
@@ -34,6 +35,7 @@ export function initProductState(): ProductState {
     currentCategoryId: null,
     currentCategoryTree: null,
     currentImageIndex: 0,
+    selectedVariantSize: null,
   }
 }
 

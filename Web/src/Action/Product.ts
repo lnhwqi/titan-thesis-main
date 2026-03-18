@@ -162,11 +162,23 @@ export function loadDetail(id: ProductID): Action {
     _ProductState(state, {
       detailResponse: RD.loading(),
       currentImageIndex: 0,
+      selectedVariantSize: null,
     }),
-    cmd(GetOneApi.call({ id }).then(gotDetailResponse)),
+    [
+      ...cmd(GetOneApi.call({ id }).then(gotDetailResponse)),
+      ...cmd(
+        ListAllApi.call({ page: 1, limit: 200 }).then((res) =>
+          gotListResponse(res, ""),
+        ),
+      ),
+    ],
   ]
 }
 
 export function setImageIndex(index: number): Action {
   return (state) => [_ProductState(state, { currentImageIndex: index }), cmd()]
+}
+
+export function setSelectedVariantSize(size: string | null): Action {
+  return (state) => [_ProductState(state, { selectedVariantSize: size }), cmd()]
 }

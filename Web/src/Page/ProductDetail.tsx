@@ -6,6 +6,7 @@ import { emit } from "../Runtime/React"
 import * as CartAction from "../Action/Cart"
 import * as ProductAction from "../Action/Product"
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io"
+import { ProductCard } from "../View/Part/ProductCard"
 
 export type ProductDetailPageProps = { state: AuthState | PublicState }
 
@@ -15,6 +16,7 @@ export default function ProductDetailPage(
   const { state } = props
   const detailRD = state.product.detailResponse
   const currentIndex = state.product.currentImageIndex
+  const selectedSize = state.product.selectedVariantSize
 
   if (detailRD._t === "Loading") {
     return <div className={styles.statusMsg}>Loading Product</div>
@@ -30,6 +32,70 @@ export default function ProductDetailPage(
 
   const product = detailRD.data
   const images = product.urls
+
+  const variantRows = product.variants
+    .map((variant) => {
+      const fromName = variant.name.unwrap().split("-").pop()
+      const parsedFromName =
+        fromName != null ? fromName.trim().toUpperCase() : ""
+
+      if (parsedFromName !== "") {
+        return { size: parsedFromName, variant }
+      }
+
+      const fromSku = variant.sku.unwrap().split("-").pop()
+      const parsedFromSku = (fromSku ?? "").trim().toUpperCase()
+
+      return {
+        size: parsedFromSku,
+        variant,
+      }
+    })
+    .filter((item) => item.size !== "")
+
+  const variantBySize = new Map<
+    string,
+    (typeof variantRows)[number]["variant"]
+  >()
+  variantRows.forEach((item) => {
+    if (!variantBySize.has(item.size)) {
+      variantBySize.set(item.size, item.variant)
+    }
+  })
+
+  const knownOrder = ["S", "M", "L", "XL"]
+  const variantKeys = Array.from(variantBySize.keys())
+  const knownSizes = variantKeys
+    .filter((size) => knownOrder.includes(size))
+    .sort((a, b) => knownOrder.indexOf(a) - knownOrder.indexOf(b))
+  const customSizes = variantKeys.filter(
+    (size) => knownOrder.includes(size) === false,
+  )
+  const orderedSizes = [...knownSizes, ...customSizes]
+
+  const totalStock = product.variants.reduce(
+    (acc, item) => acc + item.stock.unwrap(),
+    0,
+  )
+
+  const selectedVariant =
+    selectedSize != null ? (variantBySize.get(selectedSize) ?? null) : null
+
+  const shownPrice =
+    selectedVariant != null
+      ? selectedVariant.price.unwrap()
+      : product.price.unwrap()
+  const shownStock =
+    selectedVariant != null ? selectedVariant.stock.unwrap() : totalStock
+
+  const relatedProducts =
+    state.product.listResponse._t === "Success"
+      ? state.product.listResponse.data.items.filter(
+          (item) =>
+            item.sellerID.unwrap() === product.sellerID.unwrap() &&
+            item.id.unwrap() !== product.id.unwrap(),
+        )
+      : []
 
   const changeIndex = (i: number) => {
     let nextIndex = i
@@ -92,17 +158,60 @@ export default function ProductDetailPage(
               <span>
                 {new Intl.NumberFormat("en-US", {
                   maximumFractionDigits: 0,
-                }).format(product.price.unwrap())}
+                }).format(shownPrice)}
               </span>
             </div>
-            <p className={styles.description}>{product.description.unwrap()}</p>
+            <div className={styles.stockTag}>Stock: {shownStock}</div>
+
+            {orderedSizes.length > 0 ? (
+              <div className={styles.variantSection}>
+                <div className={styles.variantLabel}>Variants Size</div>
+                <div className={styles.variantList}>
+                  {orderedSizes.map((size) => {
+                    const variant = variantBySize.get(size)
+                    if (variant == null) {
+                      return null
+                    }
+
+                    const stock = variant.stock.unwrap()
+                    const isOutOfStock = stock <= 0
+                    const isSelected = selectedSize === size
+
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        className={`${styles.variantChip} ${
+                          isOutOfStock ? styles.variantChipOut : ""
+                        } ${isSelected ? styles.variantChipSelected : ""}`}
+                        onClick={() =>
+                          emit(ProductAction.setSelectedVariantSize(size))
+                        }
+                        disabled={isOutOfStock}
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : null}
             <button
               className={styles.addToCartBtn}
+              disabled={shownStock <= 0}
               onClick={() =>
                 emit(
                   CartAction.addToCart({
-                    ...product,
+                    id: product.id,
+                    sellerID: product.sellerID,
+                    name: product.name,
+                    price: product.price,
                     url: product.urls[0],
+                    categoryID: product.categoryID,
+                    variants:
+                      selectedVariant != null
+                        ? [selectedVariant]
+                        : product.variants,
                   }),
                 )
               }
@@ -110,6 +219,28 @@ export default function ProductDetailPage(
               Add To Cart
             </button>
           </div>
+        </div>
+
+        <div className={styles.descriptionSection}>
+          <div className={styles.descriptionTitle}>Product description:</div>
+          <p className={styles.description}>{product.description.unwrap()}</p>
+        </div>
+
+        <div className={styles.otherSection}>
+          <h2 className={styles.otherTitle}>Others Product of this shop</h2>
+          {relatedProducts.length > 0 ? (
+            <div className={styles.relatedGrid}>
+              {relatedProducts.map((related) => (
+                <ProductCard
+                  key={related.id.unwrap()}
+                  product={related}
+                  state={state}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.blankArea} />
+          )}
         </div>
       </div>
     </div>
@@ -238,7 +369,7 @@ const styles = {
     height: "30px",
     borderRadius: "50%",
     backgroundColor: color.primary500,
-    color: color.semantics.warning.yellow50,
+    color: color.semantics.warning.yellow500,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -250,7 +381,60 @@ const styles = {
     ...font.regular17,
     color: color.neutral600,
     lineHeight: "1.6",
-    margin: `${theme.s4} 0`,
+    margin: 0,
+  }),
+  descriptionTitle: css({
+    ...font.bold14,
+    color: color.secondary500,
+    marginBottom: theme.s2,
+  }),
+  descriptionSection: css({
+    marginTop: theme.s8,
+    paddingTop: theme.s6,
+    borderTop: `1px solid ${color.secondary100}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s2,
+  }),
+  stockTag: css({
+    ...font.medium14,
+    color: color.neutral700,
+  }),
+  variantSection: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s2,
+  }),
+  variantLabel: css({
+    ...font.bold14,
+    color: color.secondary500,
+  }),
+  variantList: css({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: theme.s2,
+  }),
+  variantChip: css({
+    minWidth: "48px",
+    height: "34px",
+    borderRadius: theme.br1,
+    border: `1px solid ${color.secondary200}`,
+    backgroundColor: color.neutral0,
+    color: color.secondary500,
+    ...font.medium14,
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  }),
+  variantChipSelected: css({
+    borderColor: color.primary500,
+    backgroundColor: color.secondary100,
+    color: color.primary500,
+  }),
+  variantChipOut: css({
+    borderColor: color.neutral300,
+    backgroundColor: color.neutral200,
+    color: color.neutral600,
+    cursor: "not-allowed",
   }),
   addToCartBtn: css({
     padding: `${theme.s3} ${theme.s6}`,
@@ -268,6 +452,33 @@ const styles = {
     "&:active": {
       transform: "translateY(0)",
     },
+    "&:disabled": {
+      backgroundColor: color.neutral300,
+      color: color.neutral600,
+      cursor: "not-allowed",
+      transform: "none",
+    },
+  }),
+  otherSection: css({
+    marginTop: theme.s10,
+    paddingTop: theme.s6,
+    borderTop: `1px solid ${color.secondary100}`,
+  }),
+  otherTitle: css({
+    ...font.bold17,
+    color: color.secondary500,
+    marginBottom: theme.s4,
+  }),
+  relatedGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 220px))",
+    justifyContent: "start",
+    gap: theme.s4,
+  }),
+  blankArea: css({
+    minHeight: "140px",
+    borderRadius: theme.br2,
+    backgroundColor: color.neutral50,
   }),
   statusMsg: css({
     padding: theme.s20,
