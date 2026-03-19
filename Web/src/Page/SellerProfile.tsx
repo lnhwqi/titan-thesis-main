@@ -26,26 +26,34 @@ export default function SellerProfilePage(
   }
 
   const seller = sellerRD.data.seller
+  const allProducts =
+    state.product.listResponse._t === "Success"
+      ? state.product.listResponse.data.items
+      : []
   const products =
     productsRD._t === "Success"
       ? productsRD.data.items
-      : state.product.listResponse._t === "Success"
-        ? state.product.listResponse.data.items.filter(
-            (item) => item.sellerID.unwrap() === seller.id.unwrap(),
-          )
-        : []
+      : allProducts.filter(
+          (item) => item.sellerID.unwrap() === seller.id.unwrap(),
+        )
+  const otherShopProducts = allProducts.filter(
+    (item) => item.sellerID.unwrap() !== seller.id.unwrap(),
+  )
 
   return (
     <div className={styles.container}>
       <section className={styles.hero}>
+        <div className={styles.shopTitle}>Seller shop name</div>
         <div className={styles.shopName}>{seller.shopName.unwrap()}</div>
+
+        <div className={styles.shopTitle}>Seller shop description</div>
         <p className={styles.shopDescription}>
           {seller.shopDescription.unwrap()}
         </p>
       </section>
 
       <section className={styles.productsSection}>
-        <h2 className={styles.productsTitle}>Products from this shop</h2>
+        <h2 className={styles.productsTitle}>Shop product list</h2>
 
         {productsRD._t === "Loading" ? (
           <div className={styles.statusMsg}>Loading products...</div>
@@ -54,6 +62,26 @@ export default function SellerProfilePage(
         ) : (
           <div className={styles.grid}>
             {products.map((product) => (
+              <ProductCard
+                key={product.id.unwrap()}
+                product={product}
+                state={state}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={styles.productsSection}>
+        <h2 className={styles.productsTitle}>Others shop list</h2>
+
+        {state.product.listResponse._t === "Loading" ? (
+          <div className={styles.statusMsg}>Loading other shops...</div>
+        ) : otherShopProducts.length === 0 ? (
+          <div className={styles.statusMsg}>No products from other shops.</div>
+        ) : (
+          <div className={styles.grid}>
+            {otherShopProducts.map((product) => (
               <ProductCard
                 key={product.id.unwrap()}
                 product={product}
@@ -85,6 +113,12 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: theme.s3,
+  }),
+  shopTitle: css({
+    ...font.bold14,
+    color: color.secondary500,
+    textTransform: "uppercase",
+    letterSpacing: "0.4px",
   }),
   shopName: css({
     ...font.boldH2_35,

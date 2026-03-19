@@ -3,9 +3,6 @@ import { css } from "@emotion/css"
 import { State } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
 import { ProductCard } from "../View/Part/ProductCard"
-import { emit } from "../Runtime/React"
-import * as ProductAction from "../Action/Product"
-import { IoIosClose } from "react-icons/io"
 
 export type SavedPageProps = { state: State }
 
@@ -70,27 +67,6 @@ export default function SavedPage(props: SavedPageProps): JSX.Element {
                   product={product}
                   state={state}
                 />
-                <button
-                  className={`${styles.removeButton} wishlist-remove-btn`}
-                  onClick={() =>
-                    emit(ProductAction.removeFromWishlist(product.id))
-                  }
-                  disabled={state.product.wishlistBusy}
-                  aria-label={`Remove ${product.name.unwrap()} from wishlist`}
-                  title="Remove from wishlist"
-                >
-                  {state.product.wishlistBusy ? (
-                    <span className={styles.removeLabel}>...</span>
-                  ) : (
-                    <>
-                      <IoIosClose
-                        size={18}
-                        className="wishlist-remove-icon"
-                      />
-                      <span className={styles.removeLabel}>Remove</span>
-                    </>
-                  )}
-                </button>
               </div>
             ))}
           </div>
@@ -149,57 +125,21 @@ const styles = {
     flexDirection: "column",
     gap: theme.s2,
     position: "relative",
-    "& .wishlist-remove-btn": {
+    "& .wishlist-heart-btn": {
       opacity: 0.72,
       transform: "translateY(4px) scale(0.92)",
     },
-    "& .wishlist-remove-icon": {
+    "& .wishlist-heart-icon": {
       transform: "rotate(0deg)",
+      transition: "transform 0.24s ease",
     },
-    "&:hover .wishlist-remove-btn": {
+    "&:hover .wishlist-heart-btn": {
       opacity: 1,
       transform: "translateY(0) scale(1)",
     },
-    "&:hover .wishlist-remove-icon": {
-      transform: "rotate(90deg)",
+    "&:hover .wishlist-heart-icon": {
+      transform: "rotate(360deg)",
     },
-  }),
-  removeButton: css({
-    ...font.medium12,
-    position: "absolute",
-    right: theme.s2,
-    top: theme.s2,
-    border: `1px solid ${color.semantics.error.red500}`,
-    color: color.neutral0,
-    background: color.semantics.error.red500,
-    borderRadius: theme.br5,
-    height: "30px",
-    minWidth: "30px",
-    padding: `0 ${theme.s2}`,
-    cursor: "pointer",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: theme.s1,
-    zIndex: 3,
-    boxShadow: theme.elevation.medium,
-    transition:
-      "transform 0.24s ease, opacity 0.24s ease, box-shadow 0.24s ease",
-    "& .wishlist-remove-icon": {
-      transition: "transform 0.24s ease",
-    },
-    "&:hover": {
-      transform: "translateY(-1px)",
-      opacity: 0.92,
-      boxShadow: theme.elevation.large,
-    },
-    "&:disabled": {
-      cursor: "not-allowed",
-      opacity: 0.65,
-    },
-  }),
-  removeLabel: css({
-    ...font.medium12,
-    lineHeight: 1,
   }),
   info: css({
     ...font.regular14,

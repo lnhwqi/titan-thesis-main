@@ -120,14 +120,24 @@ export function ProductCard(props: Props): JSX.Element {
         <div className={styles.imageContainer}>
           <button
             type="button"
-            className={`${styles.wishlistButton} ${
+            className={`wishlist-heart-btn ${styles.wishlistButton} ${
               isSaved ? styles.wishlistButtonActive : ""
             }`}
             onClick={handleToggleWishlist}
             aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
             disabled={!isUser || state.product.wishlistBusy}
           >
-            {isSaved ? <IoIosHeart size={18} /> : <IoIosHeartEmpty size={18} />}
+            {isSaved ? (
+              <IoIosHeart
+                size={18}
+                className="wishlist-heart-icon"
+              />
+            ) : (
+              <IoIosHeartEmpty
+                size={18}
+                className="wishlist-heart-icon"
+              />
+            )}
           </button>
 
           <img

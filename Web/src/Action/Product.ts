@@ -316,6 +316,7 @@ function gotSellerProductsResponse(
     if (response._t === "Err") {
       return [
         _ProductState(state, {
+          listResponse: RD.failure(response.error),
           sellerProductsResponse: RD.failure(response.error),
         }),
         cmd(),
@@ -328,6 +329,7 @@ function gotSellerProductsResponse(
 
     return [
       _ProductState(state, {
+        listResponse: RD.success(response.value),
         sellerProductsResponse: RD.success({ items }),
       }),
       cmd(),
