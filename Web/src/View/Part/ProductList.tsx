@@ -16,7 +16,9 @@ export default function MainContent(props: Props): JSX.Element {
   const renderHeader = () => (
     <div className={styles.header}>
       <h1 className={styles.title}>
-        {currentCategoryId ? (categoryName ?? "Category Products") : "All Products"}
+        {currentCategoryId
+          ? (categoryName ?? "Category Products")
+          : "All Products"}
       </h1>
       <div className={styles.divider} />
     </div>
@@ -95,7 +97,10 @@ function getSelectedCategoryName(state: State): string | null {
     return null
   }
 
-  const fromRootTree = findCategoryByID(state.category.treeResponse.data, selectedId)
+  const fromRootTree = findCategoryByID(
+    state.category.treeResponse.data,
+    selectedId,
+  )
   return fromRootTree == null ? null : fromRootTree.name.unwrap()
 }
 
