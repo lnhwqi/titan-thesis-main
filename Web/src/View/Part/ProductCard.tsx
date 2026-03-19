@@ -6,8 +6,9 @@ import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 import { State } from "../../State"
 import { emit } from "../../Runtime/React"
-import * as CartAction from "../../Action/Cart"
-import { IoMdCart } from "react-icons/io"
+import * as ProductAction from "../../Action/Product"
+import * as AuthToken from "../../App/AuthToken"
+import { IoIosHeart, IoIosHeartEmpty } from "react-icons/io"
 
 type Props = {
   product: BasicProduct
@@ -15,7 +16,9 @@ type Props = {
 }
 
 export function ProductCard(props: Props): JSX.Element {
-  const { product } = props
+  const { product, state } = props
+  const auth = AuthToken.get()
+  const isUser = auth != null && auth.role === "USER"
 
   const getShopLabel = () => {
     const shopName = product.shopName?.unwrap()
@@ -73,6 +76,7 @@ export function ProductCard(props: Props): JSX.Element {
 
   const shopLabel = getShopLabel()
   const variantSizes = getVariantSizes()
+  const isSaved = state.product.wishlistProductIDs.includes(product.id.unwrap())
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -80,10 +84,19 @@ export function ProductCard(props: Props): JSX.Element {
     }).format(price)
   }
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    emit(CartAction.addToCart(product))
+
+    if (!isUser) {
+      return
+    }
+
+    emit(
+      isSaved
+        ? ProductAction.removeFromWishlist(product.id)
+        : ProductAction.saveToWishlist(product.id),
+    )
   }
 
   return (
@@ -93,6 +106,18 @@ export function ProductCard(props: Props): JSX.Element {
     >
       <>
         <div className={styles.imageContainer}>
+          <button
+            type="button"
+            className={`${styles.wishlistButton} ${
+              isSaved ? styles.wishlistButtonActive : ""
+            }`}
+            onClick={handleToggleWishlist}
+            aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
+            disabled={!isUser || state.product.wishlistBusy}
+          >
+            {isSaved ? <IoIosHeart size={18} /> : <IoIosHeartEmpty size={18} />}
+          </button>
+
           <img
             className={styles.image}
             src={product.url?.unwrap() || "https://via.placeholder.com/300"}
@@ -131,17 +156,6 @@ export function ProductCard(props: Props): JSX.Element {
               ))}
             </div>
           ) : null}
-
-          <div className={styles.bottom}>
-            <button
-              type="button"
-              className={styles.addButton}
-              onClick={handleAddToCart}
-              aria-label="Add to cart"
-            >
-              <IoMdCart size={18} />
-            </button>
-          </div>
         </div>
       </>
     </Link>
@@ -160,29 +174,35 @@ const nameClass = css({
   transition: "color 0.2s",
 })
 
-const addButtonClass = css({
-  width: "90%",
+const wishlistButtonClass = css({
+  width: "36px",
   height: "36px",
-  borderRadius: theme.br1,
-  backgroundColor: color.secondary100,
+  borderRadius: "50%",
+  backgroundColor: "rgba(255, 255, 255, 0.92)",
   color: color.secondary500,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   padding: 0,
-  border: "none",
+  border: `1px solid ${color.secondary200}`,
+  position: "absolute",
+  top: theme.s2,
+  right: theme.s2,
   transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
   cursor: "pointer",
-  zIndex: 2,
+  zIndex: 3,
   "&:hover": {
-    transform: "scale(1.15)",
-    backgroundColor: color.primary500,
-    color: color.neutral0,
+    transform: "scale(1.1)",
+    backgroundColor: color.neutral0,
   },
   "&:active": {
     transform: "scale(0.95)",
   },
-  margin: "auto",
+  "&:disabled": {
+    cursor: "not-allowed",
+    opacity: 0.6,
+    transform: "none",
+  },
 })
 
 const styles = {
@@ -206,7 +226,12 @@ const styles = {
     },
   }),
   name: nameClass,
-  addButton: addButtonClass,
+  wishlistButton: wishlistButtonClass,
+  wishlistButtonActive: css({
+    backgroundColor: color.neutral0,
+    color: color.semantics.error.red500,
+    border: `1px solid ${color.semantics.error.red500}`,
+  }),
   imageContainer: css({
     width: "100%",
     paddingTop: "100%",
@@ -264,11 +289,6 @@ const styles = {
     background: color.neutral200,
     borderColor: color.neutral300,
     color: color.neutral600,
-  }),
-  bottom: css({
-    marginTop: "auto",
-    display: "block",
-    paddingTop: theme.s2,
   }),
   price: css({
     ...font.bold17,

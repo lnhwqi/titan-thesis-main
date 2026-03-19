@@ -74,7 +74,8 @@ function initAuthCmd(): Cmd {
 function initRoleBootstrapCmd(): Cmd {
   return cmd(
     Promise.all([CategoryApi.call(), ProductApi.call({})]).then(
-      ([categoryRes, productRes]) => roleBootstrapResponse(categoryRes, productRes),
+      ([categoryRes, productRes]) =>
+        roleBootstrapResponse(categoryRes, productRes),
     ),
   )
 }
