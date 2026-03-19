@@ -4,6 +4,17 @@ import { ApiError } from "../Api"
 import * as CreateProductApi from "../Api/Auth/Seller/Product/Create"
 import * as SellerProfileApi from "../Api/Auth/Seller/Profile"
 import * as UpdateProfileApi from "../Api/Auth/Seller/UpdateProfile"
+import * as UpdateProductApi from "../Api/Auth/Seller/Product/Update"
+
+export type ShippingStatus = "PACKED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED"
+
+export type EditVariantRow = {
+  id: string | null
+  name: string
+  sku: string
+  price: string
+  stock: string
+}
 
 export type SellerDashboardState = {
   shopName: string
@@ -26,6 +37,22 @@ export type SellerDashboardState = {
     stock: boolean
   }
   isUploadingImages: boolean
+  isLoadingEditProduct: boolean
+  editProductId: string | null
+  editName: string
+  editCategoryID: string
+  editPrice: string
+  editDescription: string
+  editImageUrls: string[]
+  editAttributes: Record<string, unknown>
+  editVariants: EditVariantRow[]
+  updateProductResponse: RD.RemoteData<
+    ApiError<UpdateProductApi.ErrorCode>,
+    UpdateProductApi.Payload
+  >
+  pendingDeleteProductId: string | null
+  pendingDeleteProductName: string | null
+  shippingStatusByProductId: Record<string, ShippingStatus>
   profileResponse: RD.RemoteData<
     ApiError<SellerProfileApi.ErrorCode>,
     SellerProfileApi.Payload
@@ -72,6 +99,19 @@ export function initSellerDashboardState(): SellerDashboardState {
     },
     createTouched: initCreateProductTouched(),
     isUploadingImages: false,
+    isLoadingEditProduct: false,
+    editProductId: null,
+    editName: "",
+    editCategoryID: "",
+    editPrice: "",
+    editDescription: "",
+    editImageUrls: [],
+    editAttributes: {},
+    editVariants: [],
+    updateProductResponse: RD.notAsked(),
+    pendingDeleteProductId: null,
+    pendingDeleteProductName: null,
+    shippingStatusByProductId: {},
     profileResponse: RD.notAsked(),
     updateShopResponse: RD.notAsked(),
     createResponse: RD.notAsked(),

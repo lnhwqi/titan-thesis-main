@@ -184,6 +184,37 @@ export async function updateFull(
   return db
     .transaction()
     .execute(async (trx) => {
+      const incomingSkus = params.variants.map((v) => v.sku.unwrap())
+
+      const existingVariantsBySku =
+        incomingSkus.length === 0
+          ? []
+          : await trx
+              .selectFrom("product_variant")
+              .select(["id", "sku", "productId"])
+              .where("sku", "in", incomingSkus)
+              .execute()
+
+      const skuOwnership = new Map<
+        string,
+        { id: string; productId: string }
+      >()
+      existingVariantsBySku.forEach((row) => {
+        if (!skuOwnership.has(row.sku)) {
+          skuOwnership.set(row.sku, {
+            id: row.id,
+            productId: row.productId,
+          })
+        }
+      })
+
+      for (const incomingSku of incomingSkus) {
+        const ownership = skuOwnership.get(incomingSku)
+        if (ownership != null && ownership.productId !== idStr) {
+          throw new Error(`sku already exists on another product: ${incomingSku}`)
+        }
+      }
+
       const productRow = await trx
         .updateTable("product")
         .set({
@@ -251,7 +282,10 @@ export async function updateFull(
               .insertInto("product_variant")
               .values(
                 params.variants.map((v: UpdateAPI.UpdateVariantBody) => ({
-                  id: v.id ? v.id.unwrap() : createProductVariantID().unwrap(),
+                  id:
+                    v.id?.unwrap() ??
+                    skuOwnership.get(v.sku.unwrap())?.id ??
+                    createProductVariantID().unwrap(),
                   productId: idStr,
                   name: v.name.unwrap(),
                   sku: v.sku.unwrap(),
@@ -264,6 +298,7 @@ export async function updateFull(
               )
               .onConflict((oc) =>
                 oc.column("id").doUpdateSet({
+                  productId: idStr,
                   name: (eb) => eb.ref("excluded.name"),
                   sku: (eb) => eb.ref("excluded.sku"),
                   price: (eb) => eb.ref("excluded.price"),

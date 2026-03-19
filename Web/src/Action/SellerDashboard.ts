@@ -1,17 +1,27 @@
 import * as RD from "../../../Core/Data/RemoteData"
-import { Action, cmd } from "../Action"
+import * as JD from "decoders"
+import { Annotation } from "../../../Core/Data/Decoder"
+import { Action, cmd, perform } from "../Action"
 import * as CreateProductApi from "../Api/Auth/Seller/Product/Create"
 import * as SellerProfileApi from "../Api/Auth/Seller/Profile"
 import * as UpdateProfileApi from "../Api/Auth/Seller/UpdateProfile"
 import * as UploadImagesApi from "../Api/Auth/Seller/Product/UploadImages"
+import * as UpdateProductApi from "../Api/Auth/Seller/Product/Update"
+import * as DeleteProductApi from "../Api/Auth/Seller/Product/Delete"
+import * as ProductGetOneApi from "../Api/Public/Product/GetOne"
 import * as ProductListApi from "../Api/Public/Product/ListAll"
 import * as CategoryAction from "./Category"
 import { Category } from "../../../Core/App/Category"
 import { createStockE } from "../../../Core/App/ProductVariant/Stock"
+import { parseProductID, ProductID } from "../../../Core/App/Product/ProductID"
 import { _ProductState } from "../State/Product"
+import { navigateTo, toRoute } from "../Route"
+import type { State } from "../State"
 import {
   _SellerDashboardState,
+  EditVariantRow,
   initCreateProductTouched,
+  ShippingStatus,
 } from "../State/SellerDashboard"
 
 export const MAX_PRODUCT_IMAGES = 5
@@ -35,6 +45,381 @@ export function onEnterRoute(): Action {
       ],
     ]
   }
+}
+
+export function goToCreateProductPage(): Action {
+  return (state) => [
+    state,
+    cmd(perform(navigateTo(toRoute("SellerProductCreate", {})))),
+  ]
+}
+
+export function goToEditProductPage(productID: ProductID): Action {
+  return (state) => [
+    state,
+    cmd(
+      perform(
+        navigateTo(toRoute("SellerProductEdit", { id: productID.unwrap() })),
+      ),
+    ),
+  ]
+}
+
+export function goToShippingPage(): Action {
+  return (state) => [
+    state,
+    cmd(perform(navigateTo(toRoute("SellerShipping", {})))),
+  ]
+}
+
+export function onEnterEditRoute(id: ProductID): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      isLoadingEditProduct: true,
+      flashMessage: null,
+      updateProductResponse: RD.notAsked(),
+    }),
+    cmd(ProductGetOneApi.call({ id }).then(onLoadProductForEditResponse)),
+  ]
+}
+
+function onLoadProductForEditResponse(
+  response: ProductGetOneApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _SellerDashboardState(state, {
+          isLoadingEditProduct: false,
+          flashMessage: ProductGetOneApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const product = response.value
+    const variants: EditVariantRow[] = product.variants.map((variant) => ({
+      id: variant.id.unwrap(),
+      name: variant.name.unwrap(),
+      sku: variant.sku.unwrap(),
+      price: String(variant.price.unwrap()),
+      stock: String(variant.stock.unwrap()),
+    }))
+
+    return [
+      _SellerDashboardState(state, {
+        isLoadingEditProduct: false,
+        editProductId: product.id.unwrap(),
+        editName: product.name.unwrap(),
+        editCategoryID: product.categoryID.unwrap(),
+        editPrice: String(product.price.unwrap()),
+        editDescription: product.description.unwrap(),
+        editImageUrls: product.urls.map((url) => url.unwrap()),
+        editAttributes: normalizeAttributesForUpdate(product.attributes),
+        editVariants: variants,
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function onChangeEditName(value: string): Action {
+  return (state) => [_SellerDashboardState(state, { editName: value }), cmd()]
+}
+
+export function onChangeEditCategoryID(value: string): Action {
+  return (state) => [
+    _SellerDashboardState(state, { editCategoryID: value }),
+    cmd(),
+  ]
+}
+
+export function onChangeEditPrice(value: string): Action {
+  return (state) => [_SellerDashboardState(state, { editPrice: value }), cmd()]
+}
+
+export function onChangeEditDescription(value: string): Action {
+  return (state) => [
+    _SellerDashboardState(state, { editDescription: value }),
+    cmd(),
+  ]
+}
+
+export function onChangeEditVariant(
+  index: number,
+  key: keyof EditVariantRow,
+  value: string,
+): Action {
+  return (state) => {
+    const next = state.sellerDashboard.editVariants.map((item, itemIndex) =>
+      itemIndex === index ? { ...item, [key]: value } : item,
+    )
+    return [_SellerDashboardState(state, { editVariants: next }), cmd()]
+  }
+}
+
+export function addEditImageUrl(): Action {
+  return (state) => {
+    if (typeof window === "undefined") {
+      return [state, cmd()]
+    }
+
+    const input = window.prompt("Paste image URL")
+    if (input == null) {
+      return [state, cmd()]
+    }
+
+    const value = input.trim()
+    if (value === "") {
+      return [state, cmd()]
+    }
+
+    return [
+      _SellerDashboardState(state, {
+        editImageUrls: [...state.sellerDashboard.editImageUrls, value],
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function removeEditImageUrl(url: string): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      editImageUrls: state.sellerDashboard.editImageUrls.filter(
+        (item) => item !== url,
+      ),
+    }),
+    cmd(),
+  ]
+}
+
+export function uploadEditProductImages(files: File[]): Action {
+  return (state) => {
+    const remainingSlots =
+      MAX_PRODUCT_IMAGES - state.sellerDashboard.editImageUrls.length
+
+    if (remainingSlots <= 0) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: `You can upload up to ${MAX_PRODUCT_IMAGES} images per product.`,
+        }),
+        cmd(),
+      ]
+    }
+
+    const selected = files.slice(0, remainingSlots)
+    const { acceptedFiles, warning } = filterUploadFiles(selected)
+
+    if (acceptedFiles.length === 0) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage:
+            warning ??
+            `Select at least one valid image under ${MAX_UPLOAD_SIZE_MB} MB.`,
+        }),
+        cmd(),
+      ]
+    }
+
+    const nextState = _SellerDashboardState(state, {
+      isUploadingImages: true,
+      flashMessage: warning,
+    })
+
+    const uploadCmd = readFilesAsDataUrl(acceptedFiles)
+      .then((payload) => UploadImagesApi.call({ files: payload }))
+      .then(onUploadEditImagesResponse)
+      .catch(() => onUploadImagesReadFailed())
+
+    return [nextState, cmd(uploadCmd)]
+  }
+}
+
+export function submitEditProductFromPage(): Action {
+  return (state) => {
+    const rawID = state.sellerDashboard.editProductId
+    if (rawID == null) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: "No product selected for editing.",
+        }),
+        cmd(),
+      ]
+    }
+
+    let productID: ProductID
+    try {
+      productID = parseProductID(rawID)
+    } catch (_e) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: "Invalid product id.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const availableCategoryIDs =
+      state.category.treeResponse._t === "Success"
+        ? flattenCategoryIDs(state.category.treeResponse.data)
+        : []
+
+    if (availableCategoryIDs.length === 0) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage:
+            "No category available yet. Please create categories first.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const categoryID = state.sellerDashboard.editCategoryID.trim()
+    if (
+      categoryID === "" ||
+      availableCategoryIDs.includes(categoryID) === false
+    ) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: "Please select a valid category for this product.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const fallbackPrice = Number(state.sellerDashboard.editPrice)
+    const safePrice = Number.isFinite(fallbackPrice) ? fallbackPrice : 0
+
+    if (state.sellerDashboard.editName.trim() === "") {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: "Product name is required.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const normalizedVariants = state.sellerDashboard.editVariants
+      .map((variant, index) => {
+        const rawPrice = Number(variant.price)
+        const rawStock = Number(variant.stock)
+        const rawName = variant.name.trim()
+        const rawSku = variant.sku.trim()
+
+        const name =
+          rawName === ""
+            ? `${state.sellerDashboard.editName.trim()} Variant ${index + 1}`
+            : rawName
+
+        const sku =
+          rawSku === ""
+            ? `${state.sellerDashboard.editName.trim().replace(/\s+/g, "-").toUpperCase()}-${index + 1}`
+            : rawSku
+
+        return {
+          // Force null so decoder does not fail on legacy/non-UUID ids.
+          id: null,
+          name,
+          sku,
+          price: Number.isFinite(rawPrice) ? rawPrice : safePrice,
+          stock: Number.isFinite(rawStock) ? rawStock : 0,
+        }
+      })
+
+    const normalizedImageUrls = state.sellerDashboard.editImageUrls
+      .map((url) => url.trim())
+      .filter((url) => url !== "")
+
+    if (normalizedImageUrls.length === 0) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: "At least one image is required.",
+        }),
+        cmd(),
+      ]
+    }
+
+    if (normalizedVariants.length === 0) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: "At least one variant is required.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const bodyCandidate = {
+      name: state.sellerDashboard.editName,
+      price: safePrice,
+      description: state.sellerDashboard.editDescription,
+      urls: normalizedImageUrls,
+      categoryID,
+      attributes: normalizeAttributesForUpdate(
+        state.sellerDashboard.editAttributes,
+      ),
+      variants: normalizedVariants,
+    }
+
+    const decoded = UpdateProductApi.bodyParamsDecoder.decode(bodyCandidate)
+    if (decoded.ok === false) {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: `Invalid edit input: ${formatDecodeError(decoded.error)}`,
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _SellerDashboardState(state, {
+        updateProductResponse: RD.loading(),
+        flashMessage: null,
+      }),
+      cmd(
+        UpdateProductApi.call({ id: productID }, decoded.value).then(
+          onEditPageUpdateResponse,
+        ),
+      ),
+    ]
+  }
+}
+
+function onEditPageUpdateResponse(response: UpdateProductApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _SellerDashboardState(state, {
+          updateProductResponse: RD.failure(response.error),
+          flashMessage: UpdateProductApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _SellerDashboardState(state, {
+        updateProductResponse: RD.success(response.value),
+        flashMessage: "Product updated successfully.",
+      }),
+      cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
+    ]
+  }
+}
+
+export function setShippingStatus(
+  productID: ProductID,
+  status: ShippingStatus,
+): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      shippingStatusByProductId: {
+        ...state.sellerDashboard.shippingStatusByProductId,
+        [productID.unwrap()]: status,
+      },
+    }),
+    cmd(),
+  ]
 }
 
 function onLoadProductListResponse(response: ProductListApi.Response): Action {
@@ -332,6 +717,99 @@ export function clearFlashMessage(): Action {
   ]
 }
 
+export function deleteProduct(productID: ProductID): Action {
+  return (state) => {
+    return [
+      _SellerDashboardState(state, {
+        flashMessage: null,
+        pendingDeleteProductId: productID.unwrap(),
+        pendingDeleteProductName: findProductNameById(state, productID),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function cancelDeleteProduct(): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      pendingDeleteProductId: null,
+      pendingDeleteProductName: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function confirmDeleteProduct(): Action {
+  return (state) => {
+    const rawId = state.sellerDashboard.pendingDeleteProductId
+    if (rawId == null) {
+      return [state, cmd()]
+    }
+
+    let productID: ProductID
+    try {
+      productID = parseProductID(rawId)
+    } catch (_e) {
+      return [
+        _SellerDashboardState(state, {
+          pendingDeleteProductId: null,
+          pendingDeleteProductName: null,
+          flashMessage: "Invalid product id.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _SellerDashboardState(state, {
+        flashMessage: null,
+        pendingDeleteProductId: null,
+        pendingDeleteProductName: null,
+      }),
+      cmd(
+        DeleteProductApi.call({ id: productID }).then(onDeleteProductResponse),
+      ),
+    ]
+  }
+}
+
+function onDeleteProductResponse(response: DeleteProductApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _SellerDashboardState(state, {
+          flashMessage: DeleteProductApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _SellerDashboardState(state, {
+        flashMessage: "Product deleted successfully.",
+      }),
+      cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
+    ]
+  }
+}
+
+export function editProduct(productID: ProductID): Action {
+  return goToEditProductPage(productID)
+}
+
+function findProductNameById(state: State, productID: ProductID): string {
+  if (state.product.listResponse._t !== "Success") {
+    return "this product"
+  }
+
+  const found = state.product.listResponse.data.items.find(
+    (item) => item.id.unwrap() === productID.unwrap(),
+  )
+
+  return found?.name.unwrap() ?? "this product"
+}
+
 function filterUploadFiles(files: File[]): {
   acceptedFiles: File[]
   warning: string | null
@@ -401,6 +879,30 @@ function onUploadImagesResponse(response: UploadImagesApi.Response): Action {
       _SellerDashboardState(state, {
         isUploadingImages: false,
         imageUrls: [...state.sellerDashboard.imageUrls, ...newUrls],
+        flashMessage: null,
+      }),
+      cmd(),
+    ]
+  }
+}
+
+function onUploadEditImagesResponse(response: UploadImagesApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _SellerDashboardState(state, {
+          isUploadingImages: false,
+          flashMessage: UploadImagesApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const newUrls = response.value.urls.map((url) => url.unwrap())
+    return [
+      _SellerDashboardState(state, {
+        isUploadingImages: false,
+        editImageUrls: [...state.sellerDashboard.editImageUrls, ...newUrls],
         flashMessage: null,
       }),
       cmd(),
@@ -542,6 +1044,40 @@ function flattenLeafCategoryIDs(categories: Category[]): string[] {
 
     return flattenLeafCategoryIDs(item.children)
   })
+}
+
+function flattenCategoryIDs(categories: Category[]): string[] {
+  return categories.flatMap((item) => [
+    item.id.unwrap(),
+    ...flattenCategoryIDs(item.children),
+  ])
+}
+
+function normalizeAttributesForUpdate(value: unknown): Record<string, unknown> {
+  try {
+    const serialized = JSON.stringify(value)
+    if (serialized == null) {
+      return {}
+    }
+
+    const parsed = JSON.parse(serialized)
+    if (
+      parsed == null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return {}
+    }
+
+    return JD.record(JD.unknown).verify(parsed)
+  } catch (_e) {
+    return {}
+  }
+}
+
+function formatDecodeError(error: Annotation): string {
+  const rendered = JD.formatInline(error)
+  return rendered.trim() === "" ? "Please check all fields." : rendered
 }
 
 function onCreateResponse(response: CreateProductApi.Response): Action {

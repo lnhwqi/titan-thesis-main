@@ -21,6 +21,21 @@ export type Route =
   | { _t: "SellerLogin"; path: "/seller/login"; params: NoParams }
   | { _t: "SellerDashboard"; path: "/seller/dashboard"; params: NoParams }
   | {
+      _t: "SellerProductCreate"
+      path: "/seller/products/create"
+      params: NoParams
+    }
+  | {
+      _t: "SellerProductEdit"
+      path: "/seller/products/:id/edit"
+      params: { id: string }
+    }
+  | {
+      _t: "SellerShipping"
+      path: "/seller/shipping"
+      params: NoParams
+    }
+  | {
       _t: "AdminDashboard"
       path: "/admin/dashboard"
       params: NoParams
@@ -121,6 +136,32 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("SellerDashboard"),
       path: JD.always("/seller/dashboard"),
+      params: JD.object({}),
+    }),
+  },
+  SellerProductCreate: {
+    path: "/seller/products/create",
+    decoder: JD.object({
+      _t: JD.always("SellerProductCreate"),
+      path: JD.always("/seller/products/create"),
+      params: JD.object({}),
+    }),
+  },
+  SellerProductEdit: {
+    path: "/seller/products/:id/edit",
+    decoder: JD.object({
+      _t: JD.always("SellerProductEdit"),
+      path: JD.always("/seller/products/:id/edit"),
+      params: JD.object({
+        id: JD.string,
+      }),
+    }),
+  },
+  SellerShipping: {
+    path: "/seller/shipping",
+    decoder: JD.object({
+      _t: JD.always("SellerShipping"),
+      path: JD.always("/seller/shipping"),
       params: JD.object({}),
     }),
   },

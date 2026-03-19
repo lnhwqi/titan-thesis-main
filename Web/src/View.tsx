@@ -13,6 +13,9 @@ import SellerLoginPage from "./Page/SellerLogin"
 import AdminDashboardPage from "./Page/AdminDashboard"
 import AdminCategoryManagementPage from "./Page/AdminCategoryManagement"
 import SellerDashboardPage from "./Page/SellerDashboard"
+import SellerProductCreatePage from "./Page/SellerProductCreate"
+import SellerProductEditPage from "./Page/SellerProductEdit"
+import SellerShippingPage from "./Page/SellerShipping"
 import HomePage from "./Page/Home"
 import SavedPage from "./Page/Saved"
 import SearchPage from "./Page/Search"
@@ -88,6 +91,27 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={SellerDashboardPage}
+        />
+      )
+    case "SellerProductCreate":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SellerProductCreatePage}
+        />
+      )
+    case "SellerProductEdit":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SellerProductEditPage}
+        />
+      )
+    case "SellerShipping":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SellerShippingPage}
         />
       )
     case "Login":

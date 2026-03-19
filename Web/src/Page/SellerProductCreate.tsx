@@ -1,0 +1,363 @@
+import { JSX } from "react"
+import { css } from "@emotion/css"
+import { State } from "../State"
+import { color, font, theme, bp } from "../View/Theme"
+import InputText from "../View/Form/InputText"
+import Button from "../View/Form/Button"
+import { emit } from "../Runtime/React"
+import * as SellerDashboardAction from "../Action/SellerDashboard"
+import { navigateTo, toRoute } from "../Route"
+import * as AuthToken from "../App/AuthToken"
+import { Category } from "../../../Core/App/Category"
+
+type Props = { state: State }
+
+type CategoryOption = {
+  id: string
+  label: string
+}
+
+const variantSizes: Array<"S" | "M" | "L" | "XL"> = ["S", "M", "L", "XL"]
+
+export default function SellerProductCreatePage(props: Props): JSX.Element {
+  const { state } = props
+  const auth = AuthToken.get()
+  const isSeller = auth != null && auth.role === "SELLER"
+
+  if (!isSeller) {
+    return (
+      <div className={styles.gate}>
+        <p className={styles.muted}>Seller access required.</p>
+      </div>
+    )
+  }
+
+  const createState = state.sellerDashboard
+  const categoryOptions =
+    state.category.treeResponse._t === "Success"
+      ? toCategoryOptions(state.category.treeResponse.data)
+      : []
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.title}>Create Product</h1>
+          <p className={styles.subtitle}>
+            Create a new product from this page.
+          </p>
+        </div>
+        <button
+          className={styles.secondaryButton}
+          onClick={() => emit(navigateTo(toRoute("SellerDashboard", {})))}
+        >
+          Back to Dashboard
+        </button>
+      </header>
+
+      <section className={styles.panel}>
+        {createState.flashMessage != null ? (
+          <div className={styles.flash}>{createState.flashMessage}</div>
+        ) : null}
+
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <span className={styles.label}>Product Name</span>
+            <InputText
+              value={createState.name}
+              invalid={false}
+              type="text"
+              placeholder="Product name"
+              onChange={(v) => emit(SellerDashboardAction.onChangeName(v))}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <span className={styles.label}>Category</span>
+            <select
+              className={styles.select}
+              value={createState.categoryID}
+              onChange={(e) =>
+                emit(
+                  SellerDashboardAction.onChangeCategoryID(
+                    e.currentTarget.value,
+                  ),
+                )
+              }
+            >
+              <option value="">Select category</option>
+              {categoryOptions.map((category) => (
+                <option
+                  key={category.id}
+                  value={category.id}
+                >
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.field}>
+            <span className={styles.label}>Price</span>
+            <InputText
+              value={createState.price}
+              invalid={false}
+              type="number"
+              placeholder="100000"
+              onChange={(v) => emit(SellerDashboardAction.onChangePrice(v))}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <span className={styles.label}>Base SKU</span>
+            <InputText
+              value={createState.sku}
+              invalid={false}
+              type="text"
+              placeholder="SKU-001"
+              onChange={(v) => emit(SellerDashboardAction.onChangeSku(v))}
+            />
+          </div>
+
+          <div className={styles.fieldFull}>
+            <span className={styles.label}>Description</span>
+            <InputText
+              value={createState.description}
+              invalid={false}
+              type="text"
+              placeholder="Product description"
+              onChange={(v) =>
+                emit(SellerDashboardAction.onChangeDescription(v))
+              }
+            />
+          </div>
+
+          <div className={styles.fieldFull}>
+            <span className={styles.label}>Variant Stocks (S/M/L/XL)</span>
+            <div className={styles.variantGrid}>
+              {variantSizes.map((size) => (
+                <div
+                  key={size}
+                  className={styles.variantCard}
+                >
+                  <span className={styles.variantLabel}>{size}</span>
+                  <InputText
+                    value={createState.variantStocks[size]}
+                    invalid={false}
+                    type="number"
+                    placeholder="0"
+                    onChange={(v) =>
+                      emit(SellerDashboardAction.onChangeVariantStock(size, v))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.fieldFull}>
+            <span className={styles.label}>Images</span>
+            <div className={styles.imageList}>
+              {createState.imageUrls.map((url) => (
+                <div
+                  key={url}
+                  className={styles.imageRow}
+                >
+                  <span className={styles.muted}>{url}</span>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() =>
+                      emit(SellerDashboardAction.removeImageUrl(url))
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => {
+                if (typeof document !== "undefined") {
+                  const input = document.createElement("input")
+                  input.type = "file"
+                  input.accept = "image/*"
+                  input.multiple = true
+                  input.onchange = () => {
+                    const files = Array.from(input.files ?? [])
+                    if (files.length > 0) {
+                      emit(SellerDashboardAction.uploadProductImages(files))
+                    }
+                  }
+                  input.click()
+                }
+              }}
+            >
+              Upload Images
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.actions}>
+          <Button
+            theme_={"Red"}
+            size={"M"}
+            label={
+              createState.createResponse._t === "Loading"
+                ? "Creating..."
+                : "Create Product"
+            }
+            onClick={() => emit(SellerDashboardAction.submitCreateProduct())}
+            disabled={createState.createResponse._t === "Loading"}
+          />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function toCategoryOptions(
+  categories: Category[],
+  parents: string[] = [],
+): CategoryOption[] {
+  return categories.flatMap((item) => {
+    const path = [...parents, item.name.unwrap()]
+
+    if (item.children.length === 0) {
+      return [{ id: item.id.unwrap(), label: path.join(" - ") }]
+    }
+
+    return toCategoryOptions(item.children, path)
+  })
+}
+
+const styles = {
+  page: css({
+    minHeight: "100dvh",
+    padding: theme.s6,
+    background: color.neutral50,
+    ...bp.md({
+      padding: `${theme.s8} ${theme.s10}`,
+    }),
+  }),
+  header: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: theme.s3,
+    marginBottom: theme.s4,
+  }),
+  title: css({
+    ...font.boldH4_24,
+    margin: 0,
+  }),
+  subtitle: css({
+    ...font.regular14,
+    color: color.neutral700,
+    marginTop: theme.s1,
+  }),
+  panel: css({
+    background: color.neutral0,
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s4,
+    padding: theme.s5,
+  }),
+  flash: css({
+    ...font.medium14,
+    color: color.secondary500,
+    marginBottom: theme.s3,
+  }),
+  grid: css({
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: theme.s3,
+    ...bp.md({
+      gridTemplateColumns: "1fr 1fr",
+    }),
+  }),
+  field: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+  }),
+  fieldFull: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+    ...bp.md({
+      gridColumn: "1 / span 2",
+    }),
+  }),
+  label: css({
+    ...font.medium14,
+    color: color.neutral700,
+  }),
+  select: css({
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.regular14,
+  }),
+  variantGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: theme.s2,
+  }),
+  variantCard: css({
+    border: `1px solid ${color.secondary200}`,
+    borderRadius: theme.s2,
+    padding: theme.s2,
+    background: color.neutral50,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+  }),
+  variantLabel: css({
+    ...font.medium12,
+    color: color.secondary500,
+  }),
+  imageList: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+  }),
+  imageRow: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s2,
+    padding: `${theme.s1} ${theme.s2}`,
+  }),
+  muted: css({
+    ...font.regular12,
+    color: color.neutral700,
+    wordBreak: "break-all",
+  }),
+  actions: css({
+    marginTop: theme.s4,
+    display: "flex",
+    justifyContent: "flex-end",
+  }),
+  secondaryButton: css({
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+  }),
+  deleteButton: css({
+    border: `1px solid ${color.semantics.error.red500}`,
+    background: color.semantics.error.red50,
+    color: color.semantics.error.red500,
+    borderRadius: theme.s2,
+    padding: `${theme.s1} ${theme.s2}`,
+    ...font.medium12,
+    cursor: "pointer",
+  }),
+  gate: css({
+    padding: theme.s8,
+  }),
+}

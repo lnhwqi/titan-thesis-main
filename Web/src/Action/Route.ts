@@ -36,6 +36,21 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "SellerDashboard":
       return SellerDashboardAction.onEnterRoute()(state)
 
+    case "SellerProductCreate":
+      return SellerDashboardAction.onEnterRoute()(state)
+
+    case "SellerShipping":
+      return SellerDashboardAction.onEnterRoute()(state)
+
+    case "SellerProductEdit":
+      try {
+        return SellerDashboardAction.onEnterEditRoute(
+          parseProductID(route.params.id),
+        )(state)
+      } catch (_e) {
+        return [state, cmd()]
+      }
+
     case "Register":
     case "Login":
     case "NotFound":
