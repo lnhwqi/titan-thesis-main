@@ -72,7 +72,9 @@ export default function SavedPage(props: SavedPageProps): JSX.Element {
                 />
                 <button
                   className={`${styles.removeButton} wishlist-remove-btn`}
-                  onClick={() => emit(ProductAction.removeFromWishlist(product.id))}
+                  onClick={() =>
+                    emit(ProductAction.removeFromWishlist(product.id))
+                  }
                   disabled={state.product.wishlistBusy}
                   aria-label={`Remove ${product.name.unwrap()} from wishlist`}
                   title="Remove from wishlist"
@@ -180,7 +182,8 @@ const styles = {
     gap: theme.s1,
     zIndex: 3,
     boxShadow: theme.elevation.medium,
-    transition: "transform 0.24s ease, opacity 0.24s ease, box-shadow 0.24s ease",
+    transition:
+      "transform 0.24s ease, opacity 0.24s ease, box-shadow 0.24s ease",
     "& .wishlist-remove-icon": {
       transition: "transform 0.24s ease",
     },

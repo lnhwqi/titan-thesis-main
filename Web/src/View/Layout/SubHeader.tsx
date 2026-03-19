@@ -13,12 +13,18 @@ export default function SubHeader(props: Props): JSX.Element {
   const { state } = props
   const isAuthUser = state._t === "AuthUser"
   const rootCategories =
-    state.category.treeResponse._t === "Success" ? state.category.treeResponse.data : []
+    state.category.treeResponse._t === "Success"
+      ? state.category.treeResponse.data
+      : []
 
   return (
     <div className={styles.navContainer}>
       <Link
-        route={isAuthUser ? toRoute("Saved", {}) : toRoute("Login", { redirect: "/saved" })}
+        route={
+          isAuthUser
+            ? toRoute("Saved", {})
+            : toRoute("Login", { redirect: "/saved" })
+        }
         className={styles.navLink}
       >
         Saved

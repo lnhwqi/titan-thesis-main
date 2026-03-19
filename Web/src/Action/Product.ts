@@ -78,7 +78,10 @@ function selectCategoryWithNavigation(
           ),
         )
 
-    return [nextState, [...loadProductsCmd, ...navigateCmd, ...loadSubCategoriesCmd]]
+    return [
+      nextState,
+      [...loadProductsCmd, ...navigateCmd, ...loadSubCategoriesCmd],
+    ]
   }
 }
 
