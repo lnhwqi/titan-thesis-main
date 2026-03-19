@@ -40,6 +40,21 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
 
   return (
     <div className={styles.page}>
+      {createState.flashMessage != null ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h2 className={styles.modalTitle}>Notice</h2>
+            <p className={styles.modalText}>{createState.flashMessage}</p>
+            <button
+              className={styles.modalButton}
+              onClick={() => emit(SellerDashboardAction.clearFlashMessage())}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Create Product</h1>
@@ -56,10 +71,6 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
       </header>
 
       <section className={styles.panel}>
-        {createState.flashMessage != null ? (
-          <div className={styles.flash}>{createState.flashMessage}</div>
-        ) : null}
-
         <div className={styles.grid}>
           <div className={styles.field}>
             <span className={styles.label}>Product Name</span>
@@ -236,9 +247,53 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background: color.neutral50,
+    position: "relative",
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
     }),
+  }),
+  modalOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1200,
+    padding: theme.s4,
+  }),
+  modalCard: css({
+    width: "100%",
+    maxWidth: "420px",
+    background: color.neutral0,
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s4,
+    boxShadow: theme.elevation.large,
+    padding: theme.s5,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    textAlign: "center",
+  }),
+  modalTitle: css({
+    ...font.boldH4_24,
+    margin: 0,
+    color: color.secondary500,
+  }),
+  modalText: css({
+    ...font.regular14,
+    margin: 0,
+    color: color.neutral700,
+    whiteSpace: "pre-wrap",
+  }),
+  modalButton: css({
+    border: "none",
+    background: color.secondary500,
+    color: color.neutral0,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
   }),
   header: css({
     display: "flex",
@@ -261,11 +316,6 @@ const styles = {
     border: `1px solid ${color.secondary100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
-  }),
-  flash: css({
-    ...font.medium14,
-    color: color.secondary500,
-    marginBottom: theme.s3,
   }),
   grid: css({
     display: "grid",

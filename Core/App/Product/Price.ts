@@ -5,6 +5,7 @@ import { Maybe } from "../../Data/Maybe"
 import { createNat, natDecoder } from "../../Data/Number/Nat"
 
 const key: unique symbol = Symbol()
+const MAX_INT_32 = 2147483647
 export type Price = Opaque<number, typeof key>
 export type ErrorPrice = "INVALID_PRICE"
 
@@ -21,9 +22,17 @@ function _validate(s: number): Result<ErrorPrice, number> {
 
   if (natValue == null) return err("INVALID_PRICE")
 
+  if (natValue.unwrap() > MAX_INT_32) return err("INVALID_PRICE")
+
   return ok(natValue.unwrap())
 }
 
 export const priceDecoder: JD.Decoder<Price> = natDecoder.transform(
-  (natValue) => jsonValueCreate<number, typeof key>(key)(natValue.unwrap()),
+  (natValue) => {
+    if (natValue.unwrap() > MAX_INT_32) {
+      throw new Error("INVALID_PRICE")
+    }
+
+    return jsonValueCreate<number, typeof key>(key)(natValue.unwrap())
+  },
 )

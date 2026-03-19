@@ -82,7 +82,8 @@ export async function getlistPayload(
     allSellers.map((seller) => [seller.id.unwrap(), seller.shopName]),
   )
 
-  const products: BasicProduct[] = productRows.map((row) => {
+  const products: BasicProduct[] = []
+  for (const row of productRows) {
     const idStr = String(row.id.unwrap())
 
     const images = imageMap[idStr] ?? []
@@ -90,8 +91,20 @@ export async function getlistPayload(
     const variantRows = variantMap[idStr] ?? []
     const shopName = sellerMap.get(row.sellerId.unwrap())
 
-    return toBasicProduct(row, images[0], categories[0], shopName, variantRows)
-  })
+    const firstImage = images[0]
+    const firstCategory = categories[0]
+
+    if (firstImage == null || firstCategory == null) {
+      Logger.warn(
+        `#public.product.listAll skip incomplete product id=${idStr} missing ${firstImage == null ? "image" : ""}${firstImage == null && firstCategory == null ? "+" : ""}${firstCategory == null ? "category" : ""}`,
+      )
+      continue
+    }
+
+    products.push(
+      toBasicProduct(row, firstImage, firstCategory, shopName, variantRows),
+    )
+  }
 
   return { items: products }
 }

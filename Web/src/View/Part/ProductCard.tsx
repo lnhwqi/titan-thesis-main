@@ -20,7 +20,7 @@ export function ProductCard(props: Props): JSX.Element {
   const getShopLabel = () => {
     const shopName = product.shopName?.unwrap()
     if (shopName != null && shopName.trim() !== "") {
-      return shopName
+      return shopName.length > 10 ? shopName.slice(0, 10) : shopName
     }
 
     const sellerId = product.sellerID.unwrap()

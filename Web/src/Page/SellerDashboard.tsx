@@ -62,6 +62,21 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
 
   return (
     <div className={styles.page}>
+      {sellerState.flashMessage != null ? (
+        <div className={styles.announceOverlay}>
+          <div className={styles.announceCard}>
+            <h3 className={styles.announceTitle}>Notice</h3>
+            <p className={styles.announceText}>{sellerState.flashMessage}</p>
+            <button
+              className={styles.primaryButton}
+              onClick={() => emit(SellerDashboardAction.clearFlashMessage())}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <header className={styles.hero}>
         <div>
           <p className={styles.kicker}>Seller Workspace</p>
@@ -93,18 +108,6 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
           Logout
         </button>
       </header>
-
-      {sellerState.flashMessage != null ? (
-        <section className={styles.flashCard}>
-          <span>{sellerState.flashMessage}</span>
-          <button
-            className={styles.flashDismiss}
-            onClick={() => emit(SellerDashboardAction.clearFlashMessage())}
-          >
-            Dismiss
-          </button>
-        </section>
-      ) : null}
 
       <section className={styles.panel}>
         <div className={styles.panelHeaderRow}>
@@ -324,6 +327,41 @@ const styles = {
     }),
     display: "grid",
     gap: theme.s5,
+    position: "relative",
+  }),
+  announceOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1200,
+    padding: theme.s4,
+  }),
+  announceCard: css({
+    width: "100%",
+    maxWidth: "420px",
+    background: color.neutral0,
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s4,
+    boxShadow: theme.elevation.large,
+    padding: theme.s5,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    textAlign: "center",
+  }),
+  announceTitle: css({
+    ...font.boldH4_24,
+    margin: 0,
+    color: color.secondary500,
+  }),
+  announceText: css({
+    ...font.regular14,
+    margin: 0,
+    color: color.neutral700,
+    whiteSpace: "pre-wrap",
   }),
   hero: css({
     display: "flex",
@@ -477,25 +515,6 @@ const styles = {
   emptyText: css({
     ...font.regular14,
     color: color.neutral700,
-  }),
-  flashCard: css({
-    borderRadius: theme.s2,
-    border: `1px solid ${color.secondary300}`,
-    background: color.secondary50,
-    padding: `${theme.s2} ${theme.s3}`,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    ...font.medium14,
-    color: color.neutral800,
-  }),
-  flashDismiss: css({
-    border: "none",
-    background: "none",
-    textDecoration: "underline",
-    color: color.secondary500,
-    ...font.medium12,
-    cursor: "pointer",
   }),
   primaryButton: css({
     border: "none",

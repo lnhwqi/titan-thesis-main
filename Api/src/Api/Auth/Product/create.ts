@@ -39,12 +39,28 @@ export async function handler(
 
     return ok({ product: detailProduct })
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      if (isUniqueConstraintViolation(error)) {
-        return err("SKU_ALREADY_EXISTS")
-      }
-      throw error
+    if (error instanceof Error && isUniqueConstraintViolation(error)) {
+      return err("SKU_ALREADY_EXISTS")
     }
+
+    const dbCode =
+      typeof error === "object" && error != null && "code" in error
+        ? String(error.code)
+        : null
+
+    if (dbCode === "22003" || dbCode === "22P02" || dbCode === "23514") {
+      return err("INVALID_PRODUCT_INPUT")
+    }
+
+    if (
+      error instanceof Error &&
+      (error.message.includes("out of range") ||
+        error.message.includes("INVALID_PRICE") ||
+        error.message.includes("INVALID_STOCK"))
+    ) {
+      return err("INVALID_PRODUCT_INPUT")
+    }
+
     throw new Error(String(error))
   }
 }

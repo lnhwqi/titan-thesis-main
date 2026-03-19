@@ -1023,7 +1023,8 @@ export function submitCreateProduct(): Action {
     if (decoded.ok === false) {
       return [
         _SellerDashboardState(state, {
-          flashMessage: "Invalid product input. Please check all fields.",
+          flashMessage:
+            "Invalid product input. Please check name, category, image URL, and ensure price is within 2,147,483,647.",
         }),
         cmd(),
       ]

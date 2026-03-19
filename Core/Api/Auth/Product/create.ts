@@ -52,7 +52,10 @@ export type BodyParams = {
   variants: CreateVariantBody[]
 }
 
-export type ErrorCode = "CATEGORY_NOT_FOUND" | "SKU_ALREADY_EXISTS"
+export type ErrorCode =
+  | "CATEGORY_NOT_FOUND"
+  | "SKU_ALREADY_EXISTS"
+  | "INVALID_PRODUCT_INPUT"
 
 export type Payload = {
   product: DetailProduct
@@ -65,6 +68,7 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "CATEGORY_NOT_FOUND",
   "SKU_ALREADY_EXISTS",
+  "INVALID_PRODUCT_INPUT",
 ])
 
 export const createVariantBodyDecoder: JD.Decoder<CreateVariantBody> =

@@ -14,7 +14,17 @@ import * as RD from "../../../Core/Data/RemoteData"
 
 export function initCmd(): Cmd {
   const authToken = AuthToken.get()
-  return authToken == null ? initPublicCmd() : initAuthCmd()
+  if (authToken == null) {
+    return initPublicCmd()
+  }
+
+  switch (authToken.role) {
+    case "USER":
+      return initAuthCmd()
+    case "SELLER":
+    case "ADMIN":
+      return initRoleBootstrapCmd()
+  }
 }
 
 function initPublicCmd(): Cmd {
@@ -59,6 +69,39 @@ function initAuthCmd(): Cmd {
       authInitResponse(profileRes, categoryRes, productRes),
     ),
   )
+}
+
+function initRoleBootstrapCmd(): Cmd {
+  return cmd(
+    Promise.all([CategoryApi.call(), ProductApi.call({})]).then(
+      ([categoryRes, productRes]) => roleBootstrapResponse(categoryRes, productRes),
+    ),
+  )
+}
+
+function roleBootstrapResponse(
+  categoryRes: CategoryApi.Response,
+  productRes: ProductApi.Response,
+): Action {
+  return (state: State) => {
+    let nextState = _CategoryState(state, {
+      treeResponse:
+        categoryRes._t === "Ok"
+          ? RD.success(categoryRes.value)
+          : RD.failure(categoryRes.error),
+    })
+
+    nextState = _ProductState(nextState, {
+      listResponse:
+        productRes._t === "Ok"
+          ? RD.success(productRes.value)
+          : RD.failure(productRes.error),
+      currentCategoryId: null,
+    })
+
+    // Keep non-user sessions (seller/admin) functional after refresh.
+    return onUrlChange({ ...nextState, _t: "Public" })
+  }
 }
 
 function authInitResponse(
