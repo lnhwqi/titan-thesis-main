@@ -209,7 +209,11 @@ export default function SellerProductEditPage(props: Props): JSX.Element {
                       input.onchange = () => {
                         const files = Array.from(input.files ?? [])
                         if (files.length > 0) {
-                          emit(SellerDashboardAction.uploadEditProductImages(files))
+                          emit(
+                            SellerDashboardAction.uploadEditProductImages(
+                              files,
+                            ),
+                          )
                         }
                       }
                       input.click()

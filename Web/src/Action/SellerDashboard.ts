@@ -300,8 +300,8 @@ export function submitEditProductFromPage(): Action {
       ]
     }
 
-    const normalizedVariants = state.sellerDashboard.editVariants
-      .map((variant, index) => {
+    const normalizedVariants = state.sellerDashboard.editVariants.map(
+      (variant, index) => {
         const rawPrice = Number(variant.price)
         const rawStock = Number(variant.stock)
         const rawName = variant.name.trim()
@@ -325,7 +325,8 @@ export function submitEditProductFromPage(): Action {
           price: Number.isFinite(rawPrice) ? rawPrice : safePrice,
           stock: Number.isFinite(rawStock) ? rawStock : 0,
         }
-      })
+      },
+    )
 
     const normalizedImageUrls = state.sellerDashboard.editImageUrls
       .map((url) => url.trim())
@@ -886,7 +887,9 @@ function onUploadImagesResponse(response: UploadImagesApi.Response): Action {
   }
 }
 
-function onUploadEditImagesResponse(response: UploadImagesApi.Response): Action {
+function onUploadEditImagesResponse(
+  response: UploadImagesApi.Response,
+): Action {
   return (state) => {
     if (response._t === "Err") {
       return [
@@ -1061,11 +1064,7 @@ function normalizeAttributesForUpdate(value: unknown): Record<string, unknown> {
     }
 
     const parsed = JSON.parse(serialized)
-    if (
-      parsed == null ||
-      typeof parsed !== "object" ||
-      Array.isArray(parsed)
-    ) {
+    if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) {
       return {}
     }
 

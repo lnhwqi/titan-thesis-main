@@ -195,10 +195,7 @@ export async function updateFull(
               .where("sku", "in", incomingSkus)
               .execute()
 
-      const skuOwnership = new Map<
-        string,
-        { id: string; productId: string }
-      >()
+      const skuOwnership = new Map<string, { id: string; productId: string }>()
       existingVariantsBySku.forEach((row) => {
         if (!skuOwnership.has(row.sku)) {
           skuOwnership.set(row.sku, {
@@ -211,7 +208,9 @@ export async function updateFull(
       for (const incomingSku of incomingSkus) {
         const ownership = skuOwnership.get(incomingSku)
         if (ownership != null && ownership.productId !== idStr) {
-          throw new Error(`sku already exists on another product: ${incomingSku}`)
+          throw new Error(
+            `sku already exists on another product: ${incomingSku}`,
+          )
         }
       }
 
