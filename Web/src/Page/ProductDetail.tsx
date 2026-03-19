@@ -7,6 +7,7 @@ import * as CartAction from "../Action/Cart"
 import * as ProductAction from "../Action/Product"
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io"
 import { ProductCard } from "../View/Part/ProductCard"
+import * as AuthToken from "../App/AuthToken"
 
 export type ProductDetailPageProps = { state: AuthState | PublicState }
 
@@ -14,6 +15,8 @@ export default function ProductDetailPage(
   props: ProductDetailPageProps,
 ): JSX.Element {
   const { state } = props
+  const auth = AuthToken.get()
+  const isUser = auth != null && auth.role === "USER"
   const detailRD = state.product.detailResponse
   const currentIndex = state.product.currentImageIndex
   const selectedSize = state.product.selectedVariantSize
@@ -96,6 +99,7 @@ export default function ProductDetailPage(
             item.id.unwrap() !== product.id.unwrap(),
         )
       : []
+  const isSaved = state.product.wishlistProductIDs.includes(product.id.unwrap())
 
   const changeIndex = (i: number) => {
     let nextIndex = i
@@ -218,6 +222,25 @@ export default function ProductDetailPage(
             >
               Add To Cart
             </button>
+            {isUser ? (
+              <button
+                className={styles.saveBtn}
+                disabled={state.product.wishlistBusy}
+                onClick={() =>
+                  emit(
+                    isSaved
+                      ? ProductAction.removeFromWishlist(product.id)
+                      : ProductAction.saveToWishlist(product.id),
+                  )
+                }
+              >
+                {state.product.wishlistBusy
+                  ? "Saving..."
+                  : isSaved
+                    ? "Saved"
+                    : "Save to Wishlist"}
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -458,6 +481,16 @@ const styles = {
       cursor: "not-allowed",
       transform: "none",
     },
+  }),
+  saveBtn: css({
+    ...font.medium14,
+    color: color.secondary500,
+    background: color.neutral0,
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.br2,
+    padding: `${theme.s3} ${theme.s4}`,
+    cursor: "pointer",
+    marginTop: theme.s1,
   }),
   otherSection: css({
     marginTop: theme.s10,

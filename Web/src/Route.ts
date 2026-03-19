@@ -7,6 +7,14 @@ import type { State } from "./State"
 
 export type Route =
   | { _t: "Home"; path: "/"; params: NoParams }
+  | {
+      _t: "Category"
+      path: "/category/:id"
+      params: {
+        id: string
+      }
+    }
+  | { _t: "Saved"; path: "/saved"; params: NoParams }
   | { _t: "NotFound"; path: "/not-found"; params: NoParams }
   | { _t: "Register"; path: "/register"; params: NoParams }
   | { _t: "AdminLogin"; path: "/admin/login"; params: NoParams }
@@ -55,6 +63,24 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("Home"),
       path: JD.always("/"),
+      params: JD.object({}),
+    }),
+  },
+  Category: {
+    path: "/category/:id",
+    decoder: JD.object({
+      _t: JD.always("Category"),
+      path: JD.always("/category/:id"),
+      params: JD.object({
+        id: JD.string,
+      }),
+    }),
+  },
+  Saved: {
+    path: "/saved",
+    decoder: JD.object({
+      _t: JD.always("Saved"),
+      path: JD.always("/saved"),
       params: JD.object({}),
     }),
   },

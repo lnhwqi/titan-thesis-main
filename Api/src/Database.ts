@@ -15,6 +15,7 @@ export type Schema = {
   category: CategoryTable
   voucher: VoucherTable
   user_voucher: UserVoucherTable
+  user_wishlist_product: UserWishlistProductTable
   product_variant: ProductVariantTable
 }
 
@@ -109,6 +110,13 @@ export type UserVoucherTable = {
   isUsed: boolean
   usedAt: Date | null
   createdAt: Date
+}
+
+export type UserWishlistProductTable = {
+  userId: string
+  productId: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 type UserRefreshTokenTable = {

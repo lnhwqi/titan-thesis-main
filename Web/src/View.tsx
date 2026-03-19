@@ -14,6 +14,7 @@ import AdminDashboardPage from "./Page/AdminDashboard"
 import AdminCategoryManagementPage from "./Page/AdminCategoryManagement"
 import SellerDashboardPage from "./Page/SellerDashboard"
 import HomePage from "./Page/Home"
+import SavedPage from "./Page/Saved"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
 
@@ -26,10 +27,18 @@ export default function View(props: Props): JSX.Element {
 
   switch (state.route._t) {
     case "Home":
+    case "Category":
       return (
         <HomeLayout
           state={state}
           Page={HomePage}
+        />
+      )
+    case "Saved":
+      return (
+        <HomeLayout
+          state={state}
+          Page={SavedPage}
         />
       )
     case "NotFound":

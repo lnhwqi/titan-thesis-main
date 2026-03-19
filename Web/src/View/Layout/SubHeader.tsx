@@ -3,19 +3,34 @@ import { JSX } from "react"
 import Link from "../Link"
 import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
+import { State } from "../../State"
 
-export default function SubHeader(): JSX.Element {
-  const navItems = ["Saved", "Electronics", "Fashion", "Deals"]
+type Props = {
+  state: State
+}
+
+export default function SubHeader(props: Props): JSX.Element {
+  const { state } = props
+  const isAuthUser = state._t === "AuthUser"
+  const rootCategories =
+    state.category.treeResponse._t === "Success" ? state.category.treeResponse.data : []
 
   return (
     <div className={styles.navContainer}>
-      {navItems.map((item) => (
+      <Link
+        route={isAuthUser ? toRoute("Saved", {}) : toRoute("Login", { redirect: "/saved" })}
+        className={styles.navLink}
+      >
+        Saved
+      </Link>
+
+      {rootCategories.map((category) => (
         <Link
-          key={item}
-          route={toRoute("Home", {})}
+          key={category.id.unwrap()}
+          route={toRoute("Category", { id: category.id.unwrap() })}
           className={styles.navLink}
         >
-          {item}
+          {category.name.unwrap()}
         </Link>
       ))}
     </div>
@@ -31,6 +46,7 @@ const styles = {
     background: color.neutral0,
     alignItems: "center",
     justifyContent: "center",
+    overflowX: "auto",
   }),
   navLink: css({
     ...font.regular12,

@@ -19,7 +19,7 @@ export function HomeLayout(props: Props): JSX.Element {
   return (
     <div className={styles.container}>
       <Header state={state} />
-      <SubHeader />
+      <SubHeader state={state} />
 
       <div className={styles.body}>
         <aside className={isOpen ? styles.sidebarOpen : styles.sidebarClosed}>

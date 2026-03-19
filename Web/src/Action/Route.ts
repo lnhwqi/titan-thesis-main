@@ -7,6 +7,7 @@ import * as ProductAction from "./Product"
 import * as AdminDashboardAction from "./AdminDashboard"
 import * as SellerDashboardAction from "./SellerDashboard"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
+import { categoryIDDecoder } from "../../../Core/App/Category/CategoryID"
 
 export function onUrlChange(s: State): [State, Cmd] {
   const route = parseRoute(window.location.href)
@@ -14,8 +15,24 @@ export function onUrlChange(s: State): [State, Cmd] {
 
   switch (route._t) {
     case "Home":
+      return ProductAction.loadWishlist()(state)
+
+    case "Category":
+      try {
+        return ProductAction.selectCategoryFromRoute(
+          categoryIDDecoder.verify(route.params.id),
+        )(state)
+      } catch (_e) {
+        return [state, cmd()]
+      }
+
+    case "Saved":
+      return ProductAction.loadWishlist()(state)
+
     case "AdminLogin":
     case "SellerLogin":
+      return [state, cmd()]
+
     case "SellerDashboard":
       return SellerDashboardAction.onEnterRoute()(state)
 
