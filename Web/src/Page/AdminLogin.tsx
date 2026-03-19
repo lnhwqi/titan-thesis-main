@@ -122,7 +122,8 @@ function responseMessage(
 
 const styles = {
   container: css({
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     minHeight: "100dvh",
     display: "flex",
     justifyContent: "center",
@@ -131,6 +132,7 @@ const styles = {
     backgroundSize: "200% 200%",
     animation: `${gradient} 8s ease infinite`,
     padding: theme.s6,
+    overflowX: "hidden",
   }),
   wrapper: css({
     width: "100%",

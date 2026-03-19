@@ -225,12 +225,14 @@ function mapShopNameError(_error: ErrorShopName): string {
 
 const styles = {
   container: css({
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     minHeight: "100dvh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     padding: theme.s6,
+    overflowX: "hidden",
     background: `linear-gradient(120deg, ${color.secondary100}, ${color.neutral0}, ${color.secondary200})`,
   }),
   card: css({

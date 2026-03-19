@@ -18,9 +18,11 @@ const styles = {
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     height: "100dvh",
     overflow: "hidden",
+    overflowX: "hidden",
   }),
   loadingImg: css({
     maxWidth: theme.s82,

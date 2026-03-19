@@ -14,7 +14,9 @@ export function EmptyLayout(props: Props): JSX.Element {
 
 const styles = {
   container: css({
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     height: "100dvh",
+    overflowX: "hidden",
   }),
 }

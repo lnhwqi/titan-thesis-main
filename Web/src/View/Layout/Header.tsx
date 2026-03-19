@@ -25,8 +25,20 @@ export default function Header(props: Props): JSX.Element {
   const { isOpen } = state.category
   const query = state.product.searchQuery
 
-  const userName =
+  const rawUserName =
     state._t === "AuthUser" ? state.profile.name.unwrap() : "Guest"
+  const userName = rawUserName.trim().split(/\s+/).pop() ?? "Guest"
+  const userInitial = userName.trim().charAt(0).toUpperCase() || "G"
+  const walletRaw =
+    state._t === "AuthUser" ? String(state.profile.wallet.unwrap()) : ""
+  const walletBalance =
+    walletRaw.length > 4 ? `${walletRaw.slice(0, 4)}...` : walletRaw
+  const walletFullValue =
+    state._t === "AuthUser"
+      ? new Intl.NumberFormat("en-US", {
+          maximumFractionDigits: 0,
+        }).format(state.profile.wallet.unwrap())
+      : null
 
   const totalCartItems = state.cart.items.reduce(
     (sum, item) => sum + item.quantity,
@@ -40,16 +52,19 @@ export default function Header(props: Props): JSX.Element {
 
   return (
     <div className={styles.container}>
-      <Link
-        route={toRoute("Home", {})}
-        className={styles.logo}
-      >
-        <img
-          className={styles.img}
-          src={localImage.logo.unwrap()}
-          alt="Logo"
-        />
-      </Link>
+      <div className={styles.left}>
+        <Link
+          route={toRoute("Home", {})}
+          className={styles.logo}
+        >
+          <img
+            className={styles.img}
+            src={localImage.logo.unwrap()}
+            alt="Logo"
+          />
+        </Link>
+        <span className={styles.hiText}>Hi! {userName}</span>
+      </div>
 
       <button
         className={styles.shopByCategoryBtn}
@@ -85,63 +100,85 @@ export default function Header(props: Props): JSX.Element {
       </div>
 
       <div className={styles.menuItems}>
-        <Link
-          route={toRoute("Home", {})}
-          className={
-            state.route._t === "Home" ? styles.menuItemActive : styles.menuItem
-          }
-        >
-          Home
-        </Link>
-        <Link
-          route={toRoute("Profile", {})}
-          className={
-            state.route._t === "Profile"
-              ? styles.menuItemActive
-              : styles.menuItem
-          }
-        >
-          Profile
-        </Link>
+        <div className={styles.utilityZone}>
+          <div
+            className={styles.iconItem}
+            onClick={() => emit(CartAction.toggleCart(true))}
+          >
+            <IoMdCart size={28} />
+            {totalCartItems > 0 && (
+              <span className={styles.badge}>{totalCartItems}</span>
+            )}
+          </div>
 
-        <div
-          className={styles.iconItem}
-          onClick={() => emit(CartAction.toggleCart(true))}
-        >
-          <IoMdCart size={28} />
-          {totalCartItems > 0 && (
-            <span className={styles.badge}>{totalCartItems}</span>
-          )}
+          <div
+            className={styles.iconItem}
+            onClick={() => {
+              if (state._t !== "AuthUser") {
+                emit(
+                  navigateTo(
+                    toRoute("Login", {
+                      redirect: toPath(state.route),
+                    }),
+                  ),
+                )
+              }
+            }}
+          >
+            <IoMdNotifications size={28} />
+          </div>
         </div>
 
-        <div
-          className={styles.iconItem}
-          onClick={() => {
-            if (state._t !== "AuthUser") {
-              emit(
-                navigateTo(
-                  toRoute("Login", {
-                    redirect: toPath(state.route),
-                  }),
-                ),
-              )
-            }
-          }}
-        >
-          <IoMdNotifications size={28} />
-        </div>
+        <div className={styles.verticalDivider} />
 
+        {state._t === "AuthUser" ? (
+          <div className={styles.userIdentityRow}>
+            <div className={styles.walletContainer}>
+              <div className={styles.walletPill}>
+                <span className={styles.coinBadge}>T</span>
+                <span className={styles.walletValue}>{walletBalance}</span>
+              </div>
+              <div className={`${styles.walletHoverCard} wallet-hover-card`}>
+                <span className={styles.walletHoverLabel}>Wallet</span>
+                <span className={styles.walletHoverValue}>
+                  T {walletFullValue}
+                </span>
+              </div>
+            </div>
+
+            <details className={styles.avatarMenuContainer}>
+              <summary
+                className={styles.avatarButton}
+                title="Open account menu"
+              >
+                <span className={styles.avatarCircle}>{userInitial}</span>
+              </summary>
+
+              <div className={`${styles.avatarMenuCard} avatar-menu-card`}>
+                <Link
+                  route={toRoute("Profile", {})}
+                  className={styles.avatarMenuItem}
+                >
+                  Profile
+                </Link>
+
+                <Link
+                  route={toRoute("Login", { redirect: null })}
+                  className={styles.avatarMenuItem}
+                  onClick={() => {
+                    emit(LoginAction.logout())
+                  }}
+                >
+                  Logout
+                </Link>
+              </div>
+            </details>
+          </div>
+        ) : null}
         <div className={styles.authWrapper}>
-          <span className={styles.hiText}>Hi! {userName}</span>
           <div className={styles.actionGroup}>
             {state._t === "AuthUser" ? (
-              <Link
-                route={toRoute("Login", { redirect: null })}
-                onClick={() => emit(LoginAction.logout())}
-                className={styles.actionItem}
-              >
-                Logout
-              </Link>
+              <></>
             ) : (
               <>
                 <Link
@@ -173,33 +210,56 @@ const styles = {
     gap: theme.s4,
     justifyContent: "space-between",
     alignItems: "center",
-    background: color.neutral0,
+    background: `linear-gradient(180deg, ${color.neutral0} 0%, ${color.secondary10} 100%)`,
     borderBottom: `1px solid ${color.secondary100}`,
+    boxShadow: theme.elevation.xsmall,
+    position: "sticky",
+    top: 0,
+    zIndex: 20,
+  }),
+  left: css({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: theme.s1,
   }),
   logo: css({
-    display: "flex",
-    width: "120px",
+    display: "block",
+    width: "auto",
     height: "48px",
     flexShrink: 0,
     textDecoration: "none",
+    transition: "transform 0.2s ease",
+    "&:hover": {
+      transform: "translateY(-1px)",
+    },
   }),
   img: css({
     width: "100%",
     height: "100%",
     objectFit: "contain",
+    border: "1px solid transparent",
     display: "block",
   }),
   shopByCategoryBtn: css({
     display: "flex",
     alignItems: "center",
-    gap: "4px",
-    background: "transparent",
-    border: "none",
+    gap: "6px",
+    background: color.secondary20,
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.brFull,
+    padding: `${theme.s1} ${theme.s3}`,
     ...font.regular14,
-    color: color.neutral600,
+    color: color.secondary500,
     cursor: "pointer",
     whiteSpace: "nowrap",
-    "&:hover": { color: color.primary500 },
+    transition: "all 0.2s ease",
+    "&:hover": {
+      color: color.primary500,
+      borderColor: color.primary200,
+      background: color.neutral0,
+    },
   }),
   searchWrapper: css({
     flex: 1,
@@ -211,10 +271,12 @@ const styles = {
     display: "flex",
     width: "100%",
     height: "42px",
-    borderRadius: theme.br2,
-    border: `2px solid ${color.secondary500}`,
+    borderRadius: theme.brFull,
+    border: `1px solid ${color.secondary200}`,
     overflow: "hidden",
     alignItems: "stretch",
+    background: color.neutral0,
+    boxShadow: theme.elevation.small,
   }),
   inputWrapper: css({
     flex: 1,
@@ -229,45 +291,67 @@ const styles = {
       padding: `0 ${theme.s2} !important`,
       boxShadow: "none !important",
     },
-    "& input": { height: "100%", cursor: "text" },
+    "& input": {
+      height: "100%",
+      cursor: "text",
+      ...font.medium14,
+      color: color.secondary500,
+    },
   }),
   searchButton: css({
     width: "50px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: color.primary500,
+    background: `linear-gradient(135deg, ${color.primary500} 0%, ${color.primary400} 100%)`,
     color: color.neutral0,
     border: "none",
     cursor: "pointer",
     flexShrink: 0,
-    "&:hover": { background: color.primary500 },
+    transition: "filter 0.2s ease",
+    "&:hover": { filter: "brightness(0.94)" },
   }),
   menuItems: css({
     display: "flex",
-    gap: "16px",
+    gap: theme.s2,
     justifyContent: "flex-end",
     alignItems: "center",
     flexShrink: 0,
+    padding: `${theme.s1} ${theme.s2}`,
+    borderRadius: theme.br5,
+    border: `1px solid ${color.secondary100}`,
+    background: color.neutral0,
+    boxShadow: theme.elevation.xsmall,
   }),
-  menuItem: css({
-    ...font.medium14,
-    color: color.secondary500,
-    textDecoration: "none",
-    "&:hover": { color: color.primary500 },
+  utilityZone: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s2,
   }),
-  menuItemActive: css({
-    ...font.medium14,
-    color: color.primary500,
-    textDecoration: "none",
+  verticalDivider: css({
+    width: "1px",
+    alignSelf: "stretch",
+    background: color.secondary100,
   }),
   iconItem: css({
-    color: color.secondary400,
+    color: color.secondary500,
     display: "flex",
     cursor: "pointer",
     position: "relative",
-    transition: "color 0.2s",
-    "&:hover": { color: color.primary500 },
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    alignItems: "center",
+    justifyContent: "center",
+    border: `1px solid ${color.secondary100}`,
+    background: color.neutral0,
+    transition: "all 0.2s ease",
+    "&:hover": {
+      color: color.primary500,
+      borderColor: color.primary200,
+      transform: "translateY(-1px)",
+      boxShadow: theme.elevation.small,
+    },
   }),
   badge: css({
     position: "absolute",
@@ -292,24 +376,169 @@ const styles = {
     textDecoration: "none",
     cursor: "pointer",
     ...font.bold14,
-    "&:hover": { textDecoration: "underline" },
+    transition: "opacity 0.2s ease",
+    "&:hover": { opacity: 0.82 },
   }),
   authWrapper: css({
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
-    gap: "2px",
+    gap: "3px",
     lineHeight: 1.2,
-    marginLeft: theme.s2,
+    marginLeft: theme.s1,
   }),
-  hiText: css({
+  userIdentityRow: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s2,
+    marginBottom: theme.s1,
+  }),
+  walletContainer: css({
+    position: "relative",
+    display: "inline-flex",
+    alignItems: "center",
+    "&:hover .wallet-hover-card": {
+      opacity: 1,
+      transform: "translateY(0)",
+      pointerEvents: "auto",
+    },
+  }),
+  walletPill: css({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: theme.s1,
+    padding: `${theme.s1} ${theme.s2}`,
+    borderRadius: theme.br5,
+    background: `linear-gradient(135deg, ${color.secondary20} 0%, ${color.neutral0} 100%)`,
+    border: `1px solid ${color.secondary200}`,
+    boxShadow: theme.elevation.xsmall,
+  }),
+  coinBadge: css({
+    width: "18px",
+    height: "18px",
+    borderRadius: "50%",
+    backgroundColor: color.primary500,
+    color: color.semantics.warning.yellow500,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...font.bold10,
+    lineHeight: 1,
+  }),
+  walletValue: css({
+    ...font.bold12,
+    color: color.primary500,
+    lineHeight: 1,
+    cursor: "default",
+  }),
+  walletHoverCard: css({
+    position: "absolute",
+    top: "calc(100% + 8px)",
+    right: 0,
+    minWidth: "130px",
+    borderRadius: theme.br2,
+    border: `1px solid ${color.secondary200}`,
+    backgroundColor: color.neutral0,
+    boxShadow: theme.elevation.medium,
+    padding: `${theme.s2} ${theme.s3}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+    zIndex: 30,
+    opacity: 0,
+    pointerEvents: "none",
+    transform: "translateY(-6px)",
+    transition: "opacity 0.16s ease, transform 0.16s ease",
+  }),
+  walletHoverLabel: css({
     ...font.regular12,
     color: color.neutral600,
   }),
+  walletHoverValue: css({
+    ...font.bold14,
+    color: color.primary500,
+    lineHeight: 1,
+  }),
+  avatarMenuContainer: css({
+    position: "relative",
+    display: "inline-flex",
+    "&[open] .avatar-menu-card": {
+      opacity: 1,
+      transform: "translateY(0)",
+      pointerEvents: "auto",
+    },
+    "& > summary": {
+      listStyle: "none",
+    },
+    "& > summary::-webkit-details-marker": {
+      display: "none",
+    },
+  }),
+  avatarButton: css({
+    padding: 0,
+    margin: 0,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    display: "inline-flex",
+    outline: "none",
+  }),
+  avatarCircle: css({
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.secondary400} 100%)`,
+    color: color.neutral0,
+    border: `1px solid ${color.secondary200}`,
+    ...font.bold12,
+    transition: "transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease",
+    "&:hover": {
+      transform: "translateY(-1px)",
+      boxShadow: theme.elevation.medium,
+      filter: "brightness(1.03)",
+    },
+  }),
+  avatarMenuCard: css({
+    position: "absolute",
+    top: "calc(100% + 8px)",
+    right: 0,
+    minWidth: "140px",
+    borderRadius: theme.br2,
+    border: `1px solid ${color.secondary200}`,
+    backgroundColor: color.neutral0,
+    boxShadow: theme.elevation.large,
+    padding: `${theme.s1} 0`,
+    display: "flex",
+    flexDirection: "column",
+    zIndex: 40,
+    opacity: 0,
+    pointerEvents: "none",
+    transform: "translateY(-6px)",
+    transition: "opacity 0.16s ease, transform 0.16s ease",
+  }),
+  avatarMenuItem: css({
+    textDecoration: "none",
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.medium14,
+    color: color.secondary500,
+    transition: "background-color 0.18s ease, color 0.18s ease",
+    "&:hover": {
+      backgroundColor: color.secondary50,
+      color: color.primary500,
+    },
+  }),
+  hiText: css({
+    ...font.medium12,
+    color: color.secondary500,
+  }),
   actionGroup: css({
     display: "flex",
-    gap: "4px",
+    gap: theme.s1,
     alignItems: "center",
+    minHeight: "16px",
   }),
   separator: css({
     color: color.neutral400,

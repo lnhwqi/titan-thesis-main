@@ -134,12 +134,14 @@ function emailErrorMessage(_error: ErrorEmail): string {
 
 const styles = {
   container: css({
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     height: "100dvh",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "stretch",
+    overflowX: "hidden",
     background: `linear-gradient(-45deg, ${color.secondary400}, ${color.secondary100}, ${color.secondary400})`,
     backgroundSize: `400% 400%`,
     animation: `${gradient} 10s ease infinite`,

@@ -40,10 +40,12 @@ export function HomeLayout(props: Props): JSX.Element {
 
 const styles = {
   container: css({
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     height: "100dvh",
     display: "flex",
     flexDirection: "column",
+    overflowX: "hidden",
   }),
   body: css({
     display: "flex",

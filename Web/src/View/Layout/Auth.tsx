@@ -26,10 +26,12 @@ export function AuthLayout(props: Props): JSX.Element {
 
 const styles = {
   container: css({
-    width: "100dvw",
+    width: "100%",
+    maxWidth: "100%",
     height: "100dvh",
     display: "flex",
     flexDirection: "column",
+    overflowX: "hidden",
   }),
   header: css({
     display: "flex",
