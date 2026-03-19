@@ -53,16 +53,20 @@ export async function getlistPayload(
     }
   }
 
-  const [allImages, allCategories, allVariants, allSellers] = await Promise.all([
-    safeLoad("productImage", () => ProductImageRow.getByProductIDs(productIds)),
-    safeLoad("productCategory", () =>
-      ProductCategoryRow.getByProductIDs(productIds),
-    ),
-    safeLoad("productVariant", () =>
-      ProductVariantRow.getByProductIDs(productIds),
-    ),
-    safeLoad("seller", () => SellerRow.getByIDs(sellerIDs)),
-  ])
+  const [allImages, allCategories, allVariants, allSellers] = await Promise.all(
+    [
+      safeLoad("productImage", () =>
+        ProductImageRow.getByProductIDs(productIds),
+      ),
+      safeLoad("productCategory", () =>
+        ProductCategoryRow.getByProductIDs(productIds),
+      ),
+      safeLoad("productVariant", () =>
+        ProductVariantRow.getByProductIDs(productIds),
+      ),
+      safeLoad("seller", () => SellerRow.getByIDs(sellerIDs)),
+    ],
+  )
 
   const imageMap = _groupBy(allImages, (img) => img.productID.unwrap())
   const categoryMap = _groupBy(allCategories, (cat) => cat.productID.unwrap())
@@ -79,7 +83,13 @@ export async function getlistPayload(
     const variantRows = variantMap[idStr] ?? []
     const shopName = sellerMap.get(row.sellerId.unwrap())
 
-    return toBasicProduct(row, images[0], categoryRows[0], shopName, variantRows)
+    return toBasicProduct(
+      row,
+      images[0],
+      categoryRows[0],
+      shopName,
+      variantRows,
+    )
   })
 
   return { items: products }
