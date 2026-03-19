@@ -8,12 +8,14 @@ import * as Profile from "../Api/Auth/Seller/Profile"
 import * as UpdateProfile from "../Api/Auth/Seller/UpdateSellerShop"
 import * as RefreshToken from "../Api/Public/RefreshTokenSeller"
 import * as HomeSeller from "../Api/Auth/Seller/HomeSeller"
+import * as GetProfile from "../Api/Public/Seller/GetProfile"
 import { sellerAuthApi } from "../Api/AuthApi"
 
 export function sellerRoutes(app: Express): void {
   publicApi(app, Login)
   publicApi(app, Register)
   publicApi(app, RefreshToken)
+  publicApi(app, GetProfile)
   sellerAuthApi(app, Logout)
   sellerAuthApi(app, Profile)
   sellerAuthApi(app, UpdateProfile)

@@ -2,6 +2,7 @@ import { Action, cmd, perform } from "../Action"
 import * as ListAllApi from "../Api/Public/Product/ListAll"
 import * as SearchApi from "../Api/Public/Product/Search"
 import * as GetOneApi from "../Api/Public/Product/GetOne"
+import * as GetSellerProfileApi from "../Api/Public/Seller/GetProfile"
 import * as CategoryGetOneApi from "../Api/Public/Category/GetOne"
 import * as WishlistListApi from "../Api/Auth/User/Wishlist/List"
 import * as WishlistSaveApi from "../Api/Auth/User/Wishlist/Save"
@@ -11,6 +12,7 @@ import { navigateTo, toRoute } from "../Route"
 import { _ProductState } from "../State/Product"
 import { ProductID } from "../../../Core/App/Product/ProductID"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
+import { SellerID } from "../../../Core/App/Seller/SellerID"
 import * as AuthToken from "../App/AuthToken"
 
 export function loadList(params: ListAllApi.UrlParams = {}): Action {
@@ -263,6 +265,72 @@ export function loadDetail(id: ProductID): Action {
           ...wishlistCmd,
         ]
       })(),
+    ]
+  }
+}
+
+export function loadSellerProfile(sellerID: SellerID): Action {
+  return (state) => {
+    const sellerIdString = sellerID.unwrap()
+
+    return [
+      _ProductState(state, {
+        sellerProfileResponse: RD.loading(),
+        sellerProductsResponse: RD.loading(),
+      }),
+      [
+        ...cmd(
+          GetSellerProfileApi.call({ id: sellerID }).then(
+            gotSellerProfileResponse,
+          ),
+        ),
+        ...cmd(
+          ListAllApi.call({}).then((response) =>
+            gotSellerProductsResponse(response, sellerIdString),
+          ),
+        ),
+      ],
+    ]
+  }
+}
+
+function gotSellerProfileResponse(
+  response: GetSellerProfileApi.Response,
+): Action {
+  return (state) => [
+    _ProductState(state, {
+      sellerProfileResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+function gotSellerProductsResponse(
+  response: ListAllApi.Response,
+  sellerID: string,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _ProductState(state, {
+          sellerProductsResponse: RD.failure(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const items = response.value.items.filter(
+      (item) => item.sellerID.unwrap() === sellerID,
+    )
+
+    return [
+      _ProductState(state, {
+        sellerProductsResponse: RD.success({ items }),
+      }),
+      cmd(),
     ]
   }
 }

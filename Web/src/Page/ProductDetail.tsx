@@ -13,6 +13,8 @@ import {
 } from "react-icons/io"
 import { ProductCard } from "../View/Part/ProductCard"
 import * as AuthToken from "../App/AuthToken"
+import Link from "../View/Link"
+import { toRoute } from "../Route"
 
 export type ProductDetailPageProps = { state: AuthState | PublicState }
 
@@ -104,6 +106,16 @@ export default function ProductDetailPage(
             item.id.unwrap() !== product.id.unwrap(),
         )
       : []
+  const productInList =
+    state.product.listResponse._t === "Success"
+      ? state.product.listResponse.data.items.find(
+          (item) => item.id.unwrap() === product.id.unwrap(),
+        )
+      : undefined
+  const sellerShopName =
+    productInList?.shopName?.unwrap()?.trim() ||
+    `Shop ${product.sellerID.unwrap().slice(0, 8)}`
+  const sellerInitial = sellerShopName.charAt(0).toUpperCase()
   const isSaved = state.product.wishlistProductIDs.includes(product.id.unwrap())
 
   const changeIndex = (i: number) => {
@@ -254,6 +266,19 @@ export default function ProductDetailPage(
             >
               Add To Cart
             </button>
+
+            <Link
+              route={toRoute("SellerProfile", {
+                id: product.sellerID.unwrap(),
+              })}
+              className={styles.sellerProfileLink}
+            >
+              <div className={styles.sellerProfileBlock}>
+                <span className={styles.sellerProvidedBy}>Provided by:</span>
+                <span className={styles.sellerAvatar}>{sellerInitial}</span>
+                <span className={styles.sellerName}>{sellerShopName}</span>
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -526,6 +551,47 @@ const styles = {
       cursor: "not-allowed",
       transform: "none",
     },
+  }),
+  sellerProfileLink: css({
+    textDecoration: "none",
+    width: "100%",
+  }),
+  sellerProfileBlock: css({
+    marginTop: theme.s3,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.s2,
+    width: "100%",
+    textAlign: "center",
+  }),
+  sellerAvatar: css({
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...font.bold17,
+    color: color.neutral0,
+    backgroundColor: color.secondary500,
+    border: `2px solid ${color.secondary200}`,
+  }),
+  sellerProvidedBy: css({
+    ...font.regular12,
+    color: color.neutral600,
+    textTransform: "uppercase",
+    letterSpacing: "0.4px",
+    width: "100%",
+    textAlign: "left",
+  }),
+  sellerName: css({
+    ...font.medium14,
+    color: color.secondary500,
+    maxWidth: "100%",
+    wordBreak: "break-word",
+    textAlign: "center",
   }),
   otherSection: css({
     marginTop: theme.s10,

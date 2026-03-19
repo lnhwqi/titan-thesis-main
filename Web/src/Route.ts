@@ -71,6 +71,13 @@ export type Route =
         id: string
       }
     }
+  | {
+      _t: "SellerProfile"
+      path: "/seller/:id"
+      params: {
+        id: string
+      }
+    }
 
 const router: RouteTable = {
   Home: {
@@ -214,6 +221,16 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("ProductDetail"),
       path: JD.always("/product/:id"),
+      params: JD.object({
+        id: JD.string,
+      }),
+    }),
+  },
+  SellerProfile: {
+    path: "/seller/:id",
+    decoder: JD.object({
+      _t: JD.always("SellerProfile"),
+      path: JD.always("/seller/:id"),
       params: JD.object({
         id: JD.string,
       }),

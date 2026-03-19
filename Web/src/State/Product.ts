@@ -1,6 +1,7 @@
 import * as GetListApi from "../../../Core/Api/Public/Product/ListAll"
 import * as SearchApi from "../../../Core/Api/Public/Product/Search"
 import * as GetOneApi from "../../../Core/Api/Public/Product/GetOne"
+import * as GetSellerProfileApi from "../../../Core/Api/Public/Seller/GetProfile"
 
 import * as RD from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
@@ -19,6 +20,16 @@ export type ProductState = {
     GetOneApi.Payload
   >
 
+  sellerProfileResponse: RD.RemoteData<
+    ApiError<GetSellerProfileApi.ErrorCode>,
+    GetSellerProfileApi.Payload
+  >
+
+  sellerProductsResponse: RD.RemoteData<
+    ApiError<GetListApi.ErrorCode>,
+    GetListApi.Payload
+  >
+
   searchQuery: string
   currentCategoryId: CategoryID | null
   currentCategoryTree: Category | null
@@ -33,6 +44,8 @@ export function initProductState(): ProductState {
   return {
     listResponse: RD.loading(),
     detailResponse: RD.notAsked(),
+    sellerProfileResponse: RD.notAsked(),
+    sellerProductsResponse: RD.notAsked(),
     searchQuery: "",
     currentCategoryId: null,
     currentCategoryTree: null,

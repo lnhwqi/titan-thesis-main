@@ -8,6 +8,7 @@ import * as AdminDashboardAction from "./AdminDashboard"
 import * as SellerDashboardAction from "./SellerDashboard"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 import { categoryIDDecoder } from "../../../Core/App/Category/CategoryID"
+import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
 
 export function onUrlChange(s: State): [State, Cmd] {
   const route = parseRoute(window.location.href)
@@ -69,6 +70,14 @@ export function onUrlChange(s: State): [State, Cmd] {
       try {
         const id = parseProductID(route.params.id)
         return ProductAction.loadDetail(id)(state)
+      } catch (_e) {
+        return [state, cmd()]
+      }
+
+    case "SellerProfile":
+      try {
+        const sellerID = sellerIDDecoder.verify(route.params.id)
+        return ProductAction.loadSellerProfile(sellerID)(state)
       } catch (_e) {
         return [state, cmd()]
       }

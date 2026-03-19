@@ -20,6 +20,7 @@ import HomePage from "./Page/Home"
 import SavedPage from "./Page/Saved"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
+import SellerProfilePage from "./Page/SellerProfile"
 
 type Props = { state: State }
 export default function View(props: Props): JSX.Element {
@@ -134,6 +135,13 @@ export default function View(props: Props): JSX.Element {
         <HomeLayout
           state={state}
           Page={ProductDetailPage}
+        />
+      )
+    case "SellerProfile":
+      return (
+        <HomeLayout
+          state={state}
+          Page={SellerProfilePage}
         />
       )
 

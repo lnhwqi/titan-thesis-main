@@ -2,7 +2,7 @@ import { css } from "@emotion/css"
 import { JSX } from "react"
 import { BasicProduct } from "../../../../Core/App/ProductBasic"
 import Link from "../Link"
-import { toRoute } from "../../Route"
+import { navigateTo, toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 import { State } from "../../State"
 import { emit } from "../../Runtime/React"
@@ -99,6 +99,18 @@ export function ProductCard(props: Props): JSX.Element {
     )
   }
 
+  const openSellerProfile = () => {
+    emit(
+      navigateTo(toRoute("SellerProfile", { id: product.sellerID.unwrap() })),
+    )
+  }
+
+  const handleOpenSellerProfile = (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    openSellerProfile()
+  }
+
   return (
     <Link
       route={toRoute("ProductDetail", { id: product.id.unwrap() })}
@@ -128,7 +140,22 @@ export function ProductCard(props: Props): JSX.Element {
 
         <div className={styles.content}>
           <div className={styles.metaContainer}>
-            <span className={styles.shopItem}>{shopLabel}</span>
+            <span
+              className={styles.shopItem}
+              role="button"
+              tabIndex={0}
+              onClick={handleOpenSellerProfile}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  openSellerProfile()
+                }
+              }}
+              title="View seller profile"
+            >
+              {shopLabel}
+            </span>
             <div className={styles.price}>
               <span className={styles.coinBadge}>T</span>
               <span>{formatPrice(product.price.unwrap())}</span>
@@ -271,6 +298,18 @@ const styles = {
     ...font.medium12,
     textTransform: "uppercase",
     letterSpacing: "0.5px",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    border: `1px solid transparent`,
+    userSelect: "none",
+    "&:hover": {
+      backgroundColor: color.secondary100,
+      borderColor: color.secondary200,
+    },
+    "&:focus": {
+      outline: "none",
+      borderColor: color.primary200,
+    },
   }),
   variantRow: css({
     display: "flex",
