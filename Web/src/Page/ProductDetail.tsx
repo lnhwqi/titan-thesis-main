@@ -15,6 +15,7 @@ import { ProductCard } from "../View/Part/ProductCard"
 import * as AuthToken from "../App/AuthToken"
 import Link from "../View/Link"
 import { toRoute } from "../Route"
+import { createPrice } from "../../../Core/App/Product/Price"
 
 export type ProductDetailPageProps = { state: AuthState | PublicState }
 
@@ -97,6 +98,8 @@ export default function ProductDetailPage(
       : product.price.unwrap()
   const shownStock =
     selectedVariant != null ? selectedVariant.stock.unwrap() : totalStock
+  const requiresVariantSelection = orderedSizes.length > 0
+  const canAddToCart = shownStock > 0
 
   const relatedProducts =
     state.product.listResponse._t === "Success"
@@ -246,14 +249,29 @@ export default function ProductDetailPage(
 
             <button
               className={styles.addToCartBtn}
-              disabled={shownStock <= 0}
-              onClick={() =>
+              disabled={!canAddToCart}
+              onClick={() => {
+                if (canAddToCart === false) {
+                  return
+                }
+
+                if (requiresVariantSelection && selectedVariant == null) {
+                  emit(ProductAction.showVariantReminder())
+                  return
+                }
+
+                emit(ProductAction.clearVariantReminder())
+
                 emit(
                   CartAction.addToCart({
                     id: product.id,
                     sellerID: product.sellerID,
                     name: product.name,
-                    price: product.price,
+                    price:
+                      selectedVariant != null
+                        ? (createPrice(selectedVariant.price.unwrap()) ??
+                          product.price)
+                        : product.price,
                     url: product.urls[0],
                     categoryID: product.categoryID,
                     variants:
@@ -262,10 +280,31 @@ export default function ProductDetailPage(
                         : product.variants,
                   }),
                 )
-              }
+              }}
             >
               Add To Cart
             </button>
+
+            {state.product.variantReminderVisible ? (
+              <div className={styles.variantReminderOverlay}>
+                <div className={styles.variantReminderCard}>
+                  <div className={styles.variantReminderTitle}>
+                    Choose a size
+                  </div>
+                  <div className={styles.variantReminderBody}>
+                    Please select a size before adding this product to your
+                    cart.
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.variantReminderClose}
+                    onClick={() => emit(ProductAction.clearVariantReminder())}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             <Link
               route={toRoute("SellerProfile", {
@@ -550,6 +589,49 @@ const styles = {
       color: color.neutral600,
       cursor: "not-allowed",
       transform: "none",
+    },
+  }),
+  variantReminderOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(18, 24, 38, 0.35)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1200,
+    padding: theme.s4,
+  }),
+  variantReminderCard: css({
+    width: "100%",
+    maxWidth: "360px",
+    border: `1px solid ${color.secondary200}`,
+    backgroundColor: color.neutral0,
+    borderRadius: theme.br2,
+    padding: theme.s4,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    boxShadow: theme.elevation.medium,
+  }),
+  variantReminderTitle: css({
+    ...font.bold14,
+    color: color.secondary500,
+  }),
+  variantReminderBody: css({
+    ...font.regular13,
+    color: color.neutral700,
+  }),
+  variantReminderClose: css({
+    alignSelf: "center",
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    borderRadius: theme.br1,
+    ...font.medium12,
+    padding: `${theme.s2} ${theme.s4}`,
+    cursor: "pointer",
+    "&:hover": {
+      background: color.secondary50,
     },
   }),
   sellerProfileLink: css({

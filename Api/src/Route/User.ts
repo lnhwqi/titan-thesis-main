@@ -10,6 +10,9 @@ import * as HomeUser from "../Api/Auth/User/HomeUser"
 import * as WishlistList from "../Api/Auth/User/Wishlist/List"
 import * as WishlistSave from "../Api/Auth/User/Wishlist/Save"
 import * as WishlistRemove from "../Api/Auth/User/Wishlist/Remove"
+import * as CartAdd from "../Api/Auth/User/Cart/Add"
+import * as CartDelete from "../Api/Auth/User/Cart/Delete"
+import * as CartUpdateQuantity from "../Api/Auth/User/Cart/UpdateQuantity"
 import { userAuthApi } from "../Api/AuthApi"
 
 export function userRoutes(app: Express): void {
@@ -23,4 +26,7 @@ export function userRoutes(app: Express): void {
   userAuthApi(app, WishlistList)
   userAuthApi(app, WishlistSave)
   userAuthApi(app, WishlistRemove)
+  userAuthApi(app, CartAdd)
+  userAuthApi(app, CartDelete)
+  userAuthApi(app, CartUpdateQuantity)
 }

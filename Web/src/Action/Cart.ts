@@ -4,6 +4,18 @@ import { BasicProduct } from "../../../Core/App/ProductBasic"
 import { _CartState, CartItem, CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
 
+function getLineVariantID(product: BasicProduct): string | null {
+  const firstVariant = product.variants[0]
+  return firstVariant == null ? null : firstVariant.id.unwrap()
+}
+
+function isSameLine(a: BasicProduct, b: BasicProduct): boolean {
+  return (
+    a.id.unwrap() === b.id.unwrap() &&
+    getLineVariantID(a) === getLineVariantID(b)
+  )
+}
+
 function saveCartCmd(items: CartItem[]): Promise<Action | null> {
   return new Promise((resolve) => {
     localStorage.setItem("titan_cart", JSON.stringify(items))
@@ -36,14 +48,14 @@ function withAuth(
 export function addToCart(product: BasicProduct): Action {
   return (state: State) =>
     withAuth(state, () => {
-      const existingItem = state.cart.items.find(
-        (item) => item.product.id.unwrap() === product.id.unwrap(),
+      const existingItem = state.cart.items.find((item) =>
+        isSameLine(item.product, product),
       )
 
       let nextItems: CartItem[]
       if (existingItem) {
         nextItems = state.cart.items.map((item) =>
-          item.product.id.unwrap() === product.id.unwrap()
+          isSameLine(item.product, product)
             ? { ...item, quantity: item.quantity + 1 }
             : item,
         )
@@ -55,12 +67,21 @@ export function addToCart(product: BasicProduct): Action {
     })
 }
 
-export function updateQuantity(productID: string, delta: number): Action {
+export function updateQuantity(
+  productID: string,
+  variantID: string | null,
+  delta: number,
+): Action {
   return (state: State) =>
     withAuth(state, () => {
       const nextItems = state.cart.items
         .map((item) => {
-          if (item.product.id.unwrap() === productID) {
+          const itemVariantID = getLineVariantID(item.product)
+          const isSameItem =
+            item.product.id.unwrap() === productID &&
+            itemVariantID === variantID
+
+          if (isSameItem) {
             const newQty = item.quantity + delta
             return { ...item, quantity: newQty }
           }

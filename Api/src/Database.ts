@@ -16,6 +16,7 @@ export type Schema = {
   voucher: VoucherTable
   user_voucher: UserVoucherTable
   user_wishlist_product: UserWishlistProductTable
+  user_cart_item: UserCartItemTable
   product_variant: ProductVariantTable
 }
 
@@ -115,6 +116,15 @@ export type UserVoucherTable = {
 export type UserWishlistProductTable = {
   userId: string
   productId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type UserCartItemTable = {
+  userId: string
+  productId: string
+  variantId: string
+  quantity: number
   createdAt: Date
   updatedAt: Date
 }

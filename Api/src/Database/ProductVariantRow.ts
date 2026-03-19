@@ -35,6 +35,31 @@ export type ProductVariantRow = {
   isDeleted: boolean
 }
 
+export async function getByID(
+  variantID: ProductVariantID,
+): Promise<ProductVariantRow | null> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("id", "=", variantID.unwrap())
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+    .then((row) => {
+      if (row == null) {
+        return null
+      }
+
+      return productVariantRowDecoder.verify({
+        ...row,
+        productID: row.productId,
+      })
+    })
+    .catch((e) => {
+      Logger.error(`#${tableName}.getByID error ${e}`)
+      throw e
+    })
+}
+
 export async function getByProductID(
   productID: ProductID,
 ): Promise<ProductVariantRow[]> {

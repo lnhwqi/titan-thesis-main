@@ -18,6 +18,20 @@ export function CartSidebar(props: Props): JSX.Element {
     0,
   )
 
+  const getVariantID = (item: (typeof items)[number]) => {
+    const firstVariant = item.product.variants[0]
+    return firstVariant == null ? null : firstVariant.id.unwrap()
+  }
+
+  const getVariantLabel = (item: (typeof items)[number]) => {
+    const firstVariant = item.product.variants[0]
+    if (firstVariant == null) {
+      return null
+    }
+
+    return firstVariant.name.unwrap()
+  }
+
   const closeCart = () => emit(CartAction.toggleCart(false))
 
   return (
@@ -38,57 +52,69 @@ export function CartSidebar(props: Props): JSX.Element {
           </button>
         </div>
 
-        <div className={styles.itemList}>
+        <div
+          className={`${styles.itemList} ${items.length > 3 ? styles.itemListScrollable : ""}`}
+        >
           {items.length === 0 ? (
             <div className={styles.empty}>Empty</div>
           ) : (
-            items.map((item) => (
-              <div
-                key={item.product.id.unwrap()}
-                className={styles.item}
-              >
-                <img
-                  src={item.product.url?.unwrap() || ""}
-                  className={styles.itemImg}
-                />
-                <div className={styles.itemInfo}>
-                  <div className={styles.itemName}>
-                    {item.product.name.unwrap()}
-                  </div>
-                  <div className={styles.itemPrice}>
-                    {item.quantity} x{" "}
-                    {item.product.price.unwrap().toLocaleString()}đ
-                  </div>
-                  <div className={styles.controls}>
-                    <button
-                      onClick={() =>
-                        emit(
-                          CartAction.updateQuantity(
-                            item.product.id.unwrap(),
-                            -1,
-                          ),
-                        )
-                      }
-                    >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        emit(
-                          CartAction.updateQuantity(
-                            item.product.id.unwrap(),
-                            1,
-                          ),
-                        )
-                      }
-                    >
-                      +
-                    </button>
+            items.map((item) => {
+              const variantID = getVariantID(item)
+              const variantLabel = getVariantLabel(item)
+
+              return (
+                <div
+                  key={`${item.product.id.unwrap()}:${variantID ?? "default"}`}
+                  className={styles.item}
+                >
+                  <img
+                    src={item.product.url?.unwrap() || ""}
+                    className={styles.itemImg}
+                  />
+                  <div className={styles.itemInfo}>
+                    <div className={styles.itemName}>
+                      {item.product.name.unwrap()}
+                    </div>
+                    {variantLabel != null ? (
+                      <div className={styles.itemVariant}>{variantLabel}</div>
+                    ) : null}
+                    <div className={styles.itemPrice}>
+                      {item.quantity} x{" "}
+                      {item.product.price.unwrap().toLocaleString()}đ
+                    </div>
+                    <div className={styles.controls}>
+                      <button
+                        onClick={() =>
+                          emit(
+                            CartAction.updateQuantity(
+                              item.product.id.unwrap(),
+                              variantID,
+                              -1,
+                            ),
+                          )
+                        }
+                      >
+                        -
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          emit(
+                            CartAction.updateQuantity(
+                              item.product.id.unwrap(),
+                              variantID,
+                              1,
+                            ),
+                          )
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 
@@ -111,10 +137,10 @@ const styles = {
   overlay: css({
     position: "fixed",
     inset: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "transparent",
     opacity: 0,
     visibility: "hidden",
-    transition: "all 0.3s ease",
+    transition: "opacity 0.2s ease",
     zIndex: 1000,
   }),
   showOverlay: css({
@@ -123,19 +149,31 @@ const styles = {
   }),
   sidebar: css({
     position: "fixed",
-    top: 0,
-    right: -400, // Hidden by default
-    width: "350px",
-    height: "100%",
+    top: "74px",
+    right: theme.s4,
+    width: "360px",
+    maxWidth: "calc(100dvw - 32px)",
+    maxHeight: "calc(100dvh - 96px)",
     backgroundColor: color.neutral0,
     zIndex: 1001,
-    transition: "right 0.3s ease-out",
+    transition: "opacity 0.22s ease, transform 0.22s ease",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "-4px 0 15px rgba(0,0,0,0.1)",
+    opacity: 0,
+    visibility: "hidden",
+    pointerEvents: "none",
+    transform: "translateY(-8px) scale(0.98)",
+    boxShadow:
+      "0 22px 48px rgba(12, 20, 34, 0.24), 0 8px 20px rgba(12, 20, 34, 0.14)",
+    borderRadius: theme.br2,
+    border: `1px solid ${color.secondary100}`,
+    overflow: "hidden",
   }),
   openSidebar: css({
-    right: 0, // Slide in
+    opacity: 1,
+    visibility: "visible",
+    pointerEvents: "auto",
+    transform: "translateY(0) scale(1)",
   }),
   header: css({
     padding: theme.s4,
@@ -143,34 +181,84 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     borderBottom: `1px solid ${color.secondary100}`,
+    background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
   }),
-  title: css({ ...font.bold17 }),
+  title: css({ ...font.bold17, color: color.secondary500 }),
   closeBtn: css({
-    border: "none",
-    background: "none",
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    border: `1px solid ${color.secondary200}`,
+    background: color.neutral0,
+    color: color.secondary500,
     cursor: "pointer",
-    fontSize: "20px",
+    fontSize: "16px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      background: color.secondary50,
+      transform: "scale(1.05)",
+    },
   }),
-  itemList: css({ flex: 1, overflowY: "auto", padding: theme.s4 }),
-  item: css({ display: "flex", gap: theme.s3, marginBottom: theme.s4 }),
+  itemList: css({ flex: 1, overflowY: "visible", padding: theme.s4 }),
+  itemListScrollable: css({
+    maxHeight: "300px",
+    overflowY: "auto",
+  }),
+  item: css({
+    display: "flex",
+    gap: theme.s3,
+    marginBottom: theme.s3,
+    padding: theme.s3,
+    borderRadius: theme.br1,
+    border: `1px solid ${color.secondary100}`,
+    background: color.neutral0,
+  }),
   itemImg: css({
     width: "60px",
     height: "60px",
     objectFit: "cover",
     borderRadius: theme.br1,
+    border: `1px solid ${color.secondary100}`,
   }),
   itemInfo: css({ flex: 1 }),
-  itemName: css({ ...font.medium14, marginBottom: "4px" }),
+  itemName: css({
+    ...font.medium14,
+    marginBottom: "4px",
+    color: color.secondary500,
+  }),
+  itemVariant: css({
+    ...font.regular12,
+    color: color.secondary500,
+    marginBottom: "4px",
+  }),
   itemPrice: css({ ...font.regular12, color: color.neutral500 }),
   controls: css({
     display: "flex",
     alignItems: "center",
     gap: theme.s3,
     marginTop: "8px",
+    "& button": {
+      width: "28px",
+      height: "28px",
+      borderRadius: "50%",
+      border: `1px solid ${color.secondary200}`,
+      background: color.neutral0,
+      color: color.secondary500,
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+    },
+    "& button:hover": {
+      background: color.secondary50,
+      transform: "translateY(-1px)",
+    },
   }),
   footer: css({
     padding: theme.s4,
     borderTop: `1px solid ${color.secondary100}`,
+    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
   }),
   totalRow: css({
     display: "flex",
@@ -188,7 +276,13 @@ const styles = {
     borderRadius: theme.br2,
     ...font.bold17,
     cursor: "pointer",
-    "&:hover": { backgroundColor: color.secondary500 },
+    boxShadow: "0 10px 20px rgba(14, 125, 112, 0.24)",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      backgroundColor: color.secondary500,
+      transform: "translateY(-1px)",
+      boxShadow: "0 12px 24px rgba(10, 95, 86, 0.28)",
+    },
   }),
   empty: css({
     textAlign: "center",

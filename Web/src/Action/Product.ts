@@ -14,6 +14,7 @@ import { ProductID } from "../../../Core/App/Product/ProductID"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import { SellerID } from "../../../Core/App/Seller/SellerID"
 import * as AuthToken from "../App/AuthToken"
+import { sleep } from "../../../Core/Data/Time/Timer"
 
 export function loadList(params: ListAllApi.UrlParams = {}): Action {
   return (state) => {
@@ -245,6 +246,7 @@ export function loadDetail(id: ProductID): Action {
         detailResponse: RD.loading(),
         currentImageIndex: 0,
         selectedVariantSize: null,
+        variantReminderVisible: false,
         wishlistBusy: false,
         wishlistProductIDs: shouldLoadWishlist
           ? state.product.wishlistProductIDs
@@ -342,7 +344,27 @@ export function setImageIndex(index: number): Action {
 }
 
 export function setSelectedVariantSize(size: string | null): Action {
-  return (state) => [_ProductState(state, { selectedVariantSize: size }), cmd()]
+  return (state) => [
+    _ProductState(state, {
+      selectedVariantSize: size,
+      variantReminderVisible: false,
+    }),
+    cmd(),
+  ]
+}
+
+export function showVariantReminder(): Action {
+  return (state) => [
+    _ProductState(state, { variantReminderVisible: true }),
+    cmd(sleep(5000).then(() => clearVariantReminder())),
+  ]
+}
+
+export function clearVariantReminder(): Action {
+  return (state) => [
+    _ProductState(state, { variantReminderVisible: false }),
+    cmd(),
+  ]
 }
 
 export function saveToWishlist(productID: ProductID): Action {
