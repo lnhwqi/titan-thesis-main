@@ -5,7 +5,12 @@ import { bp, color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
 import * as CartAction from "../Action/Cart"
 import * as ProductAction from "../Action/Product"
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io"
+import {
+  IoIosArrowBack,
+  IoIosArrowForward,
+  IoIosHeart,
+  IoIosHeartEmpty,
+} from "react-icons/io"
 import { ProductCard } from "../View/Part/ProductCard"
 import * as AuthToken from "../App/AuthToken"
 
@@ -156,6 +161,30 @@ export default function ProductDetailPage(
           </div>
 
           <div className={styles.infoWrapper}>
+            {isUser ? (
+              <button
+                className={`${styles.heartButton} ${isSaved ? styles.heartButtonActive : ""}`}
+                disabled={state.product.wishlistBusy}
+                onClick={() =>
+                  emit(
+                    isSaved
+                      ? ProductAction.removeFromWishlist(product.id)
+                      : ProductAction.saveToWishlist(product.id),
+                  )
+                }
+                aria-label={
+                  isSaved ? "Remove from wishlist" : "Add to wishlist"
+                }
+                title={isSaved ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                {isSaved ? (
+                  <IoIosHeart size={24} />
+                ) : (
+                  <IoIosHeartEmpty size={24} />
+                )}
+              </button>
+            ) : null}
+
             <h1 className={styles.productName}>{product.name.unwrap()}</h1>
             <div className={styles.priceTag}>
               <span className={styles.coinBadge}>T</span>
@@ -165,11 +194,12 @@ export default function ProductDetailPage(
                 }).format(shownPrice)}
               </span>
             </div>
-            <div className={styles.stockTag}>Stock: {shownStock}</div>
 
             {orderedSizes.length > 0 ? (
               <div className={styles.variantSection}>
-                <div className={styles.variantLabel}>Variants Size</div>
+                <div className={styles.variantLabel}>
+                  Choose your proper size
+                </div>
                 <div className={styles.variantList}>
                   {orderedSizes.map((size) => {
                     const variant = variantBySize.get(size)
@@ -200,6 +230,8 @@ export default function ProductDetailPage(
                 </div>
               </div>
             ) : null}
+            <div className={styles.stockTag}>Stock: {shownStock}</div>
+
             <button
               className={styles.addToCartBtn}
               disabled={shownStock <= 0}
@@ -222,25 +254,6 @@ export default function ProductDetailPage(
             >
               Add To Cart
             </button>
-            {isUser ? (
-              <button
-                className={styles.saveBtn}
-                disabled={state.product.wishlistBusy}
-                onClick={() =>
-                  emit(
-                    isSaved
-                      ? ProductAction.removeFromWishlist(product.id)
-                      : ProductAction.saveToWishlist(product.id),
-                  )
-                }
-              >
-                {state.product.wishlistBusy
-                  ? "Saving..."
-                  : isSaved
-                    ? "Saved"
-                    : "Save to Wishlist"}
-              </button>
-            ) : null}
           </div>
         </div>
 
@@ -372,6 +385,38 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: theme.s4,
+    position: "relative",
+    paddingRight: theme.s12,
+  }),
+  heartButton: css({
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "42px",
+    height: "42px",
+    borderRadius: "10%",
+    border: `1px solid ${color.secondary200}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: theme.elevation.medium,
+    },
+    "&:disabled": {
+      cursor: "not-allowed",
+      opacity: 0.7,
+      transform: "none",
+    },
+  }),
+  heartButtonActive: css({
+    color: color.semantics.error.red500,
+    borderColor: color.semantics.error.red500,
+    background: color.semantics.error.red50,
   }),
   productName: css({
     ...font.boldH1_42,
@@ -481,16 +526,6 @@ const styles = {
       cursor: "not-allowed",
       transform: "none",
     },
-  }),
-  saveBtn: css({
-    ...font.medium14,
-    color: color.secondary500,
-    background: color.neutral0,
-    border: `1px solid ${color.secondary300}`,
-    borderRadius: theme.br2,
-    padding: `${theme.s3} ${theme.s4}`,
-    cursor: "pointer",
-    marginTop: theme.s1,
   }),
   otherSection: css({
     marginTop: theme.s10,

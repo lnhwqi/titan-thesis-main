@@ -6,12 +6,14 @@ import { SellerID, sellerIDDecoder } from "./Seller/SellerID"
 import { Price, priceDecoder } from "./Product/Price"
 import { ImageUrl, imageUrlDecoder } from "./Product/ProductImageUrl"
 import { CategoryID, categoryIDDecoder } from "./Category/CategoryID"
+import { ShopName, shopNameDecoder } from "./Seller/ShopName"
 
 import { ProductVariant, productVariantDecoder } from "./ProductVariant"
 
 export type BasicProduct = {
   id: ProductID
   sellerID: SellerID
+  shopName?: ShopName
   name: Name
   price: Price
   url: ImageUrl
@@ -22,6 +24,7 @@ export type BasicProduct = {
 export const basicProductDecoder: JD.Decoder<BasicProduct> = JD.object({
   id: productIDDecoder,
   sellerID: sellerIDDecoder,
+  shopName: JD.optional(shopNameDecoder),
   name: nameDecoder,
   price: priceDecoder,
   url: imageUrlDecoder,

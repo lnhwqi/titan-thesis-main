@@ -1,7 +1,6 @@
 import { css } from "@emotion/css"
 import { JSX } from "react"
 import { BasicProduct } from "../../../../Core/App/ProductBasic"
-import { Category } from "../../../../Core/App/Category"
 import Link from "../Link"
 import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
@@ -16,19 +15,16 @@ type Props = {
 }
 
 export function ProductCard(props: Props): JSX.Element {
-  const { product, state } = props
-  const { treeResponse } = state.category
+  const { product } = props
 
-  const getCategoryName = () => {
-    const categoryId = product.categoryID
-    if (categoryId != null && treeResponse._t === "Success") {
-      const found = findCategoryByID(treeResponse.data, categoryId.unwrap())
-      if (found != null) {
-        return found.name.unwrap()
-      }
+  const getShopLabel = () => {
+    const shopName = product.shopName?.unwrap()
+    if (shopName != null && shopName.trim() !== "") {
+      return shopName
     }
 
-    return "Uncategorized"
+    const sellerId = product.sellerID.unwrap()
+    return `Shop ${sellerId.slice(0, 8)}`
   }
 
   const getVariantSizes = () => {
@@ -75,7 +71,7 @@ export function ProductCard(props: Props): JSX.Element {
     }))
   }
 
-  const categoryName = getCategoryName()
+  const shopLabel = getShopLabel()
   const variantSizes = getVariantSizes()
 
   const formatPrice = (price: number) => {
@@ -106,8 +102,8 @@ export function ProductCard(props: Props): JSX.Element {
         </div>
 
         <div className={styles.content}>
-          <div className={styles.categoryContainer}>
-            <span className={styles.categoryItem}>{categoryName}</span>
+          <div className={styles.metaContainer}>
+            <span className={styles.shopItem}>{shopLabel}</span>
             <div className={styles.price}>
               <span className={styles.coinBadge}>T</span>
               <span>{formatPrice(product.price.unwrap())}</span>
@@ -150,24 +146,6 @@ export function ProductCard(props: Props): JSX.Element {
       </>
     </Link>
   )
-}
-
-function findCategoryByID(
-  categories: Category[],
-  categoryID: string,
-): Category | null {
-  for (const category of categories) {
-    if (category.id.unwrap() === categoryID) {
-      return category
-    }
-
-    const child = findCategoryByID(category.children, categoryID)
-    if (child != null) {
-      return child
-    }
-  }
-
-  return null
 }
 
 const nameClass = css({
@@ -255,12 +233,12 @@ const styles = {
     flex: 1,
     gap: theme.s2,
   }),
-  categoryContainer: css({
+  metaContainer: css({
     display: "flex",
     justifyContent: "space-between",
     marginBottom: theme.s0,
   }),
-  categoryItem: css({
+  shopItem: css({
     padding: `${theme.s1} ${theme.s4}`,
     backgroundColor: color.secondary50,
     color: color.secondary500,

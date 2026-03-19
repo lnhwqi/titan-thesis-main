@@ -149,6 +149,26 @@ export async function getByEmail(email: Email): Promise<Maybe<SellerRow>> {
     })
 }
 
+export async function getByIDs(ids: SellerID[]): Promise<SellerRow[]> {
+  const idStrings = ids.map((id) => id.unwrap())
+
+  if (idStrings.length === 0) {
+    return []
+  }
+
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("id", "in", idStrings)
+    .where("isDeleted", "=", false)
+    .execute()
+    .then((rows) => JD.array(sellerRowDecoder).verify(rows))
+    .catch((e) => {
+      Logger.error(`#${tableName}.getByIDs error ${e}`)
+      throw e
+    })
+}
+
 export async function getByShopName(
   shopName: ShopName,
 ): Promise<Maybe<SellerRow>> {
