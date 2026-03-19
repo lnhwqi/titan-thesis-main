@@ -59,7 +59,7 @@ function selectCategoryWithNavigation(
       ]
     }
 
-    const expectedId = categoryId.toString()
+    const expectedId = categoryId.unwrap()
     const loadProductsCmd = cmd(
       ListAllApi.call({ categoryID: expectedId }).then((res) =>
         gotListResponse(res, expectedId),
@@ -101,20 +101,44 @@ function gotListResponse(
   expectedQueryOrId: string,
 ): Action {
   return (state) => {
-    const isStale =
-      (state.product.searchQuery || "") !== expectedQueryOrId &&
-      (state.product.currentCategoryId?.toString() || "") !== expectedQueryOrId
+    const currentSearchQuery = state.product.searchQuery || ""
+    const currentCategoryId = state.product.currentCategoryId?.unwrap() || ""
+
+    const isAllProductsRequest = expectedQueryOrId === ""
+    const isStale = isAllProductsRequest
+      ? currentSearchQuery !== "" || currentCategoryId !== ""
+      : currentSearchQuery !== expectedQueryOrId &&
+        currentCategoryId !== expectedQueryOrId
 
     if (isStale) {
       return [state, cmd()]
     }
 
+    if (response._t === "Err") {
+      return [
+        _ProductState(state, {
+          listResponse: RD.failure(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const selectedCategoryID = state.product.currentCategoryId?.unwrap() ?? null
+    const currentTreeID = state.product.currentCategoryTree?.id.unwrap() ?? null
+    const isLeafSelection =
+      selectedCategoryID != null &&
+      currentTreeID != null &&
+      selectedCategoryID !== currentTreeID
+
+    const items = isLeafSelection
+      ? response.value.items.filter(
+          (item) => item.categoryID.unwrap() === selectedCategoryID,
+        )
+      : response.value.items
+
     return [
       _ProductState(state, {
-        listResponse:
-          response._t === "Ok"
-            ? RD.success(response.value)
-            : RD.failure(response.error),
+        listResponse: RD.success({ items }),
       }),
       cmd(),
     ]

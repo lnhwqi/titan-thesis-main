@@ -11,7 +11,7 @@ import * as Logger from "../../../Logger"
 export const contract = API.contract
 
 export async function handler(
-  _params: UrlParams,
+  params: UrlParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   const productRows = await ProductRow.getAll()
 
@@ -19,7 +19,24 @@ export async function handler(
     return ok({ items: [] })
   }
 
-  return ok(await getlistPayload(productRows))
+  const categoryID = params.categoryID?.trim() ?? ""
+  const keyword = params.name?.trim().toLowerCase() ?? ""
+
+  const filteredRows = productRows.filter((row) => {
+    const categoryMatch = categoryID === "" || row.categoryId === categoryID
+    const nameMatch =
+      keyword === "" || row.name.unwrap().toLowerCase().includes(keyword)
+    return categoryMatch && nameMatch
+  })
+
+  if (filteredRows.length === 0) {
+    return ok({ items: [] })
+  }
+
+  const payload = await getlistPayload(filteredRows)
+  const items = payload.items
+
+  return ok({ items })
 }
 
 export async function getlistPayload(

@@ -1,6 +1,7 @@
 import { css } from "@emotion/css"
 import { JSX } from "react"
 import { State } from "../../State"
+import { Category } from "../../../../Core/App/Category"
 import { color, font, theme } from "../Theme"
 import { ProductCard } from "./ProductCard"
 
@@ -10,11 +11,12 @@ type Props = {
 
 export default function MainContent(props: Props): JSX.Element {
   const { listResponse, currentCategoryId } = props.state.product
+  const categoryName = getSelectedCategoryName(props.state)
 
   const renderHeader = () => (
     <div className={styles.header}>
       <h1 className={styles.title}>
-        {currentCategoryId ? "Category Products" : "All Products"}
+        {currentCategoryId ? (categoryName ?? "Category Products") : "All Products"}
       </h1>
       <div className={styles.divider} />
     </div>
@@ -69,6 +71,50 @@ export default function MainContent(props: Props): JSX.Element {
         </div>
       )
   }
+}
+
+function getSelectedCategoryName(state: State): string | null {
+  const currentCategoryId = state.product.currentCategoryId
+  if (currentCategoryId == null) {
+    return null
+  }
+
+  const selectedId = currentCategoryId.unwrap()
+
+  if (state.product.currentCategoryTree != null) {
+    const fromCurrentTree = findCategoryByID(
+      [state.product.currentCategoryTree],
+      selectedId,
+    )
+    if (fromCurrentTree != null) {
+      return fromCurrentTree.name.unwrap()
+    }
+  }
+
+  if (state.category.treeResponse._t !== "Success") {
+    return null
+  }
+
+  const fromRootTree = findCategoryByID(state.category.treeResponse.data, selectedId)
+  return fromRootTree == null ? null : fromRootTree.name.unwrap()
+}
+
+function findCategoryByID(
+  categories: Category[],
+  categoryID: string,
+): Category | null {
+  for (const category of categories) {
+    if (category.id.unwrap() === categoryID) {
+      return category
+    }
+
+    const found = findCategoryByID(category.children, categoryID)
+    if (found != null) {
+      return found
+    }
+  }
+
+  return null
 }
 
 const styles = {
