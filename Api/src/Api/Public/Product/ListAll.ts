@@ -58,16 +58,20 @@ export async function getlistPayload(
     }
   }
 
-  const [allImages, allCategories, allVariants, allSellers] = await Promise.all([
-    safeLoad("productImage", () => ProductImageRow.getByProductIDs(productIds)),
-    safeLoad("productCategory", () =>
-      ProductCategoryRow.getByProductIDs(productIds),
-    ),
-    safeLoad("productVariant", () =>
-      ProductVariantRow.getByProductIDs(productIds),
-    ),
-    safeLoad("seller", () => SellerRow.getByIDs(sellerIDs)),
-  ])
+  const [allImages, allCategories, allVariants, allSellers] = await Promise.all(
+    [
+      safeLoad("productImage", () =>
+        ProductImageRow.getByProductIDs(productIds),
+      ),
+      safeLoad("productCategory", () =>
+        ProductCategoryRow.getByProductIDs(productIds),
+      ),
+      safeLoad("productVariant", () =>
+        ProductVariantRow.getByProductIDs(productIds),
+      ),
+      safeLoad("seller", () => SellerRow.getByIDs(sellerIDs)),
+    ],
+  )
 
   const imageMap = _groupBy(allImages, (img) => String(img.productID.unwrap()))
   const categoryMap = _groupBy(allCategories, (cat) =>

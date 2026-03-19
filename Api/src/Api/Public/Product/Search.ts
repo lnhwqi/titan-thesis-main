@@ -5,6 +5,7 @@ import * as ProductImageRow from "../../../Database/ProductImageRow"
 import * as ProductCategoryRow from "../../../Database/ProductCategoryRow"
 
 import * as ProductVariantRow from "../../../Database/ProductVariantRow"
+import * as SellerRow from "../../../Database/SellerRow"
 import * as Logger from "../../../Logger"
 
 import { toBasicProduct } from "../../../App/ProductBasic"
@@ -36,6 +37,7 @@ export async function getlistPayload(
   productRows: ProductRow.ProductRow[],
 ): Promise<API.Payload> {
   const productIds = productRows.map((p) => p.id)
+  const sellerIDs = productRows.map((p) => p.sellerId)
 
   if (productIds.length === 0) return { items: [] }
 
@@ -51,7 +53,7 @@ export async function getlistPayload(
     }
   }
 
-  const [allImages, allCategories, allVariants] = await Promise.all([
+  const [allImages, allCategories, allVariants, allSellers] = await Promise.all([
     safeLoad("productImage", () => ProductImageRow.getByProductIDs(productIds)),
     safeLoad("productCategory", () =>
       ProductCategoryRow.getByProductIDs(productIds),
@@ -59,11 +61,15 @@ export async function getlistPayload(
     safeLoad("productVariant", () =>
       ProductVariantRow.getByProductIDs(productIds),
     ),
+    safeLoad("seller", () => SellerRow.getByIDs(sellerIDs)),
   ])
 
   const imageMap = _groupBy(allImages, (img) => img.productID.unwrap())
   const categoryMap = _groupBy(allCategories, (cat) => cat.productID.unwrap())
   const variantMap = _groupBy(allVariants, (v) => v.productID.unwrap())
+  const sellerMap = new Map(
+    allSellers.map((seller) => [seller.id.unwrap(), seller.shopName]),
+  )
 
   const products: BasicProduct[] = productRows.map((row) => {
     const idStr = row.id.unwrap()
@@ -71,8 +77,9 @@ export async function getlistPayload(
     const images = imageMap[idStr] ?? []
     const categoryRows = categoryMap[idStr] ?? []
     const variantRows = variantMap[idStr] ?? []
+    const shopName = sellerMap.get(row.sellerId.unwrap())
 
-    return toBasicProduct(row, images[0], categoryRows[0], variantRows)
+    return toBasicProduct(row, images[0], categoryRows[0], shopName, variantRows)
   })
 
   return { items: products }
