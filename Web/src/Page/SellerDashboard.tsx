@@ -7,6 +7,7 @@ import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as LoginAction from "../Action/Login"
 import * as SellerDashboardAction from "../Action/SellerDashboard"
+import * as OrderPaymentAction from "../Action/OrderPayment"
 import InputText from "../View/Form/InputText"
 
 export type Props = { state: State }
@@ -106,6 +107,12 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
               onClick={() => emit(SellerDashboardAction.goToShippingPage())}
             >
               Shipping Tracker
+            </button>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => emit(OrderPaymentAction.goToSellerOrdersPage())}
+            >
+              Manage Orders
             </button>
           </div>
         </div>

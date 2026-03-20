@@ -7,6 +7,8 @@ import * as ProductAction from "./Product"
 import * as AdminDashboardAction from "./AdminDashboard"
 import * as SellerDashboardAction from "./SellerDashboard"
 import * as VoucherAction from "./Voucher"
+import * as PaymentAction from "./Payment"
+import * as OrderPaymentAction from "./OrderPayment"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 import { categoryIDDecoder } from "../../../Core/App/Category/CategoryID"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
@@ -30,6 +32,15 @@ export function onUrlChange(s: State): [State, Cmd] {
 
     case "Saved":
       return ProductAction.loadWishlist()(state)
+
+    case "Payment":
+      return PaymentAction.onEnterRoute()(state)
+
+    case "UserOrders":
+      return OrderPaymentAction.onEnterUserOrdersRoute()(state)
+
+    case "SellerOrders":
+      return OrderPaymentAction.onEnterSellerOrdersRoute()(state)
 
     case "AdminLogin":
     case "SellerLogin":

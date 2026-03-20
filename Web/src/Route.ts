@@ -70,6 +70,21 @@ export type Route =
       }
     }
   | {
+      _t: "Payment"
+      path: "/payment"
+      params: NoParams
+    }
+  | {
+      _t: "UserOrders"
+      path: "/orders"
+      params: NoParams
+    }
+  | {
+      _t: "SellerOrders"
+      path: "/seller/orders"
+      params: NoParams
+    }
+  | {
       _t: "ProductDetail"
       path: "/product/:id"
       params: {
@@ -227,6 +242,30 @@ const router: RouteTable = {
       params: JD.object({
         name: maybeOptionalDecoder(JD.string),
       }),
+    }),
+  },
+  Payment: {
+    path: "/payment",
+    decoder: JD.object({
+      _t: JD.always("Payment"),
+      path: JD.always("/payment"),
+      params: JD.object({}),
+    }),
+  },
+  UserOrders: {
+    path: "/orders",
+    decoder: JD.object({
+      _t: JD.always("UserOrders"),
+      path: JD.always("/orders"),
+      params: JD.object({}),
+    }),
+  },
+  SellerOrders: {
+    path: "/seller/orders",
+    decoder: JD.object({
+      _t: JD.always("SellerOrders"),
+      path: JD.always("/seller/orders"),
+      params: JD.object({}),
     }),
   },
   ProductDetail: {

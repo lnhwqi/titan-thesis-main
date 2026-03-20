@@ -11,6 +11,8 @@ import { initRegisterState } from "./Register"
 import { initAdminDashboardState } from "./AdminDashboard"
 import { initSellerDashboardState } from "./SellerDashboard"
 import { initVoucherState } from "./Voucher"
+import { initPaymentState } from "./Payment"
+import { initOrderPaymentState } from "./OrderPayment"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -22,6 +24,8 @@ export function initState(route: Route): State {
     adminDashboard: initAdminDashboardState(),
     sellerDashboard: initSellerDashboardState(),
     voucher: initVoucherState(),
+    payment: initPaymentState(),
+    orderPayment: initOrderPaymentState(),
     product: initProductState(),
     category: initCategoryState(),
     cart: initCartState(),

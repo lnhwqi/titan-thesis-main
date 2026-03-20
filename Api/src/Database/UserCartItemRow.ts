@@ -152,3 +152,15 @@ export async function remove(
       throw e
     })
 }
+
+export async function clearByUserID(userID: UserID): Promise<number> {
+  return db
+    .deleteFrom(tableName)
+    .where("userId", "=", userID.unwrap())
+    .executeTakeFirst()
+    .then((row) => Number(row.numDeletedRows))
+    .catch((e) => {
+      Logger.error(`#${tableName}.clearByUserID error ${e}`)
+      throw e
+    })
+}

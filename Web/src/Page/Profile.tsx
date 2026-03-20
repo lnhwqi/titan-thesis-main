@@ -11,6 +11,7 @@ import * as FieldString from "../../../Core/Data/Form/FieldString"
 import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
 import { parseNotValidate } from "../State/UpdateProfile"
+import { navigateTo, toRoute } from "../Route"
 
 export type Props = { authState: AuthState }
 export default function ProfilePage(props: Props): JSX.Element {
@@ -29,6 +30,14 @@ export default function ProfilePage(props: Props): JSX.Element {
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>Profile</h1>
+      <div className={styles.orderButtonWrap}>
+        <Button
+          theme_={"Blue"}
+          size={"M"}
+          label={"View My Orders"}
+          onClick={() => emit(navigateTo(toRoute("UserOrders", {})))}
+        />
+      </div>
 
       <form
         className={styles.form}
@@ -241,5 +250,11 @@ const styles = {
     ...bp.md({
       maxWidth: theme.s82,
     }),
+  }),
+  orderButtonWrap: css({
+    width: "100%",
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: theme.s3,
   }),
 }

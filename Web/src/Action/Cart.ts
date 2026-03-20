@@ -16,6 +16,16 @@ function isSameLine(a: BasicProduct, b: BasicProduct): boolean {
   )
 }
 
+function getMaxStock(product: BasicProduct): number {
+  const firstVariant = product.variants[0]
+  if (firstVariant == null) {
+    return Number.MAX_SAFE_INTEGER
+  }
+
+  const stock = firstVariant.stock.unwrap()
+  return stock < 0 ? 0 : stock
+}
+
 function saveCartCmd(items: CartItem[]): Promise<Action | null> {
   return new Promise((resolve) => {
     localStorage.setItem("titan_cart", JSON.stringify(items))
@@ -56,10 +66,20 @@ export function addToCart(product: BasicProduct): Action {
       if (existingItem) {
         nextItems = state.cart.items.map((item) =>
           isSameLine(item.product, product)
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: Math.min(
+                  item.quantity + 1,
+                  getMaxStock(item.product),
+                ),
+              }
             : item,
         )
       } else {
+        if (getMaxStock(product) <= 0) {
+          return [state, cmd()]
+        }
+
         nextItems = [...state.cart.items, { product, quantity: 1 }]
       }
 
@@ -82,7 +102,9 @@ export function updateQuantity(
             itemVariantID === variantID
 
           if (isSameItem) {
-            const newQty = item.quantity + delta
+            const maxStock = getMaxStock(item.product)
+            const desired = item.quantity + delta
+            const newQty = Math.max(0, Math.min(desired, maxStock))
             return { ...item, quantity: newQty }
           }
           return item

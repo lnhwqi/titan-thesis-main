@@ -4,6 +4,7 @@ import { AuthUser } from "../../../AuthApi"
 import * as SellerRow from "../../../../Database/SellerRow"
 import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
 import * as VoucherRow from "../../../../Database/VoucherRow"
+import * as UserCartItemRow from "../../../../Database/UserCartItemRow"
 import { toOrderPayment } from "../../../../App/OrderPayment"
 import { createPrice } from "../../../../../../Core/App/Product/Price"
 
@@ -79,6 +80,8 @@ export async function handler(
 
     createdRows.push(row)
   }
+
+  await UserCartItemRow.clearByUserID(user.id)
 
   return ok({
     orderPayments: createdRows.map(toOrderPayment),

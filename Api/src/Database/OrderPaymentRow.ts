@@ -115,3 +115,27 @@ export async function updateTracking(
     .executeTakeFirst()
     .then((row) => (row == null ? null : orderPaymentRowDecoder.verify(row)))
 }
+
+export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => JD.array(orderPaymentRowDecoder).verify(rows))
+}
+
+export async function getBySellerID(
+  sellerId: SellerID,
+): Promise<OrderPaymentRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("sellerId", "=", sellerId.unwrap())
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => JD.array(orderPaymentRowDecoder).verify(rows))
+}

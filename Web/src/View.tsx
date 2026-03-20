@@ -19,6 +19,9 @@ import SellerShippingPage from "./Page/SellerShipping"
 import SellerVoucherCreatePage from "./Page/SellerVoucherCreate"
 import HomePage from "./Page/Home"
 import SavedPage from "./Page/Saved"
+import PaymentPage from "./Page/Payment"
+import UserOrdersPage from "./Page/UserOrders"
+import SellerOrdersPage from "./Page/SellerOrders"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
 import SellerProfilePage from "./Page/SellerProfile"
@@ -44,6 +47,20 @@ export default function View(props: Props): JSX.Element {
         <HomeLayout
           state={state}
           Page={SavedPage}
+        />
+      )
+    case "Payment":
+      return (
+        <HomeLayout
+          state={state}
+          Page={PaymentPage}
+        />
+      )
+    case "UserOrders":
+      return (
+        <HomeLayout
+          state={state}
+          Page={UserOrdersPage}
         />
       )
     case "NotFound":
@@ -121,6 +138,13 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={SellerVoucherCreatePage}
+        />
+      )
+    case "SellerOrders":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SellerOrdersPage}
         />
       )
     case "Login":

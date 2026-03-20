@@ -4,6 +4,7 @@ import { State } from "../../State"
 import { color, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as CartAction from "../../Action/Cart"
+import { navigateTo, toRoute } from "../../Route"
 
 type Props = {
   state: State
@@ -126,7 +127,15 @@ export function CartSidebar(props: Props): JSX.Element {
                 {totalPrice.toLocaleString()}đ
               </span>
             </div>
-            <button className={styles.checkoutBtn}>Payment</button>
+            <button
+              className={styles.checkoutBtn}
+              onClick={() => {
+                closeCart()
+                emit(navigateTo(toRoute("Payment", {})))
+              }}
+            >
+              Payment
+            </button>
           </div>
         )}
       </div>
