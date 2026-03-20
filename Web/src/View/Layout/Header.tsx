@@ -102,7 +102,7 @@ export default function Header(props: Props): JSX.Element {
       <div className={styles.menuItems}>
         <div className={styles.utilityZone}>
           <div
-            className={styles.iconItem}
+            className={`${styles.iconItem} ${styles.cartIconItem}`}
             onClick={() => emit(CartAction.toggleCart(true))}
           >
             <IoMdCart size={28} />
@@ -160,6 +160,13 @@ export default function Header(props: Props): JSX.Element {
                   className={styles.avatarMenuItem}
                 >
                   Profile
+                </Link>
+
+                <Link
+                  route={toRoute("UserOrders", {})}
+                  className={styles.avatarMenuItem}
+                >
+                  Orders
                 </Link>
 
                 <Link
@@ -353,10 +360,14 @@ const styles = {
       boxShadow: theme.elevation.small,
     },
   }),
+  cartIconItem: css({
+    position: "relative",
+    overflow: "visible",
+  }),
   badge: css({
     position: "absolute",
-    top: "-6px",
-    right: "-8px",
+    top: "-7px",
+    right: "-7px",
     backgroundColor: color.primary500,
     color: color.neutral0,
     fontSize: "10px",
