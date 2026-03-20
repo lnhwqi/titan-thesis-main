@@ -9,6 +9,7 @@ import { UpdateProfileState } from "./State/UpdateProfile"
 import { RegisterState } from "./State/Register"
 import { AdminDashboardState } from "./State/AdminDashboard"
 import { SellerDashboardState } from "./State/SellerDashboard"
+import { VoucherState } from "./State/Voucher"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
@@ -17,6 +18,7 @@ export type PublicState = {
   register: RegisterState
   adminDashboard: AdminDashboardState
   sellerDashboard: SellerDashboardState
+  voucher: VoucherState
   product: ProductState
   category: CategoryState
   cart: CartState

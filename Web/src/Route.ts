@@ -36,6 +36,11 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "SellerVoucherCreate"
+      path: "/seller/voucher/create"
+      params: NoParams
+    }
+  | {
       _t: "AdminDashboard"
       path: "/admin/dashboard"
       params: NoParams
@@ -169,6 +174,14 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("SellerShipping"),
       path: JD.always("/seller/shipping"),
+      params: JD.object({}),
+    }),
+  },
+  SellerVoucherCreate: {
+    path: "/seller/voucher/create",
+    decoder: JD.object({
+      _t: JD.always("SellerVoucherCreate"),
+      path: JD.always("/seller/voucher/create"),
       params: JD.object({}),
     }),
   },

@@ -5,7 +5,7 @@ import {
   AuthSeller,
 } from "../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
-import { Maybe, maybeDecoder } from "../../../Data/Maybe"
+import { Maybe, maybeOptionalDecoder } from "../../../Data/Maybe"
 import { Voucher, voucherDecoder } from "../../../App/Voucher"
 
 export type { NoUrlParams }
@@ -42,9 +42,9 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
 ])
 
 export const queryParamsDecoder: JD.Decoder<QueryParams> = JD.object({
-  minDiscount: maybeDecoder(JD.number),
-  maxDiscount: maybeDecoder(JD.number),
-  isExpired: maybeDecoder(JD.boolean),
+  minDiscount: maybeOptionalDecoder(JD.number),
+  maxDiscount: maybeOptionalDecoder(JD.number),
+  isExpired: maybeOptionalDecoder(JD.boolean),
 })
 
 export const contract: Contract = {

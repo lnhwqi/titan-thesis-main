@@ -10,7 +10,7 @@ type Props = {
   disabled?: boolean
   invalid?: boolean
   changed?: boolean
-  type?: "text" | "password" | "email" | "number" | "tel" | "url"
+  type?: "text" | "password" | "email" | "number" | "tel" | "url" | "date"
 }
 function View({
   value,

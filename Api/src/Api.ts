@@ -51,7 +51,7 @@ export function decodeParams<UrlParams, RequestBody>(
   )
   if (urlResult._t === "Err") return err(urlResult.error)
 
-  const bodyResult = fromDecodeResult(bodyDecoder.decode(req.body))
+  const bodyResult = fromDecodeResult(bodyDecoder.decode(req.body ?? {}))
   if (bodyResult._t === "Err") return err(bodyResult.error)
 
   return ok({ ...urlResult.value, ...bodyResult.value })

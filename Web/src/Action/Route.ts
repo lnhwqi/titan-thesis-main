@@ -6,6 +6,7 @@ import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
 import * as AdminDashboardAction from "./AdminDashboard"
 import * as SellerDashboardAction from "./SellerDashboard"
+import * as VoucherAction from "./Voucher"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 import { categoryIDDecoder } from "../../../Core/App/Category/CategoryID"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
@@ -42,6 +43,9 @@ export function onUrlChange(s: State): [State, Cmd] {
 
     case "SellerShipping":
       return SellerDashboardAction.onEnterRoute()(state)
+
+    case "SellerVoucherCreate":
+      return VoucherAction.onEnterCreateRoute()(state)
 
     case "SellerProductEdit":
       try {

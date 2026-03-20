@@ -72,6 +72,13 @@ export function goToShippingPage(): Action {
   ]
 }
 
+export function goToCreateVoucherPage(): Action {
+  return (state) => [
+    state,
+    cmd(perform(navigateTo(toRoute("SellerVoucherCreate", {})))),
+  ]
+}
+
 export function onEnterEditRoute(id: ProductID): Action {
   return (state) => [
     _SellerDashboardState(state, {

@@ -95,6 +95,14 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
             </button>
             <button
               className={styles.secondaryButton}
+              onClick={() =>
+                emit(SellerDashboardAction.goToCreateVoucherPage())
+              }
+            >
+              Create Voucher Page
+            </button>
+            <button
+              className={styles.secondaryButton}
               onClick={() => emit(SellerDashboardAction.goToShippingPage())}
             >
               Shipping Tracker

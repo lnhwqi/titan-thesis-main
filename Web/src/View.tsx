@@ -16,6 +16,7 @@ import SellerDashboardPage from "./Page/SellerDashboard"
 import SellerProductCreatePage from "./Page/SellerProductCreate"
 import SellerProductEditPage from "./Page/SellerProductEdit"
 import SellerShippingPage from "./Page/SellerShipping"
+import SellerVoucherCreatePage from "./Page/SellerVoucherCreate"
 import HomePage from "./Page/Home"
 import SavedPage from "./Page/Saved"
 import SearchPage from "./Page/Search"
@@ -113,6 +114,13 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={SellerShippingPage}
+        />
+      )
+    case "SellerVoucherCreate":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SellerVoucherCreatePage}
         />
       )
     case "Login":
