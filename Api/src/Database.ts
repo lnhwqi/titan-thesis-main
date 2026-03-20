@@ -18,6 +18,7 @@ export type Schema = {
   user_wishlist_product: UserWishlistProductTable
   user_cart_item: UserCartItemTable
   product_variant: ProductVariantTable
+  order_payment: OrderPaymentTable
 }
 
 type UserTable = {
@@ -127,6 +128,20 @@ export type UserCartItemTable = {
   quantity: number
   createdAt: Date
   updatedAt: Date
+}
+
+export type OrderPaymentTable = {
+  id: string
+  userId: string
+  sellerId: string
+  username: string
+  address: string
+  status: "PAID" | "PACKED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
+  price: number
+  trackingCode: string | null
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
 }
 
 type UserRefreshTokenTable = {
