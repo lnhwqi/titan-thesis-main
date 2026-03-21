@@ -12,6 +12,11 @@ import {
   orderPaymentAddressDecoder,
 } from "../../../../App/OrderPayment/OrderPaymentAddress"
 import { Price, priceDecoder } from "../../../../App/Product/Price"
+import { ProductID, productIDDecoder } from "../../../../App/Product/ProductID"
+import {
+  ProductVariantID,
+  productVariantIDDecoder,
+} from "../../../../App/ProductVariant/ProductVariantID"
 import { VoucherID, voucherIDDecoder } from "../../../../App/Voucher/VoucherID"
 import { Maybe, maybeOptionalDecoder } from "../../../../Data/Maybe"
 
@@ -36,10 +41,19 @@ export type Panel = {
   sellerID: SellerID
   price: Price
   voucherID: Maybe<VoucherID>
+  items: PanelItem[]
+}
+
+export type PanelItem = {
+  productID: ProductID
+  variantID: ProductVariantID
+  quantity: number
 }
 
 export type ErrorCode =
   | "SELLER_NOT_FOUND"
+  | "VARIANT_NOT_FOUND"
+  | "INSUFFICIENT_STOCK"
   | "VOUCHER_NOT_FOUND"
   | "VOUCHER_NOT_FOR_SELLER"
   | "VOUCHER_EXPIRED"
@@ -54,6 +68,13 @@ export const panelDecoder: JD.Decoder<Panel> = JD.object({
   sellerID: sellerIDDecoder,
   price: priceDecoder,
   voucherID: maybeOptionalDecoder(voucherIDDecoder),
+  items: JD.array(
+    JD.object({
+      productID: productIDDecoder,
+      variantID: productVariantIDDecoder,
+      quantity: JD.number,
+    }),
+  ),
 })
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
@@ -67,6 +88,8 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "SELLER_NOT_FOUND",
+  "VARIANT_NOT_FOUND",
+  "INSUFFICIENT_STOCK",
   "VOUCHER_NOT_FOUND",
   "VOUCHER_NOT_FOR_SELLER",
   "VOUCHER_EXPIRED",

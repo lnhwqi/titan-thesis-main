@@ -98,6 +98,11 @@ export default function ProductDetailPage(
       : product.price.unwrap()
   const shownStock =
     selectedVariant != null ? selectedVariant.stock.unwrap() : totalStock
+  const maxSelectableQuantity = shownStock < 1 ? 1 : shownStock
+  const selectedQuantity = Math.max(
+    1,
+    Math.min(state.product.selectedQuantity, maxSelectableQuantity),
+  )
   const requiresVariantSelection = orderedSizes.length > 0
   const canAddToCart = shownStock > 0
 
@@ -233,9 +238,17 @@ export default function ProductDetailPage(
                         className={`${styles.variantChip} ${
                           isOutOfStock ? styles.variantChipOut : ""
                         } ${isSelected ? styles.variantChipSelected : ""}`}
-                        onClick={() =>
+                        onClick={() => {
                           emit(ProductAction.setSelectedVariantSize(size))
-                        }
+
+                          const cappedQuantity = Math.max(
+                            1,
+                            Math.min(state.product.selectedQuantity, stock),
+                          )
+                          emit(
+                            ProductAction.setSelectedQuantity(cappedQuantity),
+                          )
+                        }}
                         disabled={isOutOfStock}
                       >
                         {size}
@@ -246,6 +259,74 @@ export default function ProductDetailPage(
               </div>
             ) : null}
             <div className={styles.stockTag}>Stock: {shownStock}</div>
+
+            <div className={styles.quantitySection}>
+              <div className={styles.quantityLabel}>Choose amount of goods</div>
+              <div className={styles.qtyControls}>
+                <button
+                  type="button"
+                  className={styles.qtyButton}
+                  disabled={canAddToCart === false || selectedQuantity <= 1}
+                  onClick={() => {
+                    emit(
+                      ProductAction.setSelectedQuantity(selectedQuantity - 1),
+                    )
+                  }}
+                >
+                  -
+                </button>
+                <input
+                  className={styles.qtyInput}
+                  type="number"
+                  min={1}
+                  max={shownStock}
+                  value={selectedQuantity}
+                  disabled={canAddToCart === false}
+                  onChange={(e) => {
+                    const parsed = Number(e.currentTarget.value)
+                    if (Number.isFinite(parsed) === false) {
+                      return
+                    }
+
+                    if (parsed > shownStock) {
+                      emit(
+                        ProductAction.showStockReminder(
+                          `Maximum stock is ${shownStock} for this product.`,
+                        ),
+                      )
+                    }
+
+                    const nextQty = Math.max(
+                      1,
+                      Math.min(Math.floor(parsed), maxSelectableQuantity),
+                    )
+
+                    emit(ProductAction.setSelectedQuantity(nextQty))
+                  }}
+                />
+                <button
+                  type="button"
+                  className={styles.qtyButton}
+                  disabled={canAddToCart === false}
+                  onClick={() => {
+                    if (selectedQuantity >= shownStock) {
+                      emit(
+                        ProductAction.showStockReminder(
+                          `Maximum stock reached for this product.`,
+                        ),
+                      )
+                      return
+                    }
+
+                    emit(
+                      ProductAction.setSelectedQuantity(selectedQuantity + 1),
+                    )
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
             <button
               className={styles.addToCartBtn}
@@ -260,26 +341,40 @@ export default function ProductDetailPage(
                   return
                 }
 
+                if (selectedQuantity > shownStock) {
+                  emit(
+                    ProductAction.showStockReminder(
+                      `Maximum stock is ${shownStock} for this product.`,
+                    ),
+                  )
+                  return
+                }
+
                 emit(ProductAction.clearVariantReminder())
+                emit(ProductAction.clearStockReminder())
 
                 emit(
-                  CartAction.addToCart({
-                    id: product.id,
-                    sellerID: product.sellerID,
-                    name: product.name,
-                    price:
-                      selectedVariant != null
-                        ? (createPrice(selectedVariant.price.unwrap()) ??
-                          product.price)
-                        : product.price,
-                    url: product.urls[0],
-                    categoryID: product.categoryID,
-                    variants:
-                      selectedVariant != null
-                        ? [selectedVariant]
-                        : product.variants,
-                  }),
+                  CartAction.addToCart(
+                    {
+                      id: product.id,
+                      sellerID: product.sellerID,
+                      name: product.name,
+                      price:
+                        selectedVariant != null
+                          ? (createPrice(selectedVariant.price.unwrap()) ??
+                            product.price)
+                          : product.price,
+                      url: product.urls[0],
+                      categoryID: product.categoryID,
+                      variants:
+                        selectedVariant != null
+                          ? [selectedVariant]
+                          : product.variants,
+                    },
+                    selectedQuantity,
+                  ),
                 )
+                emit(ProductAction.setSelectedQuantity(1))
               }}
             >
               Add To Cart
@@ -301,6 +396,23 @@ export default function ProductDetailPage(
                     onClick={() => emit(ProductAction.clearVariantReminder())}
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {state.product.stockReminderMessage != null ? (
+              <div className={styles.modalOverlay}>
+                <div className={styles.modalCard}>
+                  <h3 className={styles.modalTitle}>Notice</h3>
+                  <p className={styles.modalText}>
+                    {state.product.stockReminderMessage}
+                  </p>
+                  <button
+                    className={styles.modalBtn}
+                    onClick={() => emit(ProductAction.clearStockReminder())}
+                  >
+                    OK
                   </button>
                 </div>
               </div>
@@ -532,6 +644,41 @@ const styles = {
     ...font.medium14,
     color: color.neutral700,
   }),
+  quantitySection: css({
+    display: "grid",
+    gap: theme.s2,
+  }),
+  quantityLabel: css({
+    ...font.bold14,
+    color: color.secondary500,
+  }),
+  qtyControls: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s1,
+  }),
+  qtyButton: css({
+    width: "30px",
+    height: "30px",
+    borderRadius: "50%",
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    cursor: "pointer",
+    ...font.bold14,
+    "&:disabled": {
+      cursor: "not-allowed",
+      opacity: 0.6,
+    },
+  }),
+  qtyInput: css({
+    width: "64px",
+    textAlign: "center",
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s1,
+    padding: `${theme.s1}`,
+    ...font.regular12,
+  }),
   variantSection: css({
     display: "flex",
     flexDirection: "column",
@@ -701,5 +848,36 @@ const styles = {
     textAlign: "center",
     ...font.medium14,
     color: color.neutral500,
+  }),
+  modalOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1100,
+  }),
+  modalCard: css({
+    width: "100%",
+    maxWidth: "420px",
+    background: color.neutral0,
+    borderRadius: theme.s3,
+    border: `1px solid ${color.secondary100}`,
+    padding: theme.s4,
+    textAlign: "center",
+    display: "grid",
+    gap: theme.s2,
+  }),
+  modalTitle: css({ ...font.bold17, margin: 0, color: color.secondary500 }),
+  modalText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
+  modalBtn: css({
+    border: "none",
+    background: color.secondary500,
+    color: color.neutral0,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
   }),
 }

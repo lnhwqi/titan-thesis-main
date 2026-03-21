@@ -15,6 +15,8 @@ import * as CartDelete from "../Api/Auth/User/Cart/Delete"
 import * as CartUpdateQuantity from "../Api/Auth/User/Cart/UpdateQuantity"
 import * as OrderPaymentCreate from "../Api/Auth/User/OrderPayment/Create"
 import * as OrderPaymentListMine from "../Api/Auth/User/OrderPayment/ListMine"
+import * as ZaloPayCreate from "../Api/Auth/User/ZaloPay/Create"
+import * as ZaloPayQuery from "../Api/Auth/User/ZaloPay/Query"
 import { userAuthApi } from "../Api/AuthApi"
 
 export function userRoutes(app: Express): void {
@@ -31,6 +33,8 @@ export function userRoutes(app: Express): void {
   userAuthApi(app, CartAdd)
   userAuthApi(app, CartDelete)
   userAuthApi(app, CartUpdateQuantity)
+  userAuthApi(app, ZaloPayCreate)
+  userAuthApi(app, ZaloPayQuery)
   userAuthApi(app, OrderPaymentCreate)
   userAuthApi(app, OrderPaymentListMine)
 }

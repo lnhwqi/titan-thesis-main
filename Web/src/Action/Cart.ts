@@ -55,9 +55,12 @@ function withAuth(
   return authorizedAction()
 }
 
-export function addToCart(product: BasicProduct): Action {
+export function addToCart(product: BasicProduct, quantity: number = 1): Action {
   return (state: State) =>
     withAuth(state, () => {
+      const nextQuantity =
+        Number.isInteger(quantity) && quantity > 0 ? quantity : 1
+
       const existingItem = state.cart.items.find((item) =>
         isSameLine(item.product, product),
       )
@@ -69,7 +72,7 @@ export function addToCart(product: BasicProduct): Action {
             ? {
                 ...item,
                 quantity: Math.min(
-                  item.quantity + 1,
+                  item.quantity + nextQuantity,
                   getMaxStock(item.product),
                 ),
               }
@@ -80,7 +83,13 @@ export function addToCart(product: BasicProduct): Action {
           return [state, cmd()]
         }
 
-        nextItems = [...state.cart.items, { product, quantity: 1 }]
+        nextItems = [
+          ...state.cart.items,
+          {
+            product,
+            quantity: Math.min(nextQuantity, getMaxStock(product)),
+          },
+        ]
       }
 
       return saveAndReturn(state, { items: nextItems, isOpen: true })

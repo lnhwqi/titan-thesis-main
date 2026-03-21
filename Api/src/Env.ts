@@ -13,6 +13,11 @@ export type Env = {
   DB_DATABASE: string
   DB_MAX_POOL: number
   JWT_SECRET: string
+  ZALO_APP_ID: string
+  ZALO_KEY1: string
+  ZALO_KEY2: string
+  ZALO_CREATE_URL: string
+  ZALO_QUERY_URL: string
 }
 
 const decoder: JD.Decoder<Env> = JD.object({
@@ -26,6 +31,11 @@ const decoder: JD.Decoder<Env> = JD.object({
   DB_DATABASE: JD.string,
   DB_MAX_POOL: numberStringDecoder,
   JWT_SECRET: JD.string,
+  ZALO_APP_ID: JD.string,
+  ZALO_KEY1: JD.string,
+  ZALO_KEY2: JD.string,
+  ZALO_CREATE_URL: JD.string,
+  ZALO_QUERY_URL: JD.string,
 })
 
 // Private
@@ -44,6 +54,11 @@ function load(): Env | never {
     DB_DATABASE: process.env.DB_DATABASE,
     DB_MAX_POOL: process.env.DB_MAX_POOL,
     JWT_SECRET: process.env.JWT_SECRET,
+    ZALO_APP_ID: process.env.ZALO_APP_ID,
+    ZALO_KEY1: process.env.ZALO_KEY1,
+    ZALO_KEY2: process.env.ZALO_KEY2,
+    ZALO_CREATE_URL: process.env.ZALO_CREATE_URL,
+    ZALO_QUERY_URL: process.env.ZALO_QUERY_URL,
   }
 
   const result = fromDecodeResult(decoder.decode(env))

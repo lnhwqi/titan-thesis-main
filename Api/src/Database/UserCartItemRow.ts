@@ -164,3 +164,31 @@ export async function clearByUserID(userID: UserID): Promise<number> {
       throw e
     })
 }
+
+export async function getByUserID(userID: UserID): Promise<UserCartItemRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("userId", "=", userID.unwrap())
+    .execute()
+    .then((rows) =>
+      rows.flatMap((row) => {
+        try {
+          return [
+            userCartItemRowDecoder.verify({
+              ...row,
+              createdAt: new Date(row.createdAt),
+              updatedAt: new Date(row.updatedAt),
+            }),
+          ]
+        } catch (e) {
+          Logger.warn(`#${tableName}.getByUserID skip invalid row ${e}`)
+          return []
+        }
+      }),
+    )
+    .catch((e) => {
+      Logger.error(`#${tableName}.getByUserID error ${e}`)
+      throw e
+    })
+}

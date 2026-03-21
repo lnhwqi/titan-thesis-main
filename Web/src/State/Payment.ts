@@ -2,6 +2,8 @@ import * as RD from "../../../Core/Data/RemoteData"
 import { Voucher } from "../../../Core/App/Voucher"
 import { ApiError } from "../Api"
 import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
+import * as ZaloPayCreateApi from "../Api/Auth/User/ZaloPay/Create"
+import * as ZaloPayQueryApi from "../Api/Auth/User/ZaloPay/Query"
 import * as VoucherListMineApi from "../Api/Auth/User/Voucher/ListMine"
 import type { State } from "../State"
 
@@ -18,6 +20,14 @@ export type PaymentState = {
     ApiError<OrderPaymentCreateApi.ErrorCode>,
     OrderPaymentCreateApi.Payload
   >
+  zaloCheckout: ZaloPayCreateApi.Payload | null
+  zaloStatusResponse: RD.RemoteData<
+    ApiError<ZaloPayQueryApi.ErrorCode>,
+    ZaloPayQueryApi.Payload
+  >
+  pendingFinalizeParams: OrderPaymentCreateApi.BodyParams | null
+  isFinalizing: boolean
+  finalizedAppTransIDs: string[]
   flashMessage: string | null
 }
 
@@ -29,6 +39,11 @@ export function initPaymentState(): PaymentState {
     mineVouchers: [],
     mineVouchersResponse: RD.notAsked(),
     submitResponse: RD.notAsked(),
+    zaloCheckout: null,
+    zaloStatusResponse: RD.notAsked(),
+    pendingFinalizeParams: null,
+    isFinalizing: false,
+    finalizedAppTransIDs: [],
     flashMessage: null,
   }
 }

@@ -246,7 +246,9 @@ export function loadDetail(id: ProductID): Action {
         detailResponse: RD.loading(),
         currentImageIndex: 0,
         selectedVariantSize: null,
+        selectedQuantity: 1,
         variantReminderVisible: false,
+        stockReminderMessage: null,
         wishlistBusy: false,
         wishlistProductIDs: shouldLoadWishlist
           ? state.product.wishlistProductIDs
@@ -353,6 +355,16 @@ export function setSelectedVariantSize(size: string | null): Action {
   ]
 }
 
+export function setSelectedQuantity(quantity: number): Action {
+  return (state) => [
+    _ProductState(state, {
+      selectedQuantity:
+        Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
+    }),
+    cmd(),
+  ]
+}
+
 export function showVariantReminder(): Action {
   return (state) => [
     _ProductState(state, { variantReminderVisible: true }),
@@ -363,6 +375,20 @@ export function showVariantReminder(): Action {
 export function clearVariantReminder(): Action {
   return (state) => [
     _ProductState(state, { variantReminderVisible: false }),
+    cmd(),
+  ]
+}
+
+export function showStockReminder(message: string): Action {
+  return (state) => [
+    _ProductState(state, { stockReminderMessage: message }),
+    cmd(),
+  ]
+}
+
+export function clearStockReminder(): Action {
+  return (state) => [
+    _ProductState(state, { stockReminderMessage: null }),
     cmd(),
   ]
 }

@@ -1,5 +1,5 @@
 import express from "express"
-import { json, static as serveStatic, type Express } from "express"
+import { json, static as serveStatic, type Express, urlencoded } from "express"
 import cors from "cors"
 import { routes } from "./Route"
 import ENV from "./Env"
@@ -31,6 +31,7 @@ app.use("/uploads", serveStatic(uploadsRoot))
 // Set use json for all requests but request must have content-type application/json
 // Recommended by ExpressJS
 app.use(json({ limit: "25mb" }))
+app.use(urlencoded({ extended: false }))
 
 // All API routes are defined in this function
 routes(app)

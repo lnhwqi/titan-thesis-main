@@ -76,6 +76,11 @@ export function ProductCard(props: Props): JSX.Element {
 
   const shopLabel = getShopLabel()
   const variantSizes = getVariantSizes()
+  const totalStock = product.variants.reduce(
+    (sum, variant) => sum + variant.stock.unwrap(),
+    0,
+  )
+  const isSoldOut = totalStock <= 0
   const isSaved = state.product.wishlistProductIDs.includes(product.id.unwrap())
 
   const formatPrice = (price: number) => {
@@ -114,7 +119,7 @@ export function ProductCard(props: Props): JSX.Element {
   return (
     <Link
       route={toRoute("ProductDetail", { id: product.id.unwrap() })}
-      className={styles.card}
+      className={`${styles.card} ${isSoldOut ? styles.cardSoldOut : ""}`}
     >
       <>
         <div className={styles.imageContainer}>
@@ -194,6 +199,14 @@ export function ProductCard(props: Props): JSX.Element {
             </div>
           ) : null}
         </div>
+
+        {isSoldOut ? (
+          <div className={styles.soldOutCardLayer}>
+            <div className={styles.soldOutDiagonalStripe}>
+              <span className={styles.soldOutText}>SOLD OUT</span>
+            </div>
+          </div>
+        ) : null}
       </>
     </Link>
   )
@@ -262,6 +275,16 @@ const styles = {
       [`& .${nameClass}`]: { color: color.primary500 },
     },
   }),
+  cardSoldOut: css({
+    "&:hover": {
+      transform: "none",
+      boxShadow: "none",
+      borderColor: color.secondary100,
+    },
+    "&:hover img": {
+      transform: "none",
+    },
+  }),
   name: nameClass,
   wishlistButton: wishlistButtonClass,
   wishlistButtonActive: css({
@@ -287,6 +310,35 @@ const styles = {
     ".card:hover &": {
       transform: "scale(1.05)",
     },
+  }),
+  soldOutCardLayer: css({
+    position: "absolute",
+    inset: 0,
+    background: "rgba(18,24,38,0.42)",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 4,
+    pointerEvents: "none",
+  }),
+  soldOutDiagonalStripe: css({
+    position: "absolute",
+    left: "-54%",
+    top: "40%",
+    width: "220%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transform: "rotate(-59deg)",
+    background: "rgba(26, 34, 51, 0.82)",
+    padding: `${theme.s3} 0`,
+  }),
+  soldOutText: css({
+    ...font.bold14,
+    letterSpacing: "4px",
+    color: color.neutral0,
+    textShadow: "0 1px 2px rgba(0,0,0,0.28)",
   }),
   content: css({
     padding: theme.s4,

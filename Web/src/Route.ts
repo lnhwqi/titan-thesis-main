@@ -75,6 +75,13 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "PaymentResult"
+      path: "/payment/result?appTransID=:appTransID"
+      params: {
+        appTransID: Maybe<string>
+      }
+    }
+  | {
       _t: "UserOrders"
       path: "/orders"
       params: NoParams
@@ -250,6 +257,16 @@ const router: RouteTable = {
       _t: JD.always("Payment"),
       path: JD.always("/payment"),
       params: JD.object({}),
+    }),
+  },
+  PaymentResult: {
+    path: "/payment/result?appTransID=:appTransID",
+    decoder: JD.object({
+      _t: JD.always("PaymentResult"),
+      path: JD.always("/payment/result?appTransID=:appTransID"),
+      params: JD.object({
+        appTransID: maybeOptionalDecoder(JD.string),
+      }),
     }),
   },
   UserOrders: {

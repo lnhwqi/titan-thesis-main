@@ -36,7 +36,9 @@ export type ProductState = {
 
   currentImageIndex: number
   selectedVariantSize: string | null
+  selectedQuantity: number
   variantReminderVisible: boolean
+  stockReminderMessage: string | null
   wishlistProductIDs: string[]
   wishlistBusy: boolean
 }
@@ -52,7 +54,9 @@ export function initProductState(): ProductState {
     currentCategoryTree: null,
     currentImageIndex: 0,
     selectedVariantSize: null,
+    selectedQuantity: 1,
     variantReminderVisible: false,
+    stockReminderMessage: null,
     wishlistProductIDs: [],
     wishlistBusy: false,
   }
