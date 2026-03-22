@@ -82,6 +82,11 @@ export type Route =
       }
     }
   | {
+      _t: "WalletDeposit"
+      path: "/wallet/deposit"
+      params: NoParams
+    }
+  | {
       _t: "UserOrders"
       path: "/orders"
       params: NoParams
@@ -267,6 +272,14 @@ const router: RouteTable = {
       params: JD.object({
         appTransID: maybeOptionalDecoder(JD.string),
       }),
+    }),
+  },
+  WalletDeposit: {
+    path: "/wallet/deposit",
+    decoder: JD.object({
+      _t: JD.always("WalletDeposit"),
+      path: JD.always("/wallet/deposit"),
+      params: JD.object({}),
     }),
   },
   UserOrders: {

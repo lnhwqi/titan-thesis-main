@@ -20,6 +20,7 @@ export type Schema = {
   product_variant: ProductVariantTable
   order_payment: OrderPaymentTable
   order_payment_item: OrderPaymentItemTable
+  wallet_deposit: WalletDepositTable
 }
 
 type UserTable = {
@@ -138,6 +139,7 @@ export type OrderPaymentTable = {
   username: string
   address: string
   goodsSummary: string
+  paymentMethod: "ZALOPAY" | "WALLET"
   isPaid: boolean
   status:
     | "PAID"
@@ -162,6 +164,17 @@ export type OrderPaymentItemTable = {
   productName: string
   variantName: string
   quantity: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type WalletDepositTable = {
+  id: string
+  appTransID: string
+  userId: string
+  amount: number
+  status: "PENDING" | "SUCCESS" | "FAILED"
+  creditedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

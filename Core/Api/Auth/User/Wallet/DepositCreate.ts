@@ -5,12 +5,11 @@ import {
   AuthUser,
 } from "../../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../../Data/Api"
-import { Panel, panelDecoder } from "../OrderPayment/Create"
 
 export type Contract = AuthApi<
   AuthUser,
   "POST",
-  "/user/zalopay/create",
+  "/user/wallet/deposit/create",
   NoUrlParams,
   BodyParams,
   ErrorCode,
@@ -20,7 +19,7 @@ export type Contract = AuthApi<
 export type UrlParams = NoUrlParams
 
 export type BodyParams = {
-  panels: Panel[]
+  amount: number
 }
 
 export type ErrorCode = "INVALID_AMOUNT" | "CREATE_FAILED"
@@ -33,7 +32,7 @@ export type Payload = {
 }
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
-  panels: JD.array(panelDecoder),
+  amount: JD.number,
 })
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
@@ -50,7 +49,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
 
 export const contract: Contract = {
   method: "POST",
-  route: "/user/zalopay/create",
+  route: "/user/wallet/deposit/create",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
   responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),

@@ -141,7 +141,18 @@ export default function PaymentPage(props: Props): JSX.Element {
         </div>
         <div className={styles.field}>
           <span className={styles.label}>Payment Method</span>
-          <div className={styles.paymentMethodTag}>ZaloPay</div>
+          <div className={styles.paymentMethodRow}>
+            <div className={styles.paymentMethodTag}>Wallet</div>
+            <div className={styles.paymentMethodTag}>
+              Wallet: {formatT(state.profile.wallet.unwrap())}
+            </div>
+            <button
+              className={styles.linkButton}
+              onClick={() => emit(navigateTo(toRoute("WalletDeposit", {})))}
+            >
+              Deposit
+            </button>
+          </div>
         </div>
       </section>
 
@@ -321,7 +332,7 @@ export default function PaymentPage(props: Props): JSX.Element {
           label={
             state.payment.submitResponse._t === "Loading"
               ? "Processing..."
-              : "Confirm Payment"
+              : "Pay With Wallet"
           }
           onClick={() => emit(PaymentAction.submitPayment())}
           disabled={
@@ -482,6 +493,21 @@ const styles = {
     color: color.primary500,
     padding: `${theme.s1} ${theme.s3}`,
     ...font.medium14,
+  }),
+  paymentMethodRow: css({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: theme.s2,
+    alignItems: "center",
+  }),
+  linkButton: css({
+    border: "none",
+    background: "transparent",
+    color: color.primary500,
+    textDecoration: "underline",
+    cursor: "pointer",
+    ...font.medium14,
+    padding: 0,
   }),
   total: css({
     ...font.bold17,

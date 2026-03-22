@@ -41,7 +41,7 @@ export type OrderPayment = {
   username: Name
   address: OrderPaymentAddress
   goodsSummary: string
-  paymentMethod: "ZALOPAY"
+  paymentMethod: "ZALOPAY" | "WALLET"
   isPaid: boolean
   items: OrderPaymentItem[]
   status: OrderPaymentStatus
@@ -66,7 +66,7 @@ export const orderPaymentDecoder: JD.Decoder<OrderPayment> = JD.object({
   username: nameDecoder,
   address: orderPaymentAddressDecoder,
   goodsSummary: JD.string,
-  paymentMethod: JD.constant("ZALOPAY"),
+  paymentMethod: JD.oneOf(["ZALOPAY", "WALLET"]),
   isPaid: JD.boolean,
   items: JD.array(orderPaymentItemDecoder),
   status: orderPaymentStatusDecoder,

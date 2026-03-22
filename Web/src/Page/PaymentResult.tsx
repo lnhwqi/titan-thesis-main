@@ -3,7 +3,6 @@ import { css } from "@emotion/css"
 import { State } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
-import { pollZaloStatus } from "../Action/Payment"
 import { navigateTo, toRoute } from "../Route"
 
 type Props = { state: State }
@@ -21,65 +20,29 @@ export default function PaymentResultPage(props: Props): JSX.Element {
     )
   }
 
-  const checkout = state.payment.zaloCheckout
-  const statusRD = state.payment.zaloStatusResponse
-
-  const statusLabel =
-    statusRD._t === "Success"
-      ? statusRD.data.status
-      : statusRD._t === "Failure"
-        ? "FAILED"
-        : statusRD._t === "Loading"
-          ? "PENDING"
-          : "PENDING"
-
-  const qrImageURL =
-    checkout == null
-      ? null
-      : `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(checkout.qrCode === "" ? checkout.orderURL : checkout.qrCode)}`
-
   return (
     <div className={styles.page}>
       <section className={styles.card}>
-        <h1 className={styles.title}>ZaloPay Checkout</h1>
+        <h1 className={styles.title}>Wallet Payment</h1>
         <p className={styles.subtitle}>
-          Complete your payment and wait for automatic verification.
+          Wallet top-up is now handled on the wallet deposit page.
         </p>
 
         {state.payment.flashMessage != null ? (
           <div className={styles.alert}>{state.payment.flashMessage}</div>
         ) : null}
 
-        <div className={styles.statusPill}>Status: {statusLabel}</div>
-
-        {checkout != null ? (
-          <>
-            <div className={styles.metaRow}>
-              AppTransID: {checkout.appTransID}
-            </div>
-            <div className={styles.qrWrap}>
-              {qrImageURL != null ? (
-                <img
-                  src={qrImageURL}
-                  alt="ZaloPay QR"
-                  className={styles.qrImage}
-                />
-              ) : null}
-            </div>
-            <div className={styles.actionRow}>
-              <button
-                className={styles.secondaryBtn}
-                onClick={() => emit(pollZaloStatus())}
-              >
-                Check Status
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className={styles.notice}>No active checkout session.</div>
-        )}
+        <div className={styles.statusPill}>
+          Use Wallet Deposit before checkout.
+        </div>
 
         <div className={styles.actionRow}>
+          <button
+            className={styles.secondaryBtn}
+            onClick={() => emit(navigateTo(toRoute("WalletDeposit", {})))}
+          >
+            Open Wallet Deposit
+          </button>
           <button
             className={styles.secondaryBtn}
             onClick={() => emit(navigateTo(toRoute("Home", {})))}
@@ -136,22 +99,6 @@ const styles = {
     background: color.secondary50,
     borderRadius: theme.s1,
     width: "fit-content",
-  }),
-  metaRow: css({
-    ...font.regular13,
-    color: color.neutral700,
-    wordBreak: "break-all",
-  }),
-  qrWrap: css({
-    display: "flex",
-    justifyContent: "center",
-  }),
-  qrImage: css({
-    width: "280px",
-    height: "280px",
-    borderRadius: theme.s2,
-    border: `1px solid ${color.secondary200}`,
-    background: color.neutral0,
   }),
   actionRow: css({
     display: "flex",

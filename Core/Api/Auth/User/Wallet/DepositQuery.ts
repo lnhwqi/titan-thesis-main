@@ -5,12 +5,12 @@ import {
   AuthUser,
 } from "../../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../../Data/Api"
-import { Panel, panelDecoder } from "./Create"
+import { User, userDecoder } from "../../../../App/User"
 
 export type Contract = AuthApi<
   AuthUser,
   "POST",
-  "/user/order-payment/mark-paid",
+  "/user/wallet/deposit/query",
   NoUrlParams,
   BodyParams,
   ErrorCode,
@@ -20,32 +20,39 @@ export type Contract = AuthApi<
 export type UrlParams = NoUrlParams
 
 export type BodyParams = {
-  orderPaymentIDs: string[]
-  panels: Panel[]
+  appTransID: string
 }
 
-export type ErrorCode = "INVALID_ORDER_IDS"
+export type DepositStatus = "PENDING" | "SUCCESS" | "FAILED"
+
+export type ErrorCode = "QUERY_FAILED" | "DEPOSIT_NOT_FOUND"
 
 export type Payload = {
-  updatedCount: number
+  status: DepositStatus
+  returnCode: number
+  returnMessage: string
+  user: User
 }
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
-  orderPaymentIDs: JD.array(JD.string),
-  panels: JD.array(panelDecoder),
+  appTransID: JD.string,
 })
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
-  updatedCount: JD.number,
+  status: JD.oneOf(["PENDING", "SUCCESS", "FAILED"]),
+  returnCode: JD.number,
+  returnMessage: JD.string,
+  user: userDecoder,
 })
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
-  "INVALID_ORDER_IDS",
+  "QUERY_FAILED",
+  "DEPOSIT_NOT_FOUND",
 ])
 
 export const contract: Contract = {
   method: "POST",
-  route: "/user/order-payment/mark-paid",
+  route: "/user/wallet/deposit/query",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
   responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),

@@ -23,7 +23,7 @@ export function toOrderPayment(
     username: row.username,
     address: row.address,
     goodsSummary: row.goodsSummary,
-    paymentMethod: "ZALOPAY",
+    paymentMethod: row.paymentMethod,
     isPaid: row.isPaid,
     items,
     status: row.status,

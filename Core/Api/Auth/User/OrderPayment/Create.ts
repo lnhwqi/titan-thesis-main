@@ -36,6 +36,7 @@ export type BodyParams = {
   address: OrderPaymentAddress
   panels: Panel[]
   isPaid: boolean
+  paymentMethod: "ZALOPAY" | "WALLET"
 }
 
 export type Panel = {
@@ -55,6 +56,7 @@ export type ErrorCode =
   | "SELLER_NOT_FOUND"
   | "VARIANT_NOT_FOUND"
   | "INSUFFICIENT_STOCK"
+  | "INSUFFICIENT_WALLET"
   | "VOUCHER_NOT_FOUND"
   | "VOUCHER_NOT_FOR_SELLER"
   | "VOUCHER_EXPIRED"
@@ -82,6 +84,7 @@ export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   address: orderPaymentAddressDecoder,
   panels: JD.array(panelDecoder),
   isPaid: JD.boolean,
+  paymentMethod: JD.oneOf(["ZALOPAY", "WALLET"]),
 })
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
@@ -92,6 +95,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "SELLER_NOT_FOUND",
   "VARIANT_NOT_FOUND",
   "INSUFFICIENT_STOCK",
+  "INSUFFICIENT_WALLET",
   "VOUCHER_NOT_FOUND",
   "VOUCHER_NOT_FOR_SELLER",
   "VOUCHER_EXPIRED",

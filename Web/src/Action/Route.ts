@@ -37,7 +37,10 @@ export function onUrlChange(s: State): [State, Cmd] {
       return PaymentAction.onEnterRoute()(state)
 
     case "PaymentResult":
-      return PaymentAction.onEnterResultRoute(route.params.appTransID)(state)
+      return [state, cmd()]
+
+    case "WalletDeposit":
+      return [state, cmd()]
 
     case "UserOrders":
       return OrderPaymentAction.onEnterUserOrdersRoute()(state)

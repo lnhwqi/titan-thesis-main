@@ -19,7 +19,11 @@ export async function handler(
   user: AuthUser,
   params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { address, panels, isPaid } = params
+  const { address, panels, isPaid, paymentMethod } = params
+
+  if (isPaid !== (paymentMethod === "WALLET")) {
+    return err("INSUFFICIENT_WALLET")
+  }
 
   if (panels.length === 0) {
     return ok({ orderPayments: [] })
@@ -75,6 +79,8 @@ export async function handler(
         row: OrderPaymentRow.OrderPaymentRow
         items: OrderPaymentItemRow.OrderPaymentItemRow[]
       }> = []
+
+      let totalWalletCharge = 0
 
       for (const panel of panels) {
         const seller = await trx
@@ -199,6 +205,8 @@ export async function handler(
           throw new Error("VOUCHER_MIN_VALUE_NOT_MET")
         }
 
+        totalWalletCharge += payablePrice.unwrap()
+
         const inserted = await trx
           .insertInto("order_payment")
           .values({
@@ -208,6 +216,7 @@ export async function handler(
             username: user.name.unwrap(),
             address: address.unwrap(),
             goodsSummary,
+            paymentMethod,
             isPaid,
             status: "PAID",
             price: payablePrice.unwrap(),
@@ -254,6 +263,23 @@ export async function handler(
         created.push({ row: orderRow, items: orderItems })
       }
 
+      if (isPaid && paymentMethod === "WALLET") {
+        const deductWallet = await trx
+          .updateTable("user")
+          .set((eb) => ({
+            wallet: eb("wallet", "-", totalWalletCharge),
+            updatedAt: now,
+          }))
+          .where("id", "=", user.id.unwrap())
+          .where("isDeleted", "=", false)
+          .where("wallet", ">=", totalWalletCharge)
+          .executeTakeFirst()
+
+        if (Number(deductWallet.numUpdatedRows) === 0) {
+          throw new Error("INSUFFICIENT_WALLET")
+        }
+      }
+
       if (isPaid) {
         await trx
           .deleteFrom("user_cart_item")
@@ -278,6 +304,8 @@ export async function handler(
           return err("VARIANT_NOT_FOUND")
         case "INSUFFICIENT_STOCK":
           return err("INSUFFICIENT_STOCK")
+        case "INSUFFICIENT_WALLET":
+          return err("INSUFFICIENT_WALLET")
         case "VOUCHER_NOT_FOUND":
           return err("VOUCHER_NOT_FOUND")
         case "VOUCHER_NOT_FOR_SELLER":

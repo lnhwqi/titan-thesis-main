@@ -38,6 +38,7 @@ export type OrderPaymentRow = {
   username: Name
   address: OrderPaymentAddress
   goodsSummary: string
+  paymentMethod: "ZALOPAY" | "WALLET"
   isPaid: boolean
   status: OrderPaymentStatus
   price: Price
@@ -67,6 +68,7 @@ export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
   username: nameDecoder,
   address: orderPaymentAddressDecoder,
   goodsSummary: JD.string,
+  paymentMethod: JD.oneOf(["ZALOPAY", "WALLET"]),
   isPaid: JD.boolean,
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
@@ -82,6 +84,7 @@ function normalizeOrderPaymentRow(
   return {
     ...row,
     goodsSummary: typeof row.goodsSummary === "string" ? row.goodsSummary : "",
+    paymentMethod: row.paymentMethod === "WALLET" ? "WALLET" : "ZALOPAY",
   }
 }
 
@@ -98,6 +101,7 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
       username: params.username.unwrap(),
       address: params.address.unwrap(),
       goodsSummary: "",
+      paymentMethod: "ZALOPAY",
       isPaid: true,
       status: "PAID",
       price: params.price.unwrap(),

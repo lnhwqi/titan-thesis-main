@@ -2,13 +2,14 @@ import * as RD from "../../../Core/Data/RemoteData"
 import { Voucher } from "../../../Core/App/Voucher"
 import { ApiError } from "../Api"
 import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
-import * as ZaloPayCreateApi from "../Api/Auth/User/ZaloPay/Create"
-import * as ZaloPayQueryApi from "../Api/Auth/User/ZaloPay/Query"
+import * as WalletDepositCreateApi from "../Api/Auth/User/Wallet/DepositCreate"
+import * as WalletDepositQueryApi from "../Api/Auth/User/Wallet/DepositQuery"
 import * as VoucherListMineApi from "../Api/Auth/User/Voucher/ListMine"
 import type { State } from "../State"
 
 export type PaymentState = {
   address: string
+  depositAmount: string
   selectedVoucherBySellerID: Record<string, string | null>
   sellerShopNameByID: Record<string, string>
   mineVouchers: Voucher[]
@@ -20,11 +21,15 @@ export type PaymentState = {
     ApiError<OrderPaymentCreateApi.ErrorCode>,
     OrderPaymentCreateApi.Payload
   >
-  zaloCheckout: ZaloPayCreateApi.Payload | null
-  zaloStatusResponse: RD.RemoteData<
-    ApiError<ZaloPayQueryApi.ErrorCode>,
-    ZaloPayQueryApi.Payload
+  depositCreateResponse: RD.RemoteData<
+    ApiError<WalletDepositCreateApi.ErrorCode>,
+    WalletDepositCreateApi.Payload
   >
+  depositStatusResponse: RD.RemoteData<
+    ApiError<WalletDepositQueryApi.ErrorCode>,
+    WalletDepositQueryApi.Payload
+  >
+  depositCheckout: WalletDepositCreateApi.Payload | null
   pendingFinalizeParams: OrderPaymentCreateApi.BodyParams | null
   pendingOrderPaymentIDs: string[]
   openedCheckoutAppTransID: string | null
@@ -36,13 +41,15 @@ export type PaymentState = {
 export function initPaymentState(): PaymentState {
   return {
     address: "",
+    depositAmount: "",
     selectedVoucherBySellerID: {},
     sellerShopNameByID: {},
     mineVouchers: [],
     mineVouchersResponse: RD.notAsked(),
     submitResponse: RD.notAsked(),
-    zaloCheckout: null,
-    zaloStatusResponse: RD.notAsked(),
+    depositCreateResponse: RD.notAsked(),
+    depositStatusResponse: RD.notAsked(),
+    depositCheckout: null,
     pendingFinalizeParams: null,
     pendingOrderPaymentIDs: [],
     openedCheckoutAppTransID: null,

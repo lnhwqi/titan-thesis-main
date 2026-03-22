@@ -1,8 +1,11 @@
 import * as crypto from "crypto"
-import * as API from "../../../../../../Core/Api/Auth/User/ZaloPay/Create"
+import * as API from "../../../../../../Core/Api/Auth/User/Wallet/DepositCreate"
 import { ok, err, Result } from "../../../../../../Core/Data/Result"
 import { AuthUser } from "../../../AuthApi"
+import db from "../../../../Database"
 import ENV from "../../../../Env"
+import { createNow, toDate } from "../../../../../../Core/Data/Time/Timestamp"
+import { createUUID } from "../../../../../../Core/Data/UUID"
 import * as Logger from "../../../../Logger"
 
 export const contract = API.contract
@@ -11,31 +14,25 @@ export async function handler(
   user: AuthUser,
   params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const amount = params.panels.reduce(
-    (sum, panel) => sum + panel.price.unwrap(),
-    0,
-  )
-
-  if (amount <= 0) {
+  const amount = Math.floor(params.amount)
+  if (Number.isFinite(amount) === false || amount <= 0) {
     return err("INVALID_AMOUNT")
   }
 
-  const appTransID = `${formatYYMMDDVN(new Date())}_${Date.now()}`
+  const appTransID = `WD_${formatYYMMDDVN(new Date())}_${Date.now()}`
   const appTime = Date.now()
   const embedData = JSON.stringify({
     merchant: "titan",
     appTransID,
+    type: "WALLET_DEPOSIT",
   })
-  const item = JSON.stringify(
-    params.panels.flatMap((panel) =>
-      panel.items.map((line) => ({
-        sellerID: panel.sellerID.unwrap(),
-        productID: line.productID.unwrap(),
-        variantID: line.variantID.unwrap(),
-        quantity: line.quantity,
-      })),
-    ),
-  )
+  const item = JSON.stringify([
+    {
+      type: "wallet_deposit",
+      amount,
+      userID: user.id.unwrap(),
+    },
+  ])
 
   const hmacInput = [
     ENV.ZALO_APP_ID,
@@ -60,7 +57,7 @@ export async function handler(
   form.set("amount", String(amount))
   form.set("item", item)
   form.set("embed_data", embedData)
-  form.set("description", `Titan - Payment #${appTransID}`)
+  form.set("description", `Titan Wallet Deposit #${appTransID}`)
   form.set("bank_code", "")
   form.set("mac", mac)
 
@@ -78,7 +75,7 @@ export async function handler(
 
   const rawData: unknown = await response.json().catch(() => null)
   if (typeof rawData !== "object" || rawData === null) {
-    Logger.warn("Zalo create response is not a valid JSON object")
+    Logger.warn("Wallet deposit create response is not a valid JSON object")
     return err("CREATE_FAILED")
   }
 
@@ -89,18 +86,28 @@ export async function handler(
       : typeof returnCodeRaw === "string"
         ? Number(returnCodeRaw)
         : NaN
-  const returnMessage = Reflect.get(rawData, "return_message")
-  const subReturnMessage = Reflect.get(rawData, "sub_return_message")
   const orderURL = Reflect.get(rawData, "order_url")
   const qrCode = Reflect.get(rawData, "qr_code")
   const zpTransToken = Reflect.get(rawData, "zp_trans_token")
 
   if (returnCode !== 1 || typeof orderURL !== "string") {
-    Logger.warn(
-      `Zalo create rejected: return_code=${String(returnCodeRaw)} return_message=${String(returnMessage)} sub_return_message=${String(subReturnMessage)}`,
-    )
     return err("CREATE_FAILED")
   }
+
+  const now = toDate(createNow())
+  await db
+    .insertInto("wallet_deposit")
+    .values({
+      id: createUUID().unwrap(),
+      appTransID,
+      userId: user.id.unwrap(),
+      amount,
+      status: "PENDING",
+      creditedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .execute()
 
   return ok({
     appTransID,

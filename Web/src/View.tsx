@@ -21,6 +21,7 @@ import HomePage from "./Page/Home"
 import SavedPage from "./Page/Saved"
 import PaymentPage from "./Page/Payment"
 import PaymentResultPage from "./Page/PaymentResult"
+import WalletDepositPage from "./Page/WalletDeposit"
 import UserOrdersPage from "./Page/UserOrders"
 import SellerOrdersPage from "./Page/SellerOrders"
 import SearchPage from "./Page/Search"
@@ -62,6 +63,13 @@ export default function View(props: Props): JSX.Element {
         <HomeLayout
           state={state}
           Page={PaymentResultPage}
+        />
+      )
+    case "WalletDeposit":
+      return (
+        <HomeLayout
+          state={state}
+          Page={WalletDepositPage}
         />
       )
     case "UserOrders":

@@ -9,7 +9,7 @@ import {
   ErrorCode,
   Payload,
   BodyParams,
-} from "../../../../../../Core/Api/Auth/User/ZaloPay/Query"
+} from "../../../../../../Core/Api/Auth/User/Wallet/DepositQuery"
 
 export type { ErrorCode, Payload, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>
@@ -24,7 +24,9 @@ export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
       case "QUERY_FAILED":
-        return "Unable to query ZaloPay payment status."
+        return "Unable to verify ZaloPay deposit status."
+      case "DEPOSIT_NOT_FOUND":
+        return "Deposit session not found."
     }
   })
 }

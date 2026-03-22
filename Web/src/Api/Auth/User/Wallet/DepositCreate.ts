@@ -9,7 +9,7 @@ import {
   ErrorCode,
   Payload,
   BodyParams,
-} from "../../../../../../Core/Api/Auth/User/OrderPayment/MarkPaid"
+} from "../../../../../../Core/Api/Auth/User/Wallet/DepositCreate"
 
 export type { ErrorCode, Payload, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>
@@ -23,8 +23,10 @@ export async function call(params: BodyParams): Promise<Response> {
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
-      case "INVALID_ORDER_IDS":
-        return "Invalid order list to mark as paid."
+      case "INVALID_AMOUNT":
+        return "Deposit amount must be greater than zero."
+      case "CREATE_FAILED":
+        return "Unable to create ZaloPay deposit session."
     }
   })
 }

@@ -29,6 +29,8 @@ export function errorString(code: ApiError<ErrorCode>): string {
         return "A selected product variant was not found."
       case "INSUFFICIENT_STOCK":
         return "Some products are out of stock or have insufficient stock."
+      case "INSUFFICIENT_WALLET":
+        return "Insufficient wallet balance. Please deposit first."
       case "VOUCHER_NOT_FOUND":
         return "Voucher not found."
       case "VOUCHER_NOT_FOR_SELLER":
