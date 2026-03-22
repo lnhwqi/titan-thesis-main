@@ -2,36 +2,28 @@ import * as JD from "decoders"
 import {
   AuthApi,
   authResponseDecoder,
-  AuthSeller,
+  AuthUser,
 } from "../../../../Data/Api/Auth"
 import { OrderPayment, orderPaymentDecoder } from "../../../../App/OrderPayment"
 import {
   OrderPaymentID,
   orderPaymentIDDecoder,
 } from "../../../../App/OrderPayment/OrderPaymentID"
-import {
-  OrderPaymentStatus,
-  orderPaymentStatusDecoder,
-} from "../../../../App/OrderPayment/OrderPaymentStatus"
-import {
-  OrderPaymentTrackingCode,
-  orderPaymentTrackingCodeDecoder,
-} from "../../../../App/OrderPayment/OrderPaymentTrackingCode"
-import { Maybe, maybeOptionalDecoder } from "../../../../Data/Maybe"
+
+export type DeliveryDecision = "RECEIVED" | "DELIVERY_ISSUE"
 
 export type UrlParams = {
   id: OrderPaymentID
 }
 
 export type BodyParams = {
-  status: OrderPaymentStatus
-  trackingCode: Maybe<OrderPaymentTrackingCode>
+  decision: DeliveryDecision
 }
 
 export type Contract = AuthApi<
-  AuthSeller,
+  AuthUser,
   "PUT",
-  "/seller/order-payment/:id/tracking",
+  "/user/order-payment/:id/delivery-confirmation",
   UrlParams,
   BodyParams,
   ErrorCode,
@@ -58,13 +50,12 @@ export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
 })
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
-  status: orderPaymentStatusDecoder,
-  trackingCode: maybeOptionalDecoder(orderPaymentTrackingCodeDecoder),
+  decision: JD.oneOf(["RECEIVED", "DELIVERY_ISSUE"]),
 })
 
 export const contract: Contract = {
   method: "PUT",
-  route: "/seller/order-payment/:id/tracking",
+  route: "/user/order-payment/:id/delivery-confirmation",
   urlDecoder: urlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
   responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),

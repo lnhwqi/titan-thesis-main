@@ -3,13 +3,28 @@ import { Action, cmd, perform } from "../Action"
 import { _PaymentState } from "../State/Payment"
 import * as VoucherListMineApi from "../Api/Auth/User/Voucher/ListMine"
 import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
+import * as OrderPaymentMarkPaidApi from "../Api/Auth/User/OrderPayment/MarkPaid"
 import * as ZaloPayCreateApi from "../Api/Auth/User/ZaloPay/Create"
 import * as ZaloPayQueryApi from "../Api/Auth/User/ZaloPay/Query"
 import * as SellerGetProfileApi from "../Api/Public/Seller/GetProfile"
 import { _CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
+import {
+  orderPaymentIDDecoder,
+} from "../../../Core/App/OrderPayment/OrderPaymentID"
 import { sleep } from "../../../Core/Data/Time/Timer"
+
+const PAYMENT_SESSION_STORAGE_KEY = "titan_payment_checkout"
+
+type PersistedPaymentSession = {
+  appTransID: string
+  orderURL: string
+  qrCode: string
+  zpTransToken: string
+  pendingFinalizeParams: OrderPaymentCreateApi.BodyParams
+  pendingOrderPaymentIDs: string[]
+}
 
 export function onEnterRoute(): Action {
   return (state) => {
@@ -22,6 +37,8 @@ export function onEnterRoute(): Action {
         mineVouchersResponse: RD.loading(),
         submitResponse: RD.notAsked(),
         zaloStatusResponse: RD.notAsked(),
+        pendingFinalizeParams: null,
+        pendingOrderPaymentIDs: [],
         isFinalizing: false,
         flashMessage: null,
       }),
@@ -35,10 +52,28 @@ export function onEnterRoute(): Action {
 
 export function onEnterResultRoute(appTransID: string | null): Action {
   return (state) => {
-    if (
-      appTransID != null &&
-      state.payment.zaloCheckout?.appTransID !== appTransID
-    ) {
+    const restoredSession =
+      appTransID == null ? null : readPersistedSession(appTransID)
+    const effectiveCheckout =
+      state.payment.zaloCheckout ??
+      (restoredSession == null
+        ? null
+        : {
+            appTransID: restoredSession.appTransID,
+            orderURL: restoredSession.orderURL,
+            qrCode: restoredSession.qrCode,
+            zpTransToken: restoredSession.zpTransToken,
+          })
+    const effectivePendingFinalizeParams =
+      state.payment.pendingFinalizeParams ??
+      restoredSession?.pendingFinalizeParams ??
+      null
+    const effectivePendingOrderPaymentIDs =
+      state.payment.pendingOrderPaymentIDs.length > 0
+        ? state.payment.pendingOrderPaymentIDs
+        : (restoredSession?.pendingOrderPaymentIDs ?? [])
+
+    if (appTransID != null && effectiveCheckout?.appTransID !== appTransID) {
       return [
         _PaymentState(state, {
           flashMessage: "Checkout session expired. Please try payment again.",
@@ -48,12 +83,35 @@ export function onEnterResultRoute(appTransID: string | null): Action {
       ]
     }
 
+    const currentCheckout = effectiveCheckout
+    const shouldOpenCheckoutTab =
+      currentCheckout != null &&
+      state.payment.openedCheckoutAppTransID !== currentCheckout.appTransID
+
     return [
       _PaymentState(state, {
+        zaloCheckout: currentCheckout,
+        pendingFinalizeParams: effectivePendingFinalizeParams,
+        pendingOrderPaymentIDs: effectivePendingOrderPaymentIDs,
         zaloStatusResponse: RD.loading(),
+        openedCheckoutAppTransID: shouldOpenCheckoutTab
+          ? (currentCheckout?.appTransID ?? null)
+          : state.payment.openedCheckoutAppTransID,
       }),
-      cmd(sleep(500).then(() => pollZaloStatus())),
+      cmd(
+        shouldOpenCheckoutTab
+          ? perform(openCheckoutInNewTab(currentCheckout.orderURL))
+          : Promise.resolve(null),
+        sleep(500).then(() => pollZaloStatus()),
+      ),
     ]
+  }
+}
+
+function openCheckoutInNewTab(orderURL: string): Action {
+  return (state) => {
+    window.open(orderURL, "_blank", "noopener,noreferrer")
+    return [state, cmd()]
   }
 }
 
@@ -166,6 +224,7 @@ export function submitPayment(): Action {
     const decoded = OrderPaymentCreateApi.paramsDecoder.decode({
       address,
       panels,
+      isPaid: false,
     })
 
     if (decoded.ok === false) {
@@ -182,11 +241,12 @@ export function submitPayment(): Action {
       _PaymentState(state, {
         submitResponse: RD.loading(),
         zaloStatusResponse: RD.notAsked(),
+        pendingOrderPaymentIDs: [],
         flashMessage: null,
       }),
       cmd(
-        ZaloPayCreateApi.call({ panels: decoded.value.panels }).then(
-          (response) => onZaloCreateResponse(response, decoded.value),
+        OrderPaymentCreateApi.call(decoded.value).then((response) =>
+          onCreatePendingResponse(response, decoded.value),
         ),
       ),
     ]
@@ -230,7 +290,10 @@ function onMineVouchersResponse(response: VoucherListMineApi.Response): Action {
   }
 }
 
-function onCreateResponse(response: OrderPaymentCreateApi.Response): Action {
+function onCreatePendingResponse(
+  response: OrderPaymentCreateApi.Response,
+  finalizeParams: OrderPaymentCreateApi.BodyParams,
+): Action {
   return (state) => {
     if (response._t === "Err") {
       return [
@@ -243,32 +306,22 @@ function onCreateResponse(response: OrderPaymentCreateApi.Response): Action {
       ]
     }
 
-    localStorage.setItem("titan_cart", JSON.stringify([]))
+    const pendingOrderPaymentIDs = response.value.orderPayments.map(
+      (orderPayment) => orderPayment.id.unwrap(),
+    )
 
     return [
-      _CartState(
-        _PaymentState(state, {
-          submitResponse: RD.success(response.value),
-          selectedVoucherBySellerID: {},
-          pendingFinalizeParams: null,
-          isFinalizing: false,
-          finalizedAppTransIDs:
-            state.payment.zaloCheckout == null
-              ? state.payment.finalizedAppTransIDs
-              : state.payment.finalizedAppTransIDs.includes(
-                    state.payment.zaloCheckout.appTransID,
-                  )
-                ? state.payment.finalizedAppTransIDs
-                : [
-                    ...state.payment.finalizedAppTransIDs,
-                    state.payment.zaloCheckout.appTransID,
-                  ],
-          zaloCheckout: null,
-          flashMessage: "Payment created successfully.",
-        }),
-        { items: [], isOpen: false },
+      _PaymentState(state, {
+        submitResponse: RD.success(response.value),
+        pendingOrderPaymentIDs,
+        pendingFinalizeParams: finalizeParams,
+        flashMessage: null,
+      }),
+      cmd(
+        ZaloPayCreateApi.call({ panels: finalizeParams.panels }).then(
+          (zaloResponse) => onZaloCreateResponse(zaloResponse, finalizeParams),
+        ),
       ),
-      cmd(),
     ]
   }
 }
@@ -293,10 +346,21 @@ function onZaloCreateResponse(
         submitResponse: RD.notAsked(),
         zaloCheckout: response.value,
         pendingFinalizeParams: finalizeParams,
+        openedCheckoutAppTransID: null,
         isFinalizing: false,
         flashMessage: null,
       }),
       cmd(
+        perform(
+          persistPaymentSession({
+            appTransID: response.value.appTransID,
+            orderURL: response.value.orderURL,
+            qrCode: response.value.qrCode,
+            zpTransToken: response.value.zpTransToken,
+            pendingFinalizeParams: finalizeParams,
+            pendingOrderPaymentIDs: state.payment.pendingOrderPaymentIDs,
+          }),
+        ),
         perform(
           navigateTo(
             toRoute("PaymentResult", {
@@ -366,13 +430,30 @@ function onZaloQueryResponse(response: ZaloPayQueryApi.Response): Action {
       ]
     }
 
-    if (finalizeParams == null) {
+    if (
+      finalizeParams == null ||
+      state.payment.pendingOrderPaymentIDs.length === 0
+    ) {
       return [
         _PaymentState(state, {
           zaloStatusResponse: RD.success(response.value),
-          flashMessage: "Payment succeeded but order payload is missing.",
+          flashMessage: "Payment succeeded but pending bill data is missing.",
         }),
         cmd(),
+      ]
+    }
+
+    if (state.payment.pendingOrderPaymentIDs.length === 0) {
+      return [
+        _PaymentState(state, {
+          zaloStatusResponse: RD.success(response.value),
+          pendingOrderPaymentIDs: [],
+          pendingFinalizeParams: null,
+          isFinalizing: false,
+          flashMessage:
+            "Payment succeeded but bill ids are invalid. Please retry checkout.",
+        }),
+        cmd(perform(clearPersistedSession())),
       ]
     }
 
@@ -382,9 +463,161 @@ function onZaloQueryResponse(response: ZaloPayQueryApi.Response): Action {
         submitResponse: RD.loading(),
         isFinalizing: true,
       }),
-      cmd(OrderPaymentCreateApi.call(finalizeParams).then(onCreateResponse)),
+      cmd(
+        OrderPaymentMarkPaidApi.call({
+          orderPaymentIDs: state.payment.pendingOrderPaymentIDs,
+          panels: finalizeParams.panels,
+        }).then(
+          (markPaidResponse) =>
+            onMarkPaidResponse(markPaidResponse, appTransID ?? null),
+        ),
+      ),
     ]
   }
+}
+
+function onMarkPaidResponse(
+  response: OrderPaymentMarkPaidApi.Response,
+  appTransID: string | null,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _PaymentState(state, {
+          isFinalizing: false,
+          flashMessage: OrderPaymentMarkPaidApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    if (response.value.updatedCount <= 0) {
+      return [
+        _PaymentState(state, {
+          isFinalizing: false,
+          flashMessage:
+            "Payment succeeded but bill finalization failed. Please retry.",
+        }),
+        cmd(),
+      ]
+    }
+
+    localStorage.setItem("titan_cart", JSON.stringify([]))
+
+    return [
+      _CartState(
+        _PaymentState(state, {
+          selectedVoucherBySellerID: {},
+          pendingFinalizeParams: null,
+          pendingOrderPaymentIDs: [],
+          openedCheckoutAppTransID: null,
+          isFinalizing: false,
+          finalizedAppTransIDs:
+            appTransID == null ||
+            state.payment.finalizedAppTransIDs.includes(appTransID)
+              ? state.payment.finalizedAppTransIDs
+              : [...state.payment.finalizedAppTransIDs, appTransID],
+          zaloCheckout: null,
+          flashMessage: "Payment created successfully.",
+        }),
+        { items: [], isOpen: false },
+      ),
+      cmd(perform(clearPersistedSession())),
+    ]
+  }
+}
+
+function persistPaymentSession(session: PersistedPaymentSession): Action {
+  return (state) => {
+    localStorage.setItem(PAYMENT_SESSION_STORAGE_KEY, JSON.stringify(session))
+    return [state, cmd()]
+  }
+}
+
+function clearPersistedSession(): Action {
+  return (state) => {
+    localStorage.removeItem(PAYMENT_SESSION_STORAGE_KEY)
+    return [state, cmd()]
+  }
+}
+
+function readPersistedSession(
+  expectedAppTransID: string,
+): PersistedPaymentSession | null {
+  const raw = localStorage.getItem(PAYMENT_SESSION_STORAGE_KEY)
+  if (raw == null) {
+    return null
+  }
+
+  const parsed: unknown = (() => {
+    try {
+      return JSON.parse(raw)
+    } catch (_error) {
+      return null
+    }
+  })()
+  if (typeof parsed !== "object" || parsed == null) {
+    return null
+  }
+
+  const appTransID = Reflect.get(parsed, "appTransID")
+  const orderURL = Reflect.get(parsed, "orderURL")
+  const qrCode = Reflect.get(parsed, "qrCode")
+  const zpTransToken = Reflect.get(parsed, "zpTransToken")
+  const pendingFinalizeParams = Reflect.get(parsed, "pendingFinalizeParams")
+  const pendingOrderPaymentIDs = Reflect.get(parsed, "pendingOrderPaymentIDs")
+
+  if (
+    typeof appTransID !== "string" ||
+    typeof orderURL !== "string" ||
+    typeof qrCode !== "string" ||
+    typeof zpTransToken !== "string" ||
+    appTransID !== expectedAppTransID
+  ) {
+    return null
+  }
+
+  const decodedFinalize = OrderPaymentCreateApi.paramsDecoder.decode(
+    pendingFinalizeParams,
+  )
+  if (decodedFinalize.ok === false) {
+    return null
+  }
+
+  const decodedPendingOrderPaymentIDs = decodeOrderPaymentIDs(
+    pendingOrderPaymentIDs,
+  )
+  if (decodedPendingOrderPaymentIDs == null) {
+    return null
+  }
+
+  return {
+    appTransID,
+    orderURL,
+    qrCode,
+    zpTransToken,
+    pendingFinalizeParams: decodedFinalize.value,
+    pendingOrderPaymentIDs: decodedPendingOrderPaymentIDs,
+  }
+}
+
+function decodeOrderPaymentIDs(value: unknown): string[] | null {
+  if (Array.isArray(value) === false) {
+    return null
+  }
+
+  const decodedIDs: string[] = []
+
+  for (const id of value) {
+    const decodedID = orderPaymentIDDecoder.decode(id)
+    if (decodedID.ok === false) {
+      return null
+    }
+
+    decodedIDs.push(decodedID.value.unwrap())
+  }
+
+  return decodedIDs
 }
 
 function loadSellerProfiles(sellerIDs: string[]): Promise<Action | null> {

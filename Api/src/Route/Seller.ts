@@ -17,11 +17,12 @@ export function sellerRoutes(app: Express): void {
   publicApi(app, Login)
   publicApi(app, Register)
   publicApi(app, RefreshToken)
-  publicApi(app, GetProfile)
   sellerAuthApi(app, Logout)
   sellerAuthApi(app, Profile)
   sellerAuthApi(app, UpdateProfile)
   sellerAuthApi(app, HomeSeller)
   sellerAuthApi(app, OrderPaymentListMine)
   sellerAuthApi(app, OrderPaymentUpdateTracking)
+  // Register generic /seller/:id route last to avoid swallowing specific routes.
+  publicApi(app, GetProfile)
 }

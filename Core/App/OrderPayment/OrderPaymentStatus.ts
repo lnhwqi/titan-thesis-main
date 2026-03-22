@@ -5,7 +5,17 @@ export type OrderPaymentStatus =
   | "PACKED"
   | "IN_TRANSIT"
   | "DELIVERED"
+  | "RECEIVED"
+  | "DELIVERY_ISSUE"
   | "CANCELLED"
 
 export const orderPaymentStatusDecoder: JD.Decoder<OrderPaymentStatus> =
-  JD.oneOf(["PAID", "PACKED", "IN_TRANSIT", "DELIVERED", "CANCELLED"])
+  JD.oneOf([
+    "PAID",
+    "PACKED",
+    "IN_TRANSIT",
+    "DELIVERED",
+    "RECEIVED",
+    "DELIVERY_ISSUE",
+    "CANCELLED",
+  ])

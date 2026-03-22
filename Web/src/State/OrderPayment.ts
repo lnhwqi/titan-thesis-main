@@ -4,6 +4,7 @@ import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentS
 import type { State } from "../State"
 import { ApiError } from "../Api"
 import * as UserListApi from "../Api/Auth/User/OrderPayment/ListMine"
+import * as UserConfirmDeliveryApi from "../Api/Auth/User/OrderPayment/ConfirmDelivery"
 import * as SellerListApi from "../Api/Auth/Seller/OrderPayment/ListMine"
 import * as SellerUpdateApi from "../Api/Auth/Seller/OrderPayment/UpdateTracking"
 
@@ -22,6 +23,10 @@ export type OrderPaymentState = {
     ApiError<SellerUpdateApi.ErrorCode>,
     SellerUpdateApi.Payload
   >
+  confirmDeliveryResponse: RD.RemoteData<
+    ApiError<UserConfirmDeliveryApi.ErrorCode>,
+    UserConfirmDeliveryApi.Payload
+  >
   statusDraftByOrderID: Record<string, OrderPaymentStatus>
   trackingDraftByOrderID: Record<string, string>
   flashMessage: string | null
@@ -34,6 +39,7 @@ export function initOrderPaymentState(): OrderPaymentState {
     userOrdersResponse: RD.notAsked(),
     sellerOrdersResponse: RD.notAsked(),
     updateTrackingResponse: RD.notAsked(),
+    confirmDeliveryResponse: RD.notAsked(),
     statusDraftByOrderID: {},
     trackingDraftByOrderID: {},
     flashMessage: null,

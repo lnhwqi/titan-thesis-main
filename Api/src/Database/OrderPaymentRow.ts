@@ -37,6 +37,8 @@ export type OrderPaymentRow = {
   sellerId: SellerID
   username: Name
   address: OrderPaymentAddress
+  goodsSummary: string
+  isPaid: boolean
   status: OrderPaymentStatus
   price: Price
   trackingCode: Maybe<OrderPaymentTrackingCode>
@@ -64,6 +66,8 @@ export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
   sellerId: sellerIDDecoder,
   username: nameDecoder,
   address: orderPaymentAddressDecoder,
+  goodsSummary: JD.string,
+  isPaid: JD.boolean,
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
   trackingCode: maybeDecoder(orderPaymentTrackingCodeDecoder),
@@ -71,6 +75,15 @@ export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
   updatedAt: JD.unknown.transform(timestampJSDateDecoder.verify),
   createdAt: JD.unknown.transform(timestampJSDateDecoder.verify),
 })
+
+function normalizeOrderPaymentRow(
+  row: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    ...row,
+    goodsSummary: typeof row.goodsSummary === "string" ? row.goodsSummary : "",
+  }
+}
 
 export async function create(params: CreateParams): Promise<OrderPaymentRow> {
   const now = toDate(createNow())
@@ -84,6 +97,8 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
       sellerId: params.sellerId.unwrap(),
       username: params.username.unwrap(),
       address: params.address.unwrap(),
+      goodsSummary: "",
+      isPaid: true,
       status: "PAID",
       price: params.price.unwrap(),
       trackingCode: null,
@@ -93,7 +108,7 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
     })
     .returningAll()
     .executeTakeFirstOrThrow()
-    .then(orderPaymentRowDecoder.verify)
+    .then((row) => orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)))
 }
 
 export async function updateTracking(
@@ -113,7 +128,62 @@ export async function updateTracking(
     .where("isDeleted", "=", false)
     .returningAll()
     .executeTakeFirst()
-    .then((row) => (row == null ? null : orderPaymentRowDecoder.verify(row)))
+    .then((row) =>
+      row == null
+        ? null
+        : orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+    )
+}
+
+export async function markAsPaidByIDs(
+  userId: UserID,
+  ids: OrderPaymentID[],
+): Promise<number> {
+  if (ids.length === 0) {
+    return 0
+  }
+
+  const result = await db
+    .updateTable(tableName)
+    .set({
+      isPaid: true,
+      updatedAt: toDate(createNow()),
+    })
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .where("isPaid", "=", false)
+    .where(
+      "id",
+      "in",
+      ids.map((id) => id.unwrap()),
+    )
+    .executeTakeFirst()
+
+  return Number(result.numUpdatedRows)
+}
+
+export async function updateStatusByUser(
+  id: OrderPaymentID,
+  userId: UserID,
+  nextStatus: OrderPaymentStatus,
+): Promise<Maybe<OrderPaymentRow>> {
+  return db
+    .updateTable(tableName)
+    .set({
+      status: nextStatus,
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .where("status", "=", "DELIVERED")
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) =>
+      row == null
+        ? null
+        : orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+    )
 }
 
 export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
@@ -124,7 +194,11 @@ export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
     .where("isDeleted", "=", false)
     .orderBy("createdAt", "desc")
     .execute()
-    .then((rows) => JD.array(orderPaymentRowDecoder).verify(rows))
+    .then((rows) =>
+      rows.map((row) =>
+        orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+      ),
+    )
 }
 
 export async function getBySellerID(
@@ -137,5 +211,9 @@ export async function getBySellerID(
     .where("isDeleted", "=", false)
     .orderBy("createdAt", "desc")
     .execute()
-    .then((rows) => JD.array(orderPaymentRowDecoder).verify(rows))
+    .then((rows) =>
+      rows.map((row) =>
+        orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+      ),
+    )
 }

@@ -19,6 +19,7 @@ export type Schema = {
   user_cart_item: UserCartItemTable
   product_variant: ProductVariantTable
   order_payment: OrderPaymentTable
+  order_payment_item: OrderPaymentItemTable
 }
 
 type UserTable = {
@@ -136,12 +137,33 @@ export type OrderPaymentTable = {
   sellerId: string
   username: string
   address: string
-  status: "PAID" | "PACKED" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED"
+  goodsSummary: string
+  isPaid: boolean
+  status:
+    | "PAID"
+    | "PACKED"
+    | "IN_TRANSIT"
+    | "DELIVERED"
+    | "RECEIVED"
+    | "DELIVERY_ISSUE"
+    | "CANCELLED"
   price: number
   trackingCode: string | null
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date
+}
+
+export type OrderPaymentItemTable = {
+  id: string
+  orderPaymentId: string
+  productId: string
+  variantId: string
+  productName: string
+  variantName: string
+  quantity: number
+  createdAt: Date
+  updatedAt: Date
 }
 
 type UserRefreshTokenTable = {

@@ -35,6 +35,7 @@ export type UrlParams = NoUrlParams
 export type BodyParams = {
   address: OrderPaymentAddress
   panels: Panel[]
+  isPaid: boolean
 }
 
 export type Panel = {
@@ -80,6 +81,7 @@ export const panelDecoder: JD.Decoder<Panel> = JD.object({
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   address: orderPaymentAddressDecoder,
   panels: JD.array(panelDecoder),
+  isPaid: JD.boolean,
 })
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({

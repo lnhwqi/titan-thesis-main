@@ -10,7 +10,7 @@ import {
   Payload,
   UrlParams,
   BodyParams,
-} from "../../../../../../Core/Api/Auth/Seller/OrderPayment/UpdateTracking"
+} from "../../../../../../Core/Api/Auth/User/OrderPayment/ConfirmDelivery"
 
 export type { ErrorCode, Payload, UrlParams, BodyParams }
 export type Response = ApiResponse<ErrorCode, Payload>
@@ -31,7 +31,7 @@ export function errorString(code: ApiError<ErrorCode>): string {
       case "ORDER_PAYMENT_NOT_FOUND":
         return "Order not found."
       case "INVALID_STATUS_TRANSITION":
-        return "Invalid status update for this order."
+        return "This order is not ready for delivery confirmation."
     }
   })
 }

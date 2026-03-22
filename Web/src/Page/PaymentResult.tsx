@@ -36,7 +36,7 @@ export default function PaymentResultPage(props: Props): JSX.Element {
   const qrImageURL =
     checkout == null
       ? null
-      : `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(checkout.orderURL)}`
+      : `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(checkout.qrCode === "" ? checkout.orderURL : checkout.qrCode)}`
 
   return (
     <div className={styles.page}>
@@ -45,6 +45,10 @@ export default function PaymentResultPage(props: Props): JSX.Element {
         <p className={styles.subtitle}>
           Complete your payment and wait for automatic verification.
         </p>
+
+        {state.payment.flashMessage != null ? (
+          <div className={styles.alert}>{state.payment.flashMessage}</div>
+        ) : null}
 
         <div className={styles.statusPill}>Status: {statusLabel}</div>
 
@@ -63,12 +67,6 @@ export default function PaymentResultPage(props: Props): JSX.Element {
               ) : null}
             </div>
             <div className={styles.actionRow}>
-              <button
-                className={styles.primaryBtn}
-                onClick={() => window.open(checkout.orderURL, "_blank")}
-              >
-                Open ZaloPay
-              </button>
               <button
                 className={styles.secondaryBtn}
                 onClick={() => emit(pollZaloStatus())}
@@ -123,6 +121,14 @@ const styles = {
     margin: 0,
     color: color.neutral700,
   }),
+  alert: css({
+    ...font.medium14,
+    color: color.semantics.error.red500,
+    background: color.semantics.error.red20,
+    border: `1px solid ${color.semantics.error.red50}`,
+    borderRadius: theme.s1,
+    padding: `${theme.s2} ${theme.s3}`,
+  }),
   statusPill: css({
     ...font.bold14,
     color: color.primary500,
@@ -151,15 +157,6 @@ const styles = {
     display: "flex",
     gap: theme.s2,
     flexWrap: "wrap",
-  }),
-  primaryBtn: css({
-    border: "none",
-    background: color.primary500,
-    color: color.neutral0,
-    borderRadius: theme.s2,
-    padding: `${theme.s2} ${theme.s4}`,
-    ...font.medium14,
-    cursor: "pointer",
   }),
   secondaryBtn: css({
     border: `1px solid ${color.secondary300}`,

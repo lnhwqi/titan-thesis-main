@@ -26,6 +26,8 @@ export type PaymentState = {
     ZaloPayQueryApi.Payload
   >
   pendingFinalizeParams: OrderPaymentCreateApi.BodyParams | null
+  pendingOrderPaymentIDs: string[]
+  openedCheckoutAppTransID: string | null
   isFinalizing: boolean
   finalizedAppTransIDs: string[]
   flashMessage: string | null
@@ -42,6 +44,8 @@ export function initPaymentState(): PaymentState {
     zaloCheckout: null,
     zaloStatusResponse: RD.notAsked(),
     pendingFinalizeParams: null,
+    pendingOrderPaymentIDs: [],
+    openedCheckoutAppTransID: null,
     isFinalizing: false,
     finalizedAppTransIDs: [],
     flashMessage: null,

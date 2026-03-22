@@ -5,6 +5,7 @@ import * as CreateProductApi from "../Api/Auth/Seller/Product/Create"
 import * as SellerProfileApi from "../Api/Auth/Seller/Profile"
 import * as UpdateProfileApi from "../Api/Auth/Seller/UpdateProfile"
 import * as UpdateProductApi from "../Api/Auth/Seller/Product/Update"
+import * as SellerOrderPaymentListApi from "../Api/Auth/Seller/OrderPayment/ListMine"
 
 export type ShippingStatus = "PACKED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED"
 
@@ -57,6 +58,11 @@ export type SellerDashboardState = {
     ApiError<SellerProfileApi.ErrorCode>,
     SellerProfileApi.Payload
   >
+  sellerOrdersStatsResponse: RD.RemoteData<
+    ApiError<SellerOrderPaymentListApi.ErrorCode>,
+    SellerOrderPaymentListApi.Payload
+  >
+  totalProductsSold: number
   updateShopResponse: RD.RemoteData<
     ApiError<UpdateProfileApi.ErrorCode>,
     UpdateProfileApi.Payload
@@ -113,6 +119,8 @@ export function initSellerDashboardState(): SellerDashboardState {
     pendingDeleteProductName: null,
     shippingStatusByProductId: {},
     profileResponse: RD.notAsked(),
+    sellerOrdersStatsResponse: RD.notAsked(),
+    totalProductsSold: 0,
     updateShopResponse: RD.notAsked(),
     createResponse: RD.notAsked(),
     flashMessage: null,

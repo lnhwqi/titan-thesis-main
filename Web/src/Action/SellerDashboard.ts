@@ -8,6 +8,7 @@ import * as UpdateProfileApi from "../Api/Auth/Seller/UpdateProfile"
 import * as UploadImagesApi from "../Api/Auth/Seller/Product/UploadImages"
 import * as UpdateProductApi from "../Api/Auth/Seller/Product/Update"
 import * as DeleteProductApi from "../Api/Auth/Seller/Product/Delete"
+import * as SellerOrderPaymentListApi from "../Api/Auth/Seller/OrderPayment/ListMine"
 import * as ProductGetOneApi from "../Api/Public/Product/GetOne"
 import * as ProductListApi from "../Api/Public/Product/ListAll"
 import * as CategoryAction from "./Category"
@@ -36,12 +37,15 @@ export function onEnterRoute(): Action {
     return [
       _SellerDashboardState(nextState, {
         profileResponse: RD.loading(),
+        sellerOrdersStatsResponse: RD.loading(),
+        totalProductsSold: 0,
         flashMessage: null,
       }),
       [
         ...categoryCmd,
         SellerProfileApi.call().then(onLoadSellerProfileResponse),
         ProductListApi.call({}).then(onLoadProductListResponse),
+        SellerOrderPaymentListApi.call().then(onLoadSellerOrdersStatsResponse),
       ],
     ]
   }
@@ -461,6 +465,34 @@ function onLoadSellerProfileResponse(
         profileResponse: RD.success(response.value),
         shopName: response.value.seller.shopName.unwrap(),
         shopDescription: response.value.seller.shopDescription.unwrap(),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+function onLoadSellerOrdersStatsResponse(
+  response: SellerOrderPaymentListApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _SellerDashboardState(state, {
+          sellerOrdersStatsResponse: RD.failure(response.error),
+          totalProductsSold: 0,
+        }),
+        cmd(),
+      ]
+    }
+
+    const totalProductsSold = response.value.orders.filter(
+      (order) => order.isPaid,
+    ).length
+
+    return [
+      _SellerDashboardState(state, {
+        sellerOrdersStatsResponse: RD.success(response.value),
+        totalProductsSold,
       }),
       cmd(),
     ]

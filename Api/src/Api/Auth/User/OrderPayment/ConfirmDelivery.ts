@@ -1,6 +1,6 @@
-import * as API from "../../../../../../Core/Api/Auth/Seller/OrderPayment/UpdateTracking"
+import * as API from "../../../../../../Core/Api/Auth/User/OrderPayment/ConfirmDelivery"
 import { err, ok, Result } from "../../../../../../Core/Data/Result"
-import { AuthSeller } from "../../../AuthApi"
+import { AuthUser } from "../../../AuthApi"
 import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
 import * as OrderPaymentItemRow from "../../../../Database/OrderPaymentItemRow"
 import {
@@ -11,22 +11,20 @@ import {
 export const contract = API.contract
 
 export async function handler(
-  seller: AuthSeller,
+  user: AuthUser,
   params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { id, status, trackingCode } = params
+  const nextStatus =
+    params.decision === "RECEIVED" ? "RECEIVED" : "DELIVERY_ISSUE"
 
-  if (status === "RECEIVED" || status === "DELIVERY_ISSUE") {
-    return err("INVALID_STATUS_TRANSITION")
-  }
-
-  const row = await OrderPaymentRow.updateTracking(id, seller.id, {
-    status,
-    trackingCode,
-  })
+  const row = await OrderPaymentRow.updateStatusByUser(
+    params.id,
+    user.id,
+    nextStatus,
+  )
 
   if (row == null) {
-    return err("ORDER_PAYMENT_NOT_FOUND")
+    return err("INVALID_STATUS_TRANSITION")
   }
 
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentID(row.id)

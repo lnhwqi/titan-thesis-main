@@ -139,6 +139,10 @@ export default function PaymentPage(props: Props): JSX.Element {
             onChange={(v) => emit(PaymentAction.onChangeAddress(v))}
           />
         </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Payment Method</span>
+          <div className={styles.paymentMethodTag}>ZaloPay</div>
+        </div>
       </section>
 
       <section className={styles.panel}>
@@ -469,6 +473,15 @@ const styles = {
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
+  }),
+  paymentMethodTag: css({
+    width: "fit-content",
+    border: `1px solid ${color.primary500}`,
+    borderRadius: theme.s2,
+    background: color.primary50,
+    color: color.primary500,
+    padding: `${theme.s1} ${theme.s3}`,
+    ...font.medium14,
   }),
   total: css({
     ...font.bold17,

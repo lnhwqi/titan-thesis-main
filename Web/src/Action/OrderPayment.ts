@@ -2,12 +2,15 @@ import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, perform } from "../Action"
 import { _OrderPaymentState } from "../State/OrderPayment"
 import * as UserListApi from "../Api/Auth/User/OrderPayment/ListMine"
+import * as UserConfirmDeliveryApi from "../Api/Auth/User/OrderPayment/ConfirmDelivery"
 import * as SellerListApi from "../Api/Auth/Seller/OrderPayment/ListMine"
 import * as SellerUpdateApi from "../Api/Auth/Seller/OrderPayment/UpdateTracking"
 import { parseOrderPaymentID } from "../../../Core/App/OrderPayment/OrderPaymentID"
 import { navigateTo, toRoute } from "../Route"
 import { createOrderPaymentTrackingCode } from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
+
+type DeliveryDecision = "RECEIVED" | "DELIVERY_ISSUE"
 
 export function onEnterUserOrdersRoute(): Action {
   return (state) => [
@@ -64,9 +67,10 @@ export function onChangeTrackingDraft(orderID: string, value: string): Action {
 export function submitTrackingUpdate(orderID: string): Action {
   return (state) => {
     const status = state.orderPayment.statusDraftByOrderID[orderID] ?? "PACKED"
-    const trackingDraft = (
+    const trackingDraftRaw = (
       state.orderPayment.trackingDraftByOrderID[orderID] ?? ""
     ).trim()
+    const trackingDraft = trackingDraftRaw.slice(0, 100)
 
     let parsedID
     try {
@@ -92,29 +96,43 @@ export function submitTrackingUpdate(orderID: string): Action {
       ]
     }
 
-    const decodeUrl = SellerUpdateApi.urlParamsDecoder.decode({ id: parsedID })
-    const decodeBody = SellerUpdateApi.bodyParamsDecoder.decode({
-      status,
-      trackingCode,
-    })
-
-    if (decodeUrl.ok === false || decodeBody.ok === false) {
-      return [
-        _OrderPaymentState(state, {
-          flashMessage: "Invalid status or tracking code.",
-        }),
-        cmd(),
-      ]
-    }
-
     return [
       _OrderPaymentState(state, {
         updateTrackingResponse: RD.loading(),
         flashMessage: null,
       }),
       cmd(
-        SellerUpdateApi.call(decodeUrl.value, decodeBody.value).then(
+        SellerUpdateApi.call({ id: parsedID }, { status, trackingCode }).then(
           onUpdateTrackingResponse,
+        ),
+      ),
+    ]
+  }
+}
+
+export function submitDeliveryDecision(
+  orderID: string,
+  decision: DeliveryDecision,
+): Action {
+  return (state) => {
+    let parsedID
+    try {
+      parsedID = parseOrderPaymentID(orderID)
+    } catch (_e) {
+      return [
+        _OrderPaymentState(state, { flashMessage: "Invalid order id." }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _OrderPaymentState(state, {
+        confirmDeliveryResponse: RD.loading(),
+        flashMessage: null,
+      }),
+      cmd(
+        UserConfirmDeliveryApi.call({ id: parsedID }, { decision }).then(
+          (response) => onConfirmDeliveryResponse(response, decision),
         ),
       ),
     ]
@@ -155,12 +173,14 @@ function onSellerListResponse(response: SellerListApi.Response): Action {
       ]
     }
 
+    const paidOrders = response.value.orders.filter((order) => order.isPaid)
+
     const statusDraftByOrderID = { ...state.orderPayment.statusDraftByOrderID }
     const trackingDraftByOrderID = {
       ...state.orderPayment.trackingDraftByOrderID,
     }
 
-    response.value.orders.forEach((order) => {
+    paidOrders.forEach((order) => {
       const key = order.id.unwrap()
       statusDraftByOrderID[key] = order.status
       trackingDraftByOrderID[key] = order.trackingCode?.unwrap() ?? ""
@@ -168,7 +188,7 @@ function onSellerListResponse(response: SellerListApi.Response): Action {
 
     return [
       _OrderPaymentState(state, {
-        sellerOrders: response.value.orders,
+        sellerOrders: paidOrders,
         sellerOrdersResponse: RD.success(response.value),
         statusDraftByOrderID,
         trackingDraftByOrderID,
@@ -196,6 +216,34 @@ function onUpdateTrackingResponse(response: SellerUpdateApi.Response): Action {
         flashMessage: "Tracking status updated.",
       }),
       cmd(SellerListApi.call().then(onSellerListResponse)),
+    ]
+  }
+}
+
+function onConfirmDeliveryResponse(
+  response: UserConfirmDeliveryApi.Response,
+  decision: DeliveryDecision,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _OrderPaymentState(state, {
+          confirmDeliveryResponse: RD.failure(response.error),
+          flashMessage: UserConfirmDeliveryApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _OrderPaymentState(state, {
+        confirmDeliveryResponse: RD.success(response.value),
+        flashMessage:
+          decision === "RECEIVED"
+            ? "Thanks. Delivery confirmed as received."
+            : "Issue reported. Our team will follow up.",
+      }),
+      cmd(UserListApi.call().then(onUserListResponse)),
     ]
   }
 }

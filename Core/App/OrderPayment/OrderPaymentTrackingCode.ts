@@ -22,7 +22,7 @@ export function createOrderPaymentTrackingCodeE(
 }
 
 function _validate(s: string): Result<ErrorOrderPaymentTrackingCode, string> {
-  const textValue = createText100(s)
+  const textValue = createText100(s.trim())
   if (textValue == null) {
     return err("INVALID_ORDER_PAYMENT_TRACKING_CODE")
   }

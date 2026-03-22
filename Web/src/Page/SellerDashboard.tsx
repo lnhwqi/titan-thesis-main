@@ -197,6 +197,12 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
           <div className={styles.statValue}>{myProductsCount}</div>
         </article>
         <article className={styles.statCard}>
+          <div className={styles.statLabel}>Total Products Sold</div>
+          <div className={styles.statValue}>
+            {sellerState.totalProductsSold}
+          </div>
+        </article>
+        <article className={styles.statCard}>
           <div className={styles.statLabel}>Revenue</div>
           <div className={styles.statValue}>
             {formatCurrency(seller?.revenue.unwrap() ?? 0)}
