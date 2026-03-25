@@ -18,6 +18,14 @@ type CategoryOption = {
 }
 
 const variantSizes: Array<"S" | "M" | "L" | "XL"> = ["S", "M", "L", "XL"]
+const variantModeOptions: Array<{
+  value: "PRESET" | "NONE" | "CUSTOM"
+  label: string
+}> = [
+  { value: "PRESET", label: "Preset (S/M/L/XL)" },
+  { value: "NONE", label: "No size" },
+  { value: "CUSTOM", label: "Custom variants" },
+]
 
 export default function SellerProductCreatePage(props: Props): JSX.Element {
   const { state } = props
@@ -144,26 +152,124 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
           </div>
 
           <div className={styles.fieldFull}>
-            <span className={styles.label}>Variant Stocks (S/M/L/XL)</span>
-            <div className={styles.variantGrid}>
-              {variantSizes.map((size) => (
-                <div
-                  key={size}
-                  className={styles.variantCard}
+            <span className={styles.label}>Variant Setup</span>
+            <div className={styles.variantModeRow}>
+              {variantModeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  className={
+                    createState.variantMode === option.value
+                      ? styles.variantModeButtonActive
+                      : styles.variantModeButton
+                  }
+                  onClick={() =>
+                    emit(
+                      SellerDashboardAction.onChangeVariantMode(option.value),
+                    )
+                  }
                 >
-                  <span className={styles.variantLabel}>{size}</span>
-                  <InputText
-                    value={createState.variantStocks[size]}
-                    invalid={false}
-                    type="number"
-                    placeholder="0"
-                    onChange={(v) =>
-                      emit(SellerDashboardAction.onChangeVariantStock(size, v))
-                    }
-                  />
-                </div>
+                  {option.label}
+                </button>
               ))}
             </div>
+
+            {createState.variantMode === "PRESET" ? (
+              <div className={styles.variantGrid}>
+                {variantSizes.map((size) => (
+                  <div
+                    key={size}
+                    className={styles.variantCard}
+                  >
+                    <span className={styles.variantLabel}>{size}</span>
+                    <InputText
+                      value={createState.presetVariantStocks[size]}
+                      invalid={false}
+                      type="number"
+                      placeholder="0"
+                      onChange={(v) =>
+                        emit(
+                          SellerDashboardAction.onChangePresetVariantStock(
+                            size,
+                            v,
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {createState.variantMode === "NONE" ? (
+              <div className={styles.singleVariantCard}>
+                <span className={styles.variantLabel}>Total Stock</span>
+                <InputText
+                  value={createState.singleVariantStock}
+                  invalid={false}
+                  type="number"
+                  placeholder="0"
+                  onChange={(v) =>
+                    emit(SellerDashboardAction.onChangeSingleVariantStock(v))
+                  }
+                />
+              </div>
+            ) : null}
+
+            {createState.variantMode === "CUSTOM" ? (
+              <div className={styles.customList}>
+                {createState.customVariants.map((variant, index) => (
+                  <div
+                    key={`${index}-${variant.name}`}
+                    className={styles.customRow}
+                  >
+                    <InputText
+                      value={variant.name}
+                      invalid={false}
+                      type="text"
+                      placeholder="Variant name (e.g. XXL, Red)"
+                      onChange={(v) =>
+                        emit(
+                          SellerDashboardAction.onChangeCustomVariantName(
+                            index,
+                            v,
+                          ),
+                        )
+                      }
+                    />
+                    <InputText
+                      value={variant.stock}
+                      invalid={false}
+                      type="number"
+                      placeholder="Stock"
+                      onChange={(v) =>
+                        emit(
+                          SellerDashboardAction.onChangeCustomVariantStock(
+                            index,
+                            v,
+                          ),
+                        )
+                      }
+                    />
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() =>
+                        emit(SellerDashboardAction.onRemoveCustomVariant(index))
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  className={styles.secondaryButton}
+                  onClick={() =>
+                    emit(SellerDashboardAction.onAddCustomVariant())
+                  }
+                >
+                  Add Variant
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.fieldFull}>
@@ -353,6 +459,30 @@ const styles = {
     gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
     gap: theme.s2,
   }),
+  variantModeRow: css({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: theme.s2,
+    marginBottom: theme.s2,
+  }),
+  variantModeButton: css({
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    borderRadius: theme.s2,
+    padding: `${theme.s1} ${theme.s3}`,
+    ...font.medium12,
+    cursor: "pointer",
+  }),
+  variantModeButtonActive: css({
+    border: `1px solid ${color.secondary500}`,
+    background: color.secondary500,
+    color: color.neutral0,
+    borderRadius: theme.s2,
+    padding: `${theme.s1} ${theme.s3}`,
+    ...font.medium12,
+    cursor: "pointer",
+  }),
   variantCard: css({
     border: `1px solid ${color.secondary200}`,
     borderRadius: theme.s2,
@@ -365,6 +495,30 @@ const styles = {
   variantLabel: css({
     ...font.medium12,
     color: color.secondary500,
+  }),
+  singleVariantCard: css({
+    border: `1px solid ${color.secondary200}`,
+    borderRadius: theme.s2,
+    padding: theme.s2,
+    background: color.neutral50,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+    maxWidth: "260px",
+  }),
+  customList: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s2,
+  }),
+  customRow: css({
+    display: "grid",
+    gridTemplateColumns: "1fr 140px auto",
+    gap: theme.s2,
+    alignItems: "center",
+    ...bp.md({
+      gridTemplateColumns: "1fr 180px auto",
+    }),
   }),
   imageList: css({
     display: "flex",

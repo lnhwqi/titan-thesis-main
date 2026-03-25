@@ -19,6 +19,7 @@ import { _ProductState } from "../State/Product"
 import { navigateTo, toRoute } from "../Route"
 import type { State } from "../State"
 import {
+  CreateVariantMode,
   _SellerDashboardState,
   EditVariantRow,
   initCreateProductTouched,
@@ -28,8 +29,8 @@ import {
 export const MAX_PRODUCT_IMAGES = 5
 const MAX_UPLOAD_SIZE_BYTES = 2 * 1024 * 1024
 export const MAX_UPLOAD_SIZE_MB = MAX_UPLOAD_SIZE_BYTES / (1024 * 1024)
-type VariantSize = "S" | "M" | "L" | "XL"
-const VARIANT_SIZES: VariantSize[] = ["S", "M", "L", "XL"]
+type PresetVariantSize = "S" | "M" | "L" | "XL"
+const PRESET_VARIANT_SIZES: PresetVariantSize[] = ["S", "M", "L", "XL"]
 
 export function onEnterRoute(): Action {
   return (state) => {
@@ -736,13 +737,104 @@ export function onChangeSku(value: string): Action {
   ]
 }
 
-export function onChangeVariantStock(size: VariantSize, value: string): Action {
+export function onChangeVariantMode(mode: CreateVariantMode): Action {
   return (state) => [
     _SellerDashboardState(state, {
-      variantStocks: {
-        ...state.sellerDashboard.variantStocks,
+      variantMode: mode,
+      flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangePresetVariantStock(
+  size: PresetVariantSize,
+  value: string,
+): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      presetVariantStocks: {
+        ...state.sellerDashboard.presetVariantStocks,
         [size]: value,
       },
+      flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeSingleVariantStock(value: string): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      singleVariantStock: value,
+      flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+    }),
+    cmd(),
+  ]
+}
+
+export function onAddCustomVariant(): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      customVariants: [
+        ...state.sellerDashboard.customVariants,
+        { name: "", stock: "" },
+      ],
+      flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+    }),
+    cmd(),
+  ]
+}
+
+export function onRemoveCustomVariant(index: number): Action {
+  return (state) => {
+    const filtered = state.sellerDashboard.customVariants.filter(
+      (_item, itemIndex) => itemIndex !== index,
+    )
+
+    return [
+      _SellerDashboardState(state, {
+        customVariants:
+          filtered.length > 0 ? filtered : [{ name: "", stock: "" }],
+        flashMessage: null,
+        createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function onChangeCustomVariantName(
+  index: number,
+  value: string,
+): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      customVariants: state.sellerDashboard.customVariants.map(
+        (variant, variantIndex) =>
+          variantIndex === index ? { ...variant, name: value } : variant,
+      ),
+      flashMessage: null,
+      createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeCustomVariantStock(
+  index: number,
+  value: string,
+): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      customVariants: state.sellerDashboard.customVariants.map(
+        (variant, variantIndex) =>
+          variantIndex === index ? { ...variant, stock: value } : variant,
+      ),
       flashMessage: null,
       createTouched: { ...state.sellerDashboard.createTouched, stock: true },
     }),
@@ -1006,22 +1098,20 @@ export function submitCreateProduct(): Action {
     }
 
     const price = Number(state.sellerDashboard.price)
-    const invalidVariantSizes = VARIANT_SIZES.filter((size) => {
-      const raw = state.sellerDashboard.variantStocks[size].trim()
-      if (raw === "") {
-        return false
-      }
+    const variantResult = buildCreateVariants(
+      state.sellerDashboard.variantMode,
+      state.sellerDashboard.presetVariantStocks,
+      state.sellerDashboard.singleVariantStock,
+      state.sellerDashboard.customVariants,
+      state.sellerDashboard.sku,
+      state.sellerDashboard.name,
+      price,
+    )
 
-      const parsed = Number(raw)
-      return (
-        Number.isFinite(parsed) === false || createStockE(parsed)._t === "Err"
-      )
-    })
-
-    if (invalidVariantSizes.length > 0) {
+    if (variantResult._t === "Err") {
       return [
         _SellerDashboardState(state, {
-          flashMessage: `Invalid stock for size: ${invalidVariantSizes.join(", ")}.`,
+          flashMessage: variantResult.error,
           createTouched: {
             ...state.sellerDashboard.createTouched,
             stock: true,
@@ -1031,23 +1121,6 @@ export function submitCreateProduct(): Action {
       ]
     }
 
-    const variants = VARIANT_SIZES.map((size) => {
-      const stockValue = Number(state.sellerDashboard.variantStocks[size])
-      const baseSku = state.sellerDashboard.sku.trim()
-      const resolvedSku =
-        baseSku === "" ? `${size}` : `${baseSku}-${size.toLowerCase()}`
-      const baseName = state.sellerDashboard.name.trim()
-      const resolvedName =
-        baseName === "" ? `Size ${size}` : `${baseName} - ${size}`
-
-      return {
-        name: resolvedName,
-        sku: resolvedSku,
-        price,
-        stock: stockValue,
-      }
-    })
-
     const candidate = {
       name: state.sellerDashboard.name,
       price,
@@ -1055,7 +1128,7 @@ export function submitCreateProduct(): Action {
       urls: state.sellerDashboard.imageUrls,
       categoryID,
       attributes: {},
-      variants,
+      variants: variantResult.value,
     }
 
     const decoded = CreateProductApi.paramsDecoder.decode(candidate)
@@ -1141,16 +1214,151 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
         description: "",
         imageUrls: [],
         sku: "",
-        variantStocks: {
+        variantMode: "PRESET",
+        presetVariantStocks: {
           S: "",
           M: "",
           L: "",
           XL: "",
         },
+        singleVariantStock: "",
+        customVariants: [{ name: "", stock: "" }],
         isUploadingImages: false,
         createTouched: initCreateProductTouched(),
       }),
       cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
     ]
+  }
+}
+
+function isInvalidStock(raw: string): boolean {
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) === false || createStockE(parsed)._t === "Err"
+}
+
+function buildCreateVariants(
+  mode: CreateVariantMode,
+  presetVariantStocks: Record<PresetVariantSize, string>,
+  singleVariantStock: string,
+  customVariants: Array<{ name: string; stock: string }>,
+  rawSku: string,
+  rawProductName: string,
+  price: number,
+):
+  | {
+      _t: "Ok"
+      value: Array<{ name: string; sku: string; price: number; stock: number }>
+    }
+  | { _t: "Err"; error: string } {
+  const baseSku = rawSku.trim()
+  const baseName = rawProductName.trim()
+
+  if (mode === "PRESET") {
+    const invalidVariantSizes = PRESET_VARIANT_SIZES.filter((size) =>
+      isInvalidStock(presetVariantStocks[size]),
+    )
+
+    if (invalidVariantSizes.length > 0) {
+      return {
+        _t: "Err",
+        error: `Invalid stock for size: ${invalidVariantSizes.join(", ")}.`,
+      }
+    }
+
+    return {
+      _t: "Ok",
+      value: PRESET_VARIANT_SIZES.map((size) => {
+        const resolvedSku =
+          baseSku === "" ? `${size}` : `${baseSku}-${size.toLowerCase()}`
+        const resolvedName =
+          baseName === "" ? `Size ${size}` : `${baseName} - ${size}`
+
+        return {
+          name: resolvedName,
+          sku: resolvedSku,
+          price,
+          stock: Number(presetVariantStocks[size]),
+        }
+      }),
+    }
+  }
+
+  if (mode === "NONE") {
+    if (isInvalidStock(singleVariantStock)) {
+      return {
+        _t: "Err",
+        error: "Invalid stock for product without variant.",
+      }
+    }
+
+    return {
+      _t: "Ok",
+      value: [
+        {
+          name: baseName === "" ? "Default" : baseName,
+          sku: baseSku === "" ? "default" : baseSku,
+          price,
+          stock: Number(singleVariantStock),
+        },
+      ],
+    }
+  }
+
+  const normalized = customVariants
+    .map((variant) => ({
+      name: variant.name.trim(),
+      stock: variant.stock.trim(),
+    }))
+    .filter((variant) => variant.name !== "" || variant.stock !== "")
+
+  if (normalized.length === 0) {
+    return {
+      _t: "Err",
+      error: "Please add at least one custom variant.",
+    }
+  }
+
+  for (const variant of normalized) {
+    if (variant.name === "") {
+      return {
+        _t: "Err",
+        error: "Each custom variant must have a name.",
+      }
+    }
+
+    if (variant.stock === "" || isInvalidStock(variant.stock)) {
+      return {
+        _t: "Err",
+        error: `Invalid stock for custom variant: ${variant.name}.`,
+      }
+    }
+  }
+
+  const customNameDuplicates = normalized
+    .map((variant) => variant.name.toLowerCase())
+    .filter((name, index, list) => list.indexOf(name) !== index)
+
+  if (customNameDuplicates.length > 0) {
+    return {
+      _t: "Err",
+      error: "Custom variant names must be unique.",
+    }
+  }
+
+  return {
+    _t: "Ok",
+    value: normalized.map((variant) => {
+      const suffix = variant.name.toLowerCase().replace(/\s+/g, "-")
+      const resolvedSku = baseSku === "" ? suffix : `${baseSku}-${suffix}`
+      const resolvedName =
+        baseName === "" ? variant.name : `${baseName} - ${variant.name}`
+
+      return {
+        name: resolvedName,
+        sku: resolvedSku,
+        price,
+        stock: Number(variant.stock),
+      }
+    }),
   }
 }

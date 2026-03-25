@@ -9,6 +9,13 @@ import * as SellerOrderPaymentListApi from "../Api/Auth/Seller/OrderPayment/List
 
 export type ShippingStatus = "PACKED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED"
 
+export type CreateVariantMode = "PRESET" | "NONE" | "CUSTOM"
+
+export type CreateCustomVariantRow = {
+  name: string
+  stock: string
+}
+
 export type EditVariantRow = {
   id: string | null
   name: string
@@ -27,7 +34,10 @@ export type SellerDashboardState = {
   description: string
   imageUrls: string[]
   sku: string
-  variantStocks: Record<"S" | "M" | "L" | "XL", string>
+  variantMode: CreateVariantMode
+  presetVariantStocks: Record<"S" | "M" | "L" | "XL", string>
+  singleVariantStock: string
+  customVariants: CreateCustomVariantRow[]
   createTouched: {
     name: boolean
     categoryID: boolean
@@ -97,12 +107,20 @@ export function initSellerDashboardState(): SellerDashboardState {
     description: "",
     imageUrls: [],
     sku: "",
-    variantStocks: {
+    variantMode: "PRESET",
+    presetVariantStocks: {
       S: "",
       M: "",
       L: "",
       XL: "",
     },
+    singleVariantStock: "",
+    customVariants: [
+      {
+        name: "",
+        stock: "",
+      },
+    ],
     createTouched: initCreateProductTouched(),
     isUploadingImages: false,
     isLoadingEditProduct: false,

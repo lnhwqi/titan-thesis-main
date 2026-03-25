@@ -53,10 +53,16 @@ export async function handler(
     return err("QUERY_FAILED")
   }
 
-  const returnCode = Reflect.get(data, "return_code")
+  const returnCodeRaw = Reflect.get(data, "return_code")
+  const returnCode =
+    typeof returnCodeRaw === "number"
+      ? returnCodeRaw
+      : typeof returnCodeRaw === "string"
+        ? Number(returnCodeRaw)
+        : NaN
   const returnMessage = Reflect.get(data, "return_message")
 
-  if (typeof returnCode !== "number") {
+  if (Number.isFinite(returnCode) === false) {
     return err("QUERY_FAILED")
   }
 

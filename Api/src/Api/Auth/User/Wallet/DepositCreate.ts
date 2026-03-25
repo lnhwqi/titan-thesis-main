@@ -19,7 +19,7 @@ export async function handler(
     return err("INVALID_AMOUNT")
   }
 
-  const appTransID = `WD_${formatYYMMDDVN(new Date())}_${Date.now()}`
+  const appTransID = `${formatYYMMDDVN(new Date())}_${Date.now()}`
   const appTime = Date.now()
   const embedData = JSON.stringify({
     merchant: "titan",
