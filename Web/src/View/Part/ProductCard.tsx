@@ -23,11 +23,9 @@ export function ProductCard(props: Props): JSX.Element {
   const getShopLabel = () => {
     const shopName = product.shopName?.unwrap()
     if (shopName != null && shopName.trim() !== "") {
-      return shopName.length > 10 ? shopName.slice(0, 10) : shopName
+      return shopName.length > 20 ? shopName.slice(0, 20) : shopName
     }
-
-    const sellerId = product.sellerID.unwrap()
-    return `Shop ${sellerId.slice(0, 8)}`
+    return `Partner`
   }
 
   const getVariantSizes = () => {
@@ -84,9 +82,18 @@ export function ProductCard(props: Props): JSX.Element {
   const isSaved = state.product.wishlistProductIDs.includes(product.id.unwrap())
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      maximumFractionDigits: 0,
-    }).format(price)
+    const formatNumber = (number: number) => {
+      return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 0,
+      }).format(number)
+    }
+    if (price >= 1_000_000_000) {
+      return formatNumber(price / 1_000_000_000) + "B"
+    }
+    if (price >= 1_000_000) {
+      return formatNumber(price / 1_000_000) + "M"
+    }
+    return formatNumber(price)
   }
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -147,7 +154,10 @@ export function ProductCard(props: Props): JSX.Element {
 
           <img
             className={styles.image}
-            src={product.url?.unwrap() || "https://via.placeholder.com/300"}
+            src={
+              product.url?.unwrap() ||
+              "https://res.cloudinary.com/dmuxj8a3n/image/upload/v1774519592/at-logo-1_g1qq6a.jpg"
+            }
             alt={product.name.unwrap()}
             loading="lazy"
           />
@@ -167,14 +177,10 @@ export function ProductCard(props: Props): JSX.Element {
                   openSellerProfile()
                 }
               }}
-              title="View seller profile"
+              title={`${shopLabel} Profile`}
             >
-              {shopLabel}
+              {`By ${shopLabel}`}
             </span>
-            <div className={styles.price}>
-              <span className={styles.coinBadge}>T</span>
-              <span>{formatPrice(product.price.unwrap())}</span>
-            </div>
           </div>
 
           <h3
@@ -198,6 +204,11 @@ export function ProductCard(props: Props): JSX.Element {
               ))}
             </div>
           ) : null}
+
+          <div className={styles.price}>
+            <span className={styles.coinBadge}>T</span>
+            <span>{formatPrice(product.price.unwrap())}</span>
+          </div>
         </div>
 
         {isSoldOut ? (
@@ -213,13 +224,14 @@ export function ProductCard(props: Props): JSX.Element {
 }
 
 const nameClass = css({
-  ...font.medium14,
+  ...font.bold17,
   color: color.neutral900,
-  marginBottom: theme.s1,
   display: "-webkit-box",
+  margin: theme.s0,
   WebkitLineClamp: 2,
   WebkitBoxOrient: "vertical",
   overflow: "hidden",
+  wordBreak: "keep-all",
   height: "40px",
   transition: "color 0.2s",
 })
@@ -306,6 +318,7 @@ const styles = {
     width: "100%",
     height: "100%",
     objectFit: "cover",
+    objectPosition: "center",
     transition: "transform 0.5s ease",
     ".card:hover &": {
       transform: "scale(1.05)",
@@ -353,20 +366,20 @@ const styles = {
     marginBottom: theme.s0,
   }),
   shopItem: css({
-    padding: `${theme.s1} ${theme.s4}`,
-    backgroundColor: color.secondary50,
+    padding: `${theme.s1} ${theme.s1}`,
+    // backgroundColor: color.secondary50,
     color: color.secondary500,
-    borderRadius: theme.br1,
-    ...font.medium12,
+    ...font.regular10,
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
     cursor: "pointer",
     transition: "all 0.2s ease",
-    border: `1px solid transparent`,
     userSelect: "none",
+    borderBottom: `1px solid transparent`,
+
     "&:hover": {
-      backgroundColor: color.secondary100,
-      borderColor: color.secondary200,
+      // backgroundColor: color.secondary100,
+      // borderColor: color.secondary200,
+      borderBottom: `1px solid ${color.secondary500}`,
     },
     "&:focus": {
       outline: "none",
@@ -396,18 +409,19 @@ const styles = {
     color: color.primary500,
     display: "inline-flex",
     alignItems: "center",
+    marginLeft: "auto",
     gap: theme.s1,
   }),
   coinBadge: css({
-    width: "24px",
-    height: "24px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     backgroundColor: color.primary500,
     color: color.semantics.warning.yellow500,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    ...font.bold14,
+    ...font.bold10,
     lineHeight: 1,
   }),
 }
