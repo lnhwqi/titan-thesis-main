@@ -10,6 +10,9 @@ import * as ApproveSeller from "../Api/Auth/Admin/ApproveSeller"
 import * as CreateCategory from "../Api/Auth/Admin/CreateCategory"
 import * as UpdateCategory from "../Api/Auth/Admin/UpdateCategory"
 import * as DeleteCategory from "../Api/Auth/Admin/DeleteCategory"
+import * as CreatePoster from "../Api/Auth/Admin/CreatePoster"
+import * as UpdatePoster from "../Api/Auth/Admin/UpdatePoster"
+import * as DeletePoster from "../Api/Auth/Admin/DeletePoster"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -23,4 +26,7 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, CreateCategory)
   adminAuthApi(app, UpdateCategory)
   adminAuthApi(app, DeleteCategory)
+  adminAuthApi(app, CreatePoster)
+  adminAuthApi(app, UpdatePoster)
+  adminAuthApi(app, DeletePoster)
 }

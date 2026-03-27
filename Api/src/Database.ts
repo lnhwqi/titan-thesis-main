@@ -21,6 +21,7 @@ export type Schema = {
   order_payment: OrderPaymentTable
   order_payment_item: OrderPaymentItemTable
   wallet_deposit: WalletDepositTable
+  poster: PosterTable
 }
 
 type UserTable = {
@@ -177,6 +178,22 @@ export type WalletDepositTable = {
   creditedAt: Date | null
   createdAt: Date
   updatedAt: Date
+}
+
+export type PosterTable = {
+  id: string
+  name: string
+  description: string
+  imageUrl: string
+  imageScalePercent: number
+  imageOffsetXPercent: number
+  imageOffsetYPercent: number
+  startDate: Date
+  endDate: Date | null
+  isPermanent: boolean
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
 }
 
 type UserRefreshTokenTable = {
