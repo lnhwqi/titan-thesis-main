@@ -8,7 +8,11 @@ import {
   timestampJSDateDecoder,
   toDate,
 } from "../../../Core/Data/Time/Timestamp"
-import { SDate, fromJsDateLocal, toJsDateLocal } from "../../../Core/Data/Time/SDate"
+import {
+  SDate,
+  fromJsDateLocal,
+  toJsDateLocal,
+} from "../../../Core/Data/Time/SDate"
 import {
   PosterID,
   createPosterID,
@@ -22,7 +26,10 @@ import {
   PosterDescription,
   posterDescriptionDecoder,
 } from "../../../Core/App/Poster/PosterDescription"
-import { ImageUrl, imageUrlDecoder } from "../../../Core/App/Product/ProductImageUrl"
+import {
+  ImageUrl,
+  imageUrlDecoder,
+} from "../../../Core/App/Product/ProductImageUrl"
 
 const tableName = "poster"
 
@@ -51,11 +58,17 @@ export const posterRowDecoder: JD.Decoder<PosterRow> = JD.object({
   imageOffsetXPercent: JD.number,
   imageOffsetYPercent: JD.number,
   startDate: JD.date.transform((d) =>
-    throwIfNull(fromJsDateLocal(d), `Invalid poster startDate: ${d.toISOString()}`),
+    throwIfNull(
+      fromJsDateLocal(d),
+      `Invalid poster startDate: ${d.toISOString()}`,
+    ),
   ),
   endDate: JD.nullable(
     JD.date.transform((d) =>
-      throwIfNull(fromJsDateLocal(d), `Invalid poster endDate: ${d.toISOString()}`),
+      throwIfNull(
+        fromJsDateLocal(d),
+        `Invalid poster endDate: ${d.toISOString()}`,
+      ),
     ),
   ),
   isPermanent: JD.boolean,

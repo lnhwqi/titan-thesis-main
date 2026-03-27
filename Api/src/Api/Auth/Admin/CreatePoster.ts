@@ -12,7 +12,9 @@ export async function handler(
   _admin: AuthAdmin,
   params: API.NoUrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  if (isDateRangeInvalid(params.startDate, params.endDate, params.isPermanent)) {
+  if (
+    isDateRangeInvalid(params.startDate, params.endDate, params.isPermanent)
+  ) {
     return err("INVALID_DATE_RANGE")
   }
 

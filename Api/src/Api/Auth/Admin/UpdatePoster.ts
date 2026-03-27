@@ -17,7 +17,9 @@ export async function handler(
     return err("POSTER_NOT_FOUND")
   }
 
-  if (isDateRangeInvalid(params.startDate, params.endDate, params.isPermanent)) {
+  if (
+    isDateRangeInvalid(params.startDate, params.endDate, params.isPermanent)
+  ) {
     return err("INVALID_DATE_RANGE")
   }
 
