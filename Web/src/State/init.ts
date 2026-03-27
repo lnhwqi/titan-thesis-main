@@ -9,6 +9,7 @@ import { initCategoryState } from "./Category"
 import { initCartState } from "./Cart"
 import { initRegisterState } from "./Register"
 import { initAdminDashboardState } from "./AdminDashboard"
+import { initAdminPosterState } from "./AdminPoster"
 import { initSellerDashboardState } from "./SellerDashboard"
 import { initVoucherState } from "./Voucher"
 import { initPaymentState } from "./Payment"
@@ -22,6 +23,7 @@ export function initState(route: Route): State {
     login: initLoginState(),
     register: initRegisterState(),
     adminDashboard: initAdminDashboardState(),
+    adminPoster: initAdminPosterState(),
     sellerDashboard: initSellerDashboardState(),
     voucher: initVoucherState(),
     payment: initPaymentState(),

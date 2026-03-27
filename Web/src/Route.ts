@@ -51,6 +51,11 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "AdminPosterManagement"
+      path: "/admin/posters"
+      params: NoParams
+    }
+  | {
       _t: "Login"
       path: "/login?redirect=:redirect"
       params: {
@@ -225,6 +230,14 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("AdminCategoryManagement"),
       path: JD.always("/admin/categories"),
+      params: JD.object({}),
+    }),
+  },
+  AdminPosterManagement: {
+    path: "/admin/posters",
+    decoder: JD.object({
+      _t: JD.always("AdminPosterManagement"),
+      path: JD.always("/admin/posters"),
       params: JD.object({}),
     }),
   },

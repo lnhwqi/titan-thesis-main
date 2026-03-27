@@ -144,6 +144,20 @@ export async function getByID(id: PosterID): Promise<Maybe<PosterRow>> {
     })
 }
 
+export async function getAll(): Promise<PosterRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => rows.map((row) => posterRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.getAll error ${e}`)
+      throw e
+    })
+}
+
 export async function update(
   id: PosterID,
   params: UpdateParams,

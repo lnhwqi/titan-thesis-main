@@ -115,6 +115,22 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
         </article>
 
         <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Poster Management</h2>
+          <p className={styles.cardText}>
+            Create, update, and remove homepage posters with image scale and
+            position controls.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() =>
+              emit(navigateTo(toRoute("AdminPosterManagement", {})))
+            }
+          >
+            Open poster manager
+          </button>
+        </article>
+
+        <article className={styles.card}>
           <h2 className={styles.cardTitle}>User Support</h2>
           <p className={styles.cardText}>
             Resolve account issues and keep marketplace trust high.

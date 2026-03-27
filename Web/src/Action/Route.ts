@@ -5,6 +5,7 @@ import { _AuthState, _PublicState, State } from "../State"
 import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
 import * as AdminDashboardAction from "./AdminDashboard"
+import * as AdminPosterAction from "./AdminPoster"
 import * as SellerDashboardAction from "./SellerDashboard"
 import * as VoucherAction from "./Voucher"
 import * as PaymentAction from "./Payment"
@@ -83,6 +84,9 @@ export function onUrlChange(s: State): [State, Cmd] {
 
     case "AdminCategoryManagement":
       return AdminDashboardAction.onEnterCategoryManagementRoute(state)
+
+    case "AdminPosterManagement":
+      return AdminPosterAction.onEnterRoute()(state)
 
     case "Profile":
       return _AuthState(ProfileAction.onEnterRoute)(state)

@@ -8,6 +8,7 @@ import { Action, Cmd } from "./Action"
 import { UpdateProfileState } from "./State/UpdateProfile"
 import { RegisterState } from "./State/Register"
 import { AdminDashboardState } from "./State/AdminDashboard"
+import { AdminPosterState } from "./State/AdminPoster"
 import { SellerDashboardState } from "./State/SellerDashboard"
 import { VoucherState } from "./State/Voucher"
 import { PaymentState } from "./State/Payment"
@@ -19,6 +20,7 @@ export type PublicState = {
   login: LoginState
   register: RegisterState
   adminDashboard: AdminDashboardState
+  adminPoster: AdminPosterState
   sellerDashboard: SellerDashboardState
   voucher: VoucherState
   payment: PaymentState
