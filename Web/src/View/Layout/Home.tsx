@@ -29,8 +29,28 @@ export function HomeLayout(props: Props): JSX.Element {
         </aside>
 
         <main className={styles.mainContent}>
+          <div className="Poster">
+            <img
+              src="/assets/poster.jpg"
+              alt="Poster"
+              className="PosterImage"
+            />
+            <div className="PosterOverlay">
+              <h1 className="PosterTitle">Welcome to Our Store</h1>
+              <p className="PosterSubtitle">
+                Discover the best products at unbeatable prices.
+              </p>
+            </div>
+          </div>
+
           <Page state={state} />
         </main>
+
+        <aside
+          className={!isOpen ? styles.adsSidebarOpen : styles.adsSidebarClosed}
+        >
+          <div className={styles.adsSidebarContent}></div>
+        </aside>
       </div>
 
       <CartSidebar state={state} />
@@ -78,12 +98,49 @@ const styles = {
     width: "260px",
     transition: "opacity 0.2s ease",
   }),
+  adsSidebarOpen: css({
+    width: "260px",
+    flexShrink: 0,
+    opacity: 1,
+    visibility: "visible",
+    borderRight: `1px solid ${color.secondary100}`,
+    backgroundColor: color.neutral0,
+    overflowY: "auto",
+    transition: "width 0.28s ease, opacity 0.2s ease",
+  }),
 
+  adsSidebarClosed: css({
+    width: "0px",
+    flexShrink: 0,
+    opacity: 0,
+    visibility: "hidden",
+    pointerEvents: "none",
+    overflow: "hidden",
+    transition: "width 0.28s ease, opacity 0.2s ease",
+  }),
+
+  adsSidebarContent: css({
+    width: "260px",
+    transition: "opacity 0.2s ease",
+  }),
   mainContent: css({
     flex: 1,
     height: "100%",
+    width: "calculate(100% - 260px)",
     overflowY: "auto",
     position: "relative",
     zIndex: 1,
+    scrollbarWidth: "thin",
+    scrollbarColor: `${color.primary500} transparent`,
+    scrollBehavior: "smooth",
+    scrollbarGutter: "stable",
+    "&::-webkit-scrollbar": {
+      width: "4px",
+      height: "4px",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: color.primary500,
+      borderRadius: "4px",
+    },
   }),
 }
