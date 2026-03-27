@@ -7,6 +7,7 @@ import { RemoteData } from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
 import * as LoginApi from "../Api/Public/LoginUser"
 import * as LoginAction from "../Action/Login"
+import * as RegisterAction from "../Action/Register"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 import InputText from "../View/Form/InputText"
 import { gradient } from "../View/Theme/Keyframe"
@@ -19,6 +20,8 @@ import { passwordErrorString } from "../../../Core/App/User/Password"
 export type Props = { state: State }
 export default function LoginPage(props: Props): JSX.Element {
   const { email, password, loginResponse } = props.state.login
+  const registerStatus = props.state.register.status
+  const hasAnnouncement = registerStatus._t === "Success"
   const loginParams = parseNotValidate(props.state.login)
   const isSubmitting = loginResponse._t === "Loading"
   const emailError = FieldString.error(email)
@@ -27,6 +30,21 @@ export default function LoginPage(props: Props): JSX.Element {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
+        {hasAnnouncement ? (
+          <div className={styles.announcementCard}>
+            <div className={styles.announcementTitle}>Notice</div>
+            <div className={styles.announcementBody}>
+              {registerStatus.message}
+            </div>
+            <button
+              className={styles.announcementClose}
+              onClick={() => emit(RegisterAction.clearStatus())}
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : null}
+
         <div className={styles.pageTitle}>Login</div>
 
         {responseMessage(loginResponse)}
@@ -180,6 +198,34 @@ const styles = {
   responseSuccess: css({
     ...font.medium14,
     color: color.semantics.success.green500,
+  }),
+  announcementCard: css({
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s2,
+    padding: theme.s3,
+    borderRadius: theme.s2,
+    border: `1px solid ${color.secondary300}`,
+    background: color.secondary50,
+  }),
+  announcementTitle: css({
+    ...font.bold14,
+    color: color.secondary500,
+  }),
+  announcementBody: css({
+    ...font.regular14,
+    color: color.neutral800,
+  }),
+  announcementClose: css({
+    width: "fit-content",
+    border: `1px solid ${color.secondary400}`,
+    borderRadius: theme.s2,
+    background: color.neutral0,
+    color: color.secondary500,
+    ...font.medium12,
+    padding: `${theme.s1} ${theme.s3}`,
+    cursor: "pointer",
   }),
   form: css({
     display: "flex",

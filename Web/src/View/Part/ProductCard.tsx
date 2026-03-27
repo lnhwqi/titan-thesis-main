@@ -6,8 +6,10 @@ import { navigateTo, toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
 import { State } from "../../State"
 import { emit } from "../../Runtime/React"
+import { cmd, perform } from "../../Action"
 import * as ProductAction from "../../Action/Product"
 import * as AuthToken from "../../App/AuthToken"
+import { _RegisterState } from "../../State/Register"
 import { IoIosHeart, IoIosHeartEmpty } from "react-icons/io"
 
 type Props = {
@@ -101,6 +103,15 @@ export function ProductCard(props: Props): JSX.Element {
     e.stopPropagation()
 
     if (!isUser) {
+      emit((currentState) => [
+        _RegisterState(currentState, {
+          status: {
+            _t: "Error",
+            message: "Please login first to save products to your wishlist.",
+          },
+        }),
+        cmd(perform(navigateTo(toRoute("Home", {})))),
+      ])
       return
     }
 
@@ -137,7 +148,7 @@ export function ProductCard(props: Props): JSX.Element {
             }`}
             onClick={handleToggleWishlist}
             aria-label={isSaved ? "Remove from wishlist" : "Save to wishlist"}
-            disabled={!isUser || state.product.wishlistBusy}
+            disabled={state.product.wishlistBusy}
           >
             {isSaved ? (
               <IoIosHeart
