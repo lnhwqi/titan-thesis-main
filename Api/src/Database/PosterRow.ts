@@ -158,6 +158,43 @@ export async function getAll(): Promise<PosterRow[]> {
     })
 }
 
+export async function getActiveOrdered(
+  now: Date = new Date(),
+): Promise<PosterRow[]> {
+  return getAll().then((rows) =>
+    rows
+      .filter((row) => {
+        const start = toJsDateLocal(row.startDate)
+        start.setHours(0, 0, 0, 0)
+        if (start > now) {
+          return false
+        }
+
+        if (row.isPermanent) {
+          return true
+        }
+
+        if (row.endDate == null) {
+          return false
+        }
+
+        const end = toJsDateLocal(row.endDate)
+        end.setHours(23, 59, 59, 999)
+        return end >= now
+      })
+      .sort((a, b) => {
+        const startDiff =
+          toJsDateLocal(b.startDate).getTime() -
+          toJsDateLocal(a.startDate).getTime()
+        if (startDiff !== 0) {
+          return startDiff
+        }
+
+        return toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime()
+      }),
+  )
+}
+
 export async function update(
   id: PosterID,
   params: UpdateParams,

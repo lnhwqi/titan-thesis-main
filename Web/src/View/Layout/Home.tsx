@@ -6,6 +6,7 @@ import Header from "./Header"
 import SubHeader from "./SubHeader"
 import CategorySidebar from "./Category"
 import { CartSidebar } from "../Part/Cart"
+import HomePoster from "../Part/HomePoster"
 
 type Props = {
   state: State
@@ -29,19 +30,7 @@ export function HomeLayout(props: Props): JSX.Element {
         </aside>
 
         <main className={styles.mainContent}>
-          <div className="Poster">
-            <img
-              src="/assets/poster.jpg"
-              alt="Poster"
-              className="PosterImage"
-            />
-            <div className="PosterOverlay">
-              <h1 className="PosterTitle">Welcome to Our Store</h1>
-              <p className="PosterSubtitle">
-                Discover the best products at unbeatable prices.
-              </p>
-            </div>
-          </div>
+          <HomePoster state={state} />
 
           <Page state={state} />
         </main>

@@ -55,7 +55,7 @@ function publicInitResponse(
           : RD.failure(categoryRes.error),
     })
 
-    return [nextState, cmd()]
+    return onUrlChange(nextState)
   }
 }
 
@@ -112,7 +112,7 @@ function authInitResponse(
 ): Action {
   return (state: State) => {
     if (profileRes._t === "Err") {
-      return [{ ...state, _t: "Public" }, cmd()]
+      return onUrlChange({ ...state, _t: "Public" })
     }
 
     let nextState = _CategoryState(state, {

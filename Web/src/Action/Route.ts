@@ -4,6 +4,7 @@ import { _AuthState, _PublicState, State } from "../State"
 
 import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
+import * as HomePosterAction from "./HomePoster"
 import * as AdminDashboardAction from "./AdminDashboard"
 import * as AdminPosterAction from "./AdminPoster"
 import * as SellerDashboardAction from "./SellerDashboard"
@@ -20,31 +21,33 @@ export function onUrlChange(s: State): [State, Cmd] {
 
   switch (route._t) {
     case "Home":
-      return ProductAction.loadWishlist()(state)
+      return withHomePoster(ProductAction.loadWishlist()(state))
 
     case "Category":
       try {
-        return ProductAction.selectCategoryFromRoute(
-          categoryIDDecoder.verify(route.params.id),
-        )(state)
+        return withHomePoster(
+          ProductAction.selectCategoryFromRoute(
+            categoryIDDecoder.verify(route.params.id),
+          )(state),
+        )
       } catch (_e) {
-        return [state, cmd()]
+        return withHomePoster([state, cmd()])
       }
 
     case "Saved":
-      return ProductAction.loadWishlist()(state)
+      return withHomePoster(ProductAction.loadWishlist()(state))
 
     case "Payment":
-      return PaymentAction.onEnterRoute()(state)
+      return withHomePoster(PaymentAction.onEnterRoute()(state))
 
     case "PaymentResult":
-      return [state, cmd()]
+      return withHomePoster([state, cmd()])
 
     case "WalletDeposit":
-      return [state, cmd()]
+      return withHomePoster([state, cmd()])
 
     case "UserOrders":
-      return OrderPaymentAction.onEnterUserOrdersRoute()(state)
+      return withHomePoster(OrderPaymentAction.onEnterUserOrdersRoute()(state))
 
     case "SellerOrders":
       return OrderPaymentAction.onEnterSellerOrdersRoute()(state)
@@ -94,17 +97,17 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "ProductDetail":
       try {
         const id = parseProductID(route.params.id)
-        return ProductAction.loadDetail(id)(state)
+        return withHomePoster(ProductAction.loadDetail(id)(state))
       } catch (_e) {
-        return [state, cmd()]
+        return withHomePoster([state, cmd()])
       }
 
     case "SellerProfile":
       try {
         const sellerID = sellerIDDecoder.verify(route.params.id)
-        return ProductAction.loadSellerProfile(sellerID)(state)
+        return withHomePoster(ProductAction.loadSellerProfile(sellerID)(state))
       } catch (_e) {
-        return [state, cmd()]
+        return withHomePoster([state, cmd()])
       }
 
     case "Search": {
@@ -127,14 +130,20 @@ export function onUrlChange(s: State): [State, Cmd] {
         listResponse._t === "Loading" || listResponse._t === "Success"
 
       if (searchQuery === query && isAlreadyLoading) {
-        return [state, cmd()]
+        return withHomePoster([state, cmd()])
       }
 
       if (!query) {
-        return ProductAction.loadList()(state)
+        return withHomePoster(ProductAction.loadList()(state))
       }
 
-      return ProductAction.search(query)(state)
+      return withHomePoster(ProductAction.search(query)(state))
     }
   }
+}
+
+function withHomePoster(next: [State, Cmd]): [State, Cmd] {
+  const [nextState, existingCmd] = next
+  const [posterState, posterCmd] = HomePosterAction.load()(nextState)
+  return [posterState, [...existingCmd, ...posterCmd]]
 }
