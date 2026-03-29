@@ -12,9 +12,9 @@ type SeedAdmin = {
 
 const devAdmins: SeedAdmin[] = [
   {
-    email: "admin@titan.local",
+    email: "admin@example.com",
     name: "Titan Admin",
-    password: "Admin@1234",
+    password: "Qwe@1234",
   },
 ]
 

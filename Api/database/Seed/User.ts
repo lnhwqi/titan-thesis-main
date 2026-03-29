@@ -12,9 +12,9 @@ type SeedUser = {
 
 const devUsers: SeedUser[] = [
   {
-    email: "user@titan.local",
-    name: "Titan User",
-    password: "User@1234",
+    email: "user@example.com",
+    name: "User Test",
+    password: "Qwe@1234",
   },
 ]
 

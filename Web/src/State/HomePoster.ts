@@ -10,12 +10,14 @@ export type HomePosterState = {
     ApiError<ListActivePosterApi.ErrorCode>,
     ListActivePosterApi.Payload
   >
+  currentIndex: number
 }
 
 export function initHomePosterState(): HomePosterState {
   return {
     posters: [],
     response: RD.notAsked(),
+    currentIndex: 0,
   }
 }
 

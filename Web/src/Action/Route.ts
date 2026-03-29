@@ -19,6 +19,8 @@ export function onUrlChange(s: State): [State, Cmd] {
   const route = parseRoute(window.location.href)
   const state = _PublicState(s, { route })
 
+  HomePosterAction.stopAutoPlay()
+
   switch (route._t) {
     case "Home":
       return withHomePoster(ProductAction.loadWishlist()(state))
@@ -143,6 +145,7 @@ export function onUrlChange(s: State): [State, Cmd] {
 }
 
 function withHomePoster(next: [State, Cmd]): [State, Cmd] {
+  HomePosterAction.startAutoPlay()
   const [nextState, existingCmd] = next
   const [posterState, posterCmd] = HomePosterAction.load()(nextState)
   return [posterState, [...existingCmd, ...posterCmd]]
