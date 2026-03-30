@@ -15,11 +15,9 @@ type Props = {
   Page: React.FC<{ state: State }>
 }
 
-export function HomeLayout(props: Props): JSX.Element {
+export function SubHome(props: Props): JSX.Element {
   const { state, Page } = props
   const { isOpen } = state.category
-
-  const currentIndex = state.homePoster.currentIndex
 
   const closeCategory = () => {
     if (isOpen) {
@@ -59,12 +57,6 @@ export function HomeLayout(props: Props): JSX.Element {
         </aside>
 
         <main className={styles.mainContent}>
-          <div className={styles.mainPoster}>
-            <div className={styles.sliderWrapper(currentIndex)}>
-              <HomePoster state={state} />
-            </div>
-          </div>
-
           <Page state={state} />
         </main>
       </div>
@@ -219,38 +211,4 @@ const styles = {
     padding: "0 10px",
     position: "relative",
   }),
-  mainPoster: css({
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: "20px",
-  }),
-
-  sliderWrapper: (index: number) =>
-    css({
-      width: "calc(360px * 16/9)",
-      height: "360px",
-      overflow: "hidden",
-      position: "relative",
-      margin: "20px 0px",
-
-      "&& > section": {
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "nowrap",
-        width: "100%",
-        fontSize: 0,
-        transform: `translateX(calc(${index} * -100%))`,
-        transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-        gap: "0px !important",
-      },
-
-      "&& > section > article": {
-        fontSize: "initial",
-        boxSizing: "border-box",
-        minWidth: "100%",
-        flex: "0 0 100%",
-        margin: "0 !important",
-      },
-    }),
 }

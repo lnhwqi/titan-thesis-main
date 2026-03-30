@@ -4,10 +4,12 @@ import { LoadingLayout } from "./View/Layout/Loading"
 import { EmptyLayout } from "./View/Layout/Empty"
 import { AuthLayout } from "./View/Layout/Auth"
 import { HomeLayout } from "./View/Layout/Home"
+import { SubHome } from "./View/Layout/SubHome"
 import ProfilePage from "./Page/Profile"
 import NotFoundPage from "./Page/NotFound"
 import LoginPage from "./Page/Login"
 import RegisterPage from "./Page/Register"
+import ProductListPage from "./Page/ProuductList"
 import AdminLoginPage from "./Page/AdminLogin"
 import SellerLoginPage from "./Page/SellerLogin"
 import AdminDashboardPage from "./Page/AdminDashboard"
@@ -38,11 +40,17 @@ export default function View(props: Props): JSX.Element {
 
   switch (state.route._t) {
     case "Home":
-    case "Category":
       return (
         <HomeLayout
           state={state}
           Page={HomePage}
+        />
+      )
+    case "Category":
+      return (
+        <SubHome
+          state={state}
+          Page={ProductListPage}
         />
       )
     case "Saved":
@@ -108,6 +116,7 @@ export default function View(props: Props): JSX.Element {
           Page={RegisterPage}
         />
       )
+
     case "AdminDashboard":
       return (
         <EmptyLayout
@@ -195,7 +204,7 @@ export default function View(props: Props): JSX.Element {
       )
     case "SellerProfile":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={SellerProfilePage}
         />

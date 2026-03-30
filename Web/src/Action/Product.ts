@@ -70,7 +70,7 @@ function selectCategoryWithNavigation(
     )
 
     const navigateCmd = shouldNavigate
-      ? cmd(perform(navigateTo(toRoute("Home", {}))))
+      ? cmd(perform(navigateTo(toRoute("Category", { id: expectedId }))))
       : cmd()
 
     const loadSubCategoriesCmd = isChildOfCurrent
