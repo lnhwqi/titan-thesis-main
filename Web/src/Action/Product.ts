@@ -15,6 +15,7 @@ import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import { SellerID } from "../../../Core/App/Seller/SellerID"
 import * as AuthToken from "../App/AuthToken"
 import { sleep } from "../../../Core/Data/Time/Timer"
+import { Category } from "../../../Core/App/Category"
 
 export function loadList(params: ListAllApi.UrlParams = {}): Action {
   return (state) => {
@@ -41,17 +42,9 @@ function selectCategoryWithNavigation(
   shouldNavigate: boolean,
 ): Action {
   return (state) => {
-    const { currentCategoryTree } = state.product
-    const isChildOfCurrent =
-      currentCategoryTree &&
-      currentCategoryTree.children?.some(
-        (child) => child.id.unwrap() === categoryId?.unwrap(),
-      )
-
     const nextState = _ProductState(state, {
       currentCategoryId: categoryId,
       listResponse: RD.loading(),
-      currentCategoryTree: isChildOfCurrent ? currentCategoryTree : null,
       searchQuery: "",
     })
 
@@ -63,32 +56,36 @@ function selectCategoryWithNavigation(
     }
 
     const expectedId = categoryId.unwrap()
+
+    const navigateCmd = shouldNavigate
+      ? cmd(perform(navigateTo(toRoute("Category", { id: expectedId }))))
+      : cmd()
+
+    // 1. Gọi API lấy Sản phẩm ngay lập tức, không cần đợi chờ ai cả!
     const loadProductsCmd = cmd(
       ListAllApi.call({ categoryID: expectedId }).then((res) =>
         gotListResponse(res, expectedId),
       ),
     )
 
-    const navigateCmd = shouldNavigate
-      ? cmd(perform(navigateTo(toRoute("Category", { id: expectedId }))))
-      : cmd()
+    // 2. Cập nhật currentCategoryTree (chỉ để phục vụ việc khác của UI nếu cần, không ảnh hưởng tới việc lọc sản phẩm nữa)
+    const loadTreeCmd = cmd(
+      CategoryGetOneApi.call({ id: categoryId }).then((treeRes): Action => {
+        return (currentState) => [
+          _ProductState(currentState, {
+            currentCategoryTree: treeRes._t === "Ok" ? treeRes.value : null,
+          }),
+          cmd(),
+        ]
+      }),
+    )
 
-    const loadSubCategoriesCmd = isChildOfCurrent
-      ? []
-      : cmd(
-          CategoryGetOneApi.call({ id: categoryId }).then(
-            gotCategoryDetailResponse,
-          ),
-        )
-
-    return [
-      nextState,
-      [...loadProductsCmd, ...navigateCmd, ...loadSubCategoriesCmd],
-    ]
+    // Phóng cả 3 lệnh đi cùng lúc, cực nhanh và không sợ đụng nhau.
+    return [nextState, [...loadProductsCmd, ...navigateCmd, ...loadTreeCmd]]
   }
 }
 
-function gotCategoryDetailResponse(
+function _gotCategoryDetailResponse(
   response: CategoryGetOneApi.Response,
 ): Action {
   return (state) => [
@@ -127,17 +124,53 @@ function gotListResponse(
     }
 
     const selectedCategoryID = state.product.currentCategoryId?.unwrap() ?? null
-    const currentTreeID = state.product.currentCategoryTree?.id.unwrap() ?? null
-    const isLeafSelection =
-      selectedCategoryID != null &&
-      currentTreeID != null &&
-      selectedCategoryID !== currentTreeID
 
-    const items = isLeafSelection
-      ? response.value.items.filter(
-          (item) => item.categoryID.unwrap() === selectedCategoryID,
-        )
-      : response.value.items
+    if (selectedCategoryID === null) {
+      return [
+        _ProductState(state, {
+          listResponse: RD.success({ items: response.value.items }),
+        }),
+        cmd(),
+      ]
+    }
+
+    const globalCategories =
+      state.category.treeResponse._t === "Success"
+        ? state.category.treeResponse.data
+        : []
+
+    const getAllValidCategoryIds = (cat: Category): string[] => {
+      let ids = [cat.id.unwrap()]
+      if (cat.children && cat.children.length > 0) {
+        for (const child of cat.children) {
+          ids = [...ids, ...getAllValidCategoryIds(child)]
+        }
+      }
+      return ids
+    }
+
+    const findCategory = (
+      categories: Category[],
+      targetId: string,
+    ): Category | null => {
+      for (const cat of categories) {
+        if (cat.id.unwrap() === targetId) return cat
+        if (cat.children && cat.children.length > 0) {
+          const found = findCategory(cat.children, targetId)
+          if (found) return found
+        }
+      }
+      return null
+    }
+
+    const selectedCat = findCategory(globalCategories, selectedCategoryID)
+    const validCategoryIds = selectedCat
+      ? getAllValidCategoryIds(selectedCat)
+      : [selectedCategoryID]
+
+    const items = response.value.items.filter((item) =>
+      validCategoryIds.includes(item.categoryID.unwrap()),
+    )
 
     return [
       _ProductState(state, {

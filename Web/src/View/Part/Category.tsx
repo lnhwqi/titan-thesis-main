@@ -1,7 +1,7 @@
 import { JSX } from "react"
 import { css, cx } from "@emotion/css"
 import { State } from "../../State"
-import { color, font, theme } from "../../View/Theme"
+import { color, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import { RemoteData } from "../../../../Core/Data/RemoteData"
 import { ApiError } from "../../Api"
@@ -41,17 +41,6 @@ function renderContent(
     case "Success":
       return (
         <div className={styles.list}>
-          <div
-            className={cx(styles.item, {
-              [styles.itemActive]: state.product.currentCategoryId === null,
-            })}
-            onClick={() => {
-              emit(ProductAction.selectCategory(null))
-            }}
-          >
-            All Products
-          </div>
-
           {response.data.map((cat: Category) =>
             renderCategoryItem(state, cat, 0),
           )}
@@ -64,7 +53,7 @@ function renderCategoryItem(
   category: Category,
   depth: number,
 ): JSX.Element {
-  const { currentCategoryId, currentCategoryTree } = state.product
+  const { currentCategoryId } = state.product
 
   const categoryIdStr = category.id.unwrap()
   const currentIdStr = currentCategoryId?.unwrap()
@@ -72,21 +61,9 @@ function renderCategoryItem(
   const isSelected =
     currentIdStr !== undefined && currentIdStr === categoryIdStr
 
-  const isParentOfSelected =
-    currentCategoryTree !== null &&
-    currentCategoryTree.id.unwrap() === categoryIdStr &&
-    currentCategoryTree.children.some(
-      (child) => child.id.unwrap() === currentIdStr,
-    )
+  const isOpen = isSelected || isCategoryOpen(category, currentIdStr)
 
-  const isOpen = isSelected || isParentOfSelected
-
-  const children =
-    isOpen &&
-    currentCategoryTree &&
-    currentCategoryTree.id.unwrap() === categoryIdStr
-      ? currentCategoryTree.children
-      : []
+  const children = isOpen && category.children ? category.children : []
 
   return (
     <div
@@ -102,9 +79,6 @@ function renderCategoryItem(
         }}
       >
         {category.name.unwrap()}
-        {(isSelected || isParentOfSelected) && children.length > 0 && (
-          <span style={{ marginLeft: "auto", fontSize: "10px" }}></span>
-        )}
       </div>
 
       {isOpen && children.length > 0 && (
@@ -116,6 +90,13 @@ function renderCategoryItem(
       )}
     </div>
   )
+}
+
+// ======== Helers ========
+function isCategoryOpen(category: Category, selectedId?: string): boolean {
+  if (!selectedId) return false
+  if (category.id.unwrap() === selectedId) return true
+  return category.children.some((child) => isCategoryOpen(child, selectedId))
 }
 const styles = {
   container: css({

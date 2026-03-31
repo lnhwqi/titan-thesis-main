@@ -190,7 +190,7 @@ export default function View(props: Props): JSX.Element {
 
     case "Search":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={SearchPage}
         />

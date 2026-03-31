@@ -17,6 +17,7 @@ export function loadTree(): Action {
     ]
   }
 }
+
 export function toggleCategory(isOpen: boolean): Action {
   return (state: State) => {
     return [_CategoryState(state, { isOpen }), cmd()]

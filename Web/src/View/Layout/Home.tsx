@@ -6,7 +6,7 @@ import { emit } from "../../Runtime/React"
 import * as CategoryAction from "../../Action/Category"
 import Header from "./Header"
 import SubHeader from "./SubHeader"
-import CategorySidebar from "./Category"
+import CategorySidebar from "../Part/Category"
 import { CartSidebar } from "../Part/Cart"
 import HomePoster from "../Part/HomePoster"
 
