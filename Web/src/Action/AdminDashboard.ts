@@ -3,6 +3,8 @@ import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, Cmd } from "../Action"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
+import * as HomeAdminApi from "../Api/Auth/Admin/Home"
+import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import * as ApproveSellerApi from "../Api/Auth/Admin/ApproveSeller"
 import * as SendSellerVerifyEmailApi from "../Api/Auth/Admin/SendSellerVerifyEmail"
 import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
@@ -15,7 +17,34 @@ import { createName } from "../../../Core/App/Category/Name"
 import { slugify } from "../../../Core/App/Category/Slug"
 
 export function onEnterRoute(state: State): [State, Cmd] {
-  return loadPendingSellers()(state)
+  return loadOverview()(state)
+}
+
+export function loadOverview(): Action {
+  return (state) => {
+    const [nextState, pendingCmd] = loadPendingSellers()(state)
+    return [
+      _AdminDashboardState(nextState, {
+        adminHomeResponse: RD.loading(),
+        orderPaymentsResponse: RD.loading(),
+      }),
+      cmd(
+        ...pendingCmd,
+        HomeAdminApi.call().then(onAdminHomeResponse),
+        AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
+      ),
+    ]
+  }
+}
+
+export function loadOrderPayments(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      orderPaymentsResponse: RD.loading(),
+      flashMessage: null,
+    }),
+    cmd(AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse)),
+  ]
 }
 
 export function onEnterCategoryManagementRoute(state: State): [State, Cmd] {
@@ -46,6 +75,32 @@ function onLoadPendingResponse(
   return (state) => [
     _AdminDashboardState(state, {
       pendingSellersResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+function onAdminHomeResponse(response: HomeAdminApi.Response): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      adminHomeResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+function onOrderPaymentsResponse(
+  response: AdminOrderPaymentListApi.Response,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      orderPaymentsResponse:
         response._t === "Ok"
           ? RD.success(response.value)
           : RD.failure(response.error),

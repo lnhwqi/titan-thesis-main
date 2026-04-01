@@ -4,12 +4,22 @@ import { ApiError } from "../Api"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
 import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
 import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
+import * as HomeAdminApi from "../Api/Auth/Admin/Home"
+import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
 export type AdminDashboardState = {
   pendingSellersResponse: RD.RemoteData<
     ApiError<ListPendingSellersApi.ErrorCode>,
     ListPendingSellersApi.Payload
+  >
+  adminHomeResponse: RD.RemoteData<
+    ApiError<HomeAdminApi.ErrorCode>,
+    HomeAdminApi.Payload
+  >
+  orderPaymentsResponse: RD.RemoteData<
+    ApiError<AdminOrderPaymentListApi.ErrorCode>,
+    AdminOrderPaymentListApi.Payload
   >
   approvingSellerIDs: string[]
   sendingVerifyEmailSellerIDs: string[]
@@ -38,6 +48,8 @@ export type AdminDashboardState = {
 export function initAdminDashboardState(): AdminDashboardState {
   return {
     pendingSellersResponse: RD.notAsked(),
+    adminHomeResponse: RD.notAsked(),
+    orderPaymentsResponse: RD.notAsked(),
     approvingSellerIDs: [],
     sendingVerifyEmailSellerIDs: [],
     categoryRootName: "",

@@ -7,7 +7,6 @@ import {
 import { NoUrlParams, noUrlParamsDecoder } from "../../../Data/Api"
 import { Admin, adminDecoder } from "../../../App/Admin"
 import { Wallet, walletDecoder } from "../../../App/Admin/Wallet"
-import { sellerDecoder } from "../../../App/Seller"
 
 export type Contract = AuthApi<
   AuthSeller,

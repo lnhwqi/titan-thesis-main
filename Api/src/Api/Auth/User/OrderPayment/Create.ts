@@ -39,42 +39,6 @@ export async function handler(
         return []
       }
 
-      if (isPaid) {
-        for (const item of lineItems) {
-          if (Number.isInteger(item.quantity) === false || item.quantity <= 0) {
-            throw new Error("INSUFFICIENT_STOCK")
-          }
-
-          const updated = await trx
-            .updateTable("product_variant")
-            .set((eb) => ({
-              stock: eb("stock", "-", item.quantity),
-            }))
-            .where("id", "=", item.variantID.unwrap())
-            .where("productId", "=", item.productID.unwrap())
-            .where("stock", ">=", item.quantity)
-            .executeTakeFirst()
-
-          if (Number(updated.numUpdatedRows) === 0) {
-            const variantExists = await trx
-              .selectFrom("product_variant")
-              .select(["id", "productId"])
-              .where("id", "=", item.variantID.unwrap())
-              .where("isDeleted", "=", false)
-              .executeTakeFirst()
-
-            if (
-              variantExists == null ||
-              variantExists.productId !== item.productID.unwrap()
-            ) {
-              throw new Error("VARIANT_NOT_FOUND")
-            }
-
-            throw new Error("INSUFFICIENT_STOCK")
-          }
-        }
-      }
-
       const created: Array<{
         row: OrderPaymentRow.OrderPaymentRow
         items: OrderPaymentItemRow.OrderPaymentItemRow[]
@@ -277,6 +241,44 @@ export async function handler(
 
         if (Number(deductWallet.numUpdatedRows) === 0) {
           throw new Error("INSUFFICIENT_WALLET")
+        }
+      }
+
+      if (isPaid) {
+        const paidItems = created.flatMap((order) => order.items)
+
+        for (const item of paidItems) {
+          if (Number.isInteger(item.quantity) === false || item.quantity <= 0) {
+            throw new Error("INSUFFICIENT_STOCK")
+          }
+
+          const updated = await trx
+            .updateTable("product_variant")
+            .set((eb) => ({
+              stock: eb("stock", "-", item.quantity),
+            }))
+            .where("id", "=", item.variantId.unwrap())
+            .where("productId", "=", item.productId.unwrap())
+            .where("stock", ">=", item.quantity)
+            .executeTakeFirst()
+
+          if (Number(updated.numUpdatedRows) === 0) {
+            const variantExists = await trx
+              .selectFrom("product_variant")
+              .select(["id", "productId"])
+              .where("id", "=", item.variantId.unwrap())
+              .where("isDeleted", "=", false)
+              .executeTakeFirst()
+
+            if (
+              variantExists == null ||
+              variantExists.productId !== item.productId.unwrap()
+            ) {
+              throw new Error("VARIANT_NOT_FOUND")
+            }
+
+            throw new Error("INSUFFICIENT_STOCK")
+          }
         }
       }
 

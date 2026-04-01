@@ -15,6 +15,8 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
   const auth = AuthToken.get()
   const isAdmin = auth != null && auth.role === "ADMIN"
   const pending = state.adminDashboard.pendingSellersResponse
+  const adminHome = state.adminDashboard.adminHomeResponse
+  const orderPayments = state.adminDashboard.orderPaymentsResponse
   const approving = state.adminDashboard.approvingSellerIDs
   const sendingVerifyEmail = state.adminDashboard.sendingVerifyEmailSellerIDs
   const flashMessage = state.adminDashboard.flashMessage
@@ -83,6 +85,29 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           </button>
 
           {renderPendingSellers(pending, approving, sendingVerifyEmail)}
+        </article>
+
+        <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Wallet</h2>
+          <p className={styles.cardText}>
+            Current admin wallet balance for marketplace operations.
+          </p>
+          {renderWallet(adminHome)}
+        </article>
+
+        <article className={styles.cardWide}>
+          <h2 className={styles.cardTitle}>Payment Orders Status Tracking</h2>
+          <p className={styles.cardText}>
+            Track paid orders and monitor shipping/payment statuses in one view.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(AdminDashboardAction.loadOrderPayments())}
+          >
+            Refresh order payments
+          </button>
+
+          {renderOrderPayments(orderPayments)}
         </article>
 
         <article className={styles.card}>
@@ -191,6 +216,19 @@ const styles = {
       gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
     }),
   }),
+  cardWide: css({
+    background: color.neutral0,
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s4,
+    padding: theme.s5,
+    boxShadow: theme.elevation.medium,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    ...bp.md({
+      gridColumn: "span 2",
+    }),
+  }),
   card: css({
     background: color.neutral0,
     border: `1px solid ${color.secondary100}`,
@@ -248,6 +286,67 @@ const styles = {
   sellerMeta: css({
     ...font.regular13,
     color: color.neutral700,
+  }),
+  walletValue: css({
+    ...font.boldH3_29,
+    color: color.secondary500,
+    margin: 0,
+  }),
+  statsRow: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: theme.s2,
+    ...bp.md({
+      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    }),
+  }),
+  statCell: css({
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s2,
+    padding: theme.s2,
+    background: color.secondary50,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+  }),
+  statLabel: css({
+    ...font.regular12,
+    color: color.neutral700,
+  }),
+  statValue: css({
+    ...font.bold17,
+    color: color.secondary500,
+  }),
+  tableWrap: css({
+    width: "100%",
+    overflowX: "auto",
+  }),
+  orderTable: css({
+    width: "100%",
+    borderCollapse: "collapse",
+    "& th": {
+      textAlign: "left",
+      ...font.bold12,
+      color: color.neutral700,
+      borderBottom: `1px solid ${color.secondary200}`,
+      padding: `${theme.s2} ${theme.s1}`,
+    },
+    "& td": {
+      ...font.regular12,
+      color: color.neutral800,
+      borderBottom: `1px solid ${color.secondary100}`,
+      padding: `${theme.s2} ${theme.s1}`,
+      verticalAlign: "top",
+    },
+  }),
+  statusPill: css({
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: theme.s2,
+    padding: `2px ${theme.s2}`,
+    ...font.bold12,
+    background: color.secondary100,
+    color: color.secondary500,
   }),
   sellerItemAction: css({
     marginTop: theme.s1,
@@ -314,6 +413,113 @@ const styles = {
     color: color.neutral700,
     margin: 0,
   }),
+}
+
+function renderWallet(
+  home: State["adminDashboard"]["adminHomeResponse"],
+): JSX.Element {
+  switch (home._t) {
+    case "NotAsked":
+      return (
+        <div className={styles.sellerMeta}>Wallet data not loaded yet.</div>
+      )
+    case "Loading":
+      return <div className={styles.sellerMeta}>Loading wallet...</div>
+    case "Failure":
+      return <div className={styles.sellerMeta}>Unable to load wallet.</div>
+    case "Success":
+      return (
+        <p className={styles.walletValue}>
+          {home.data.admin.wallet.unwrap().toLocaleString()}đ
+        </p>
+      )
+  }
+}
+
+function renderOrderPayments(
+  response: State["adminDashboard"]["orderPaymentsResponse"],
+): JSX.Element {
+  switch (response._t) {
+    case "NotAsked":
+      return <div className={styles.sellerMeta}>No order payment data yet.</div>
+    case "Loading":
+      return <div className={styles.sellerMeta}>Loading order payments...</div>
+    case "Failure":
+      return (
+        <div className={styles.sellerMeta}>Unable to load order payments.</div>
+      )
+    case "Success": {
+      const orders = response.data.orders
+      if (orders.length === 0) {
+        return <div className={styles.sellerMeta}>No paid orders found.</div>
+      }
+
+      const statusCount = orders.reduce<Record<string, number>>(
+        (acc, order) => {
+          const key = order.status
+          acc[key] = (acc[key] ?? 0) + 1
+          return acc
+        },
+        {},
+      )
+
+      const recent = orders.slice(0, 8)
+
+      return (
+        <>
+          <div className={styles.statsRow}>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Total Paid</div>
+              <div className={styles.statValue}>{orders.length}</div>
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Packed</div>
+              <div className={styles.statValue}>{statusCount.PACKED ?? 0}</div>
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>In Transit</div>
+              <div className={styles.statValue}>
+                {statusCount.IN_TRANSIT ?? 0}
+              </div>
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Delivered/Received</div>
+              <div className={styles.statValue}>
+                {(statusCount.DELIVERED ?? 0) + (statusCount.RECEIVED ?? 0)}
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.tableWrap}>
+            <table className={styles.orderTable}>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Buyer</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((order) => (
+                  <tr key={order.id.unwrap()}>
+                    <td>{order.id.unwrap()}</td>
+                    <td>{order.username.unwrap()}</td>
+                    <td>{order.paymentMethod}</td>
+                    <td>
+                      <span className={styles.statusPill}>{order.status}</span>
+                    </td>
+                    <td>{order.price.unwrap().toLocaleString()}đ</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )
+    }
+  }
 }
 
 function renderPendingSellers(

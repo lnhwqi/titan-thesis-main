@@ -16,6 +16,7 @@ import * as UpdatePoster from "../Api/Auth/Admin/UpdatePoster"
 import * as DeletePoster from "../Api/Auth/Admin/DeletePoster"
 import * as UploadPosterImage from "../Api/Auth/Admin/UploadPosterImage"
 import * as UpdateWallet from "../Api/Auth/Admin/UpdateWallet"
+import * as OrderPaymentList from "../Api/Auth/Admin/OrderPayment/List"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -35,4 +36,5 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, UpdatePoster)
   adminAuthApi(app, DeletePoster)
   adminAuthApi(app, UpdateWallet)
+  adminAuthApi(app, OrderPaymentList)
 }

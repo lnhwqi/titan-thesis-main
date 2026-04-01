@@ -1,2 +1,0 @@
-@baseUrl = http://localhost:3001
-GET {{baseUrl}}/products

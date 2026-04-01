@@ -221,3 +221,18 @@ export async function getBySellerID(
       ),
     )
 }
+
+export async function getAllPaid(): Promise<OrderPaymentRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .where("isPaid", "=", true)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) =>
+      rows.map((row) =>
+        orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+      ),
+    )
+}
