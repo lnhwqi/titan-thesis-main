@@ -14,6 +14,7 @@ import { SellerDashboardState } from "./State/SellerDashboard"
 import { VoucherState } from "./State/Voucher"
 import { PaymentState } from "./State/Payment"
 import { OrderPaymentState } from "./State/OrderPayment"
+import { ReportState } from "./State/Report"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
@@ -27,6 +28,7 @@ export type PublicState = {
   voucher: VoucherState
   payment: PaymentState
   orderPayment: OrderPaymentState
+  report: ReportState
   product: ProductState
   category: CategoryState
   cart: CartState
