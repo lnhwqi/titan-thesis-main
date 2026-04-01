@@ -55,7 +55,10 @@ export function initReportState(): ReportState {
   }
 }
 
-export function _ReportState(state: State, report: Partial<ReportState>): State {
+export function _ReportState(
+  state: State,
+  report: Partial<ReportState>,
+): State {
   return {
     ...state,
     report: { ...state.report, ...report },

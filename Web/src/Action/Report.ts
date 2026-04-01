@@ -93,7 +93,10 @@ export function onChangeSellerEvidenceUrlsDraft(
   ]
 }
 
-export function onChangeAdminResultDraft(reportID: string, value: string): Action {
+export function onChangeAdminResultDraft(
+  reportID: string,
+  value: string,
+): Action {
   return (state) => [
     _ReportState(state, {
       adminResultDraftByReportID: {
@@ -111,7 +114,10 @@ export function submitSellerEvidence(reportID: string): Action {
     try {
       parsedID = parseReportID(reportID)
     } catch (_e) {
-      return [_ReportState(state, { flashMessage: "Invalid report id." }), cmd()]
+      return [
+        _ReportState(state, { flashMessage: "Invalid report id." }),
+        cmd(),
+      ]
     }
 
     const rawDescription = (
@@ -137,7 +143,9 @@ export function submitSellerEvidence(reportID: string): Action {
     const urls = createSellerUrlImgs(rawUrls)
     if (urls == null) {
       return [
-        _ReportState(state, { flashMessage: "Invalid seller evidence image URLs." }),
+        _ReportState(state, {
+          flashMessage: "Invalid seller evidence image URLs.",
+        }),
         cmd(),
       ]
     }
@@ -167,7 +175,10 @@ export function approveSellerRefund(reportID: string): Action {
     try {
       parsedID = parseReportID(reportID)
     } catch (_e) {
-      return [_ReportState(state, { flashMessage: "Invalid report id." }), cmd()]
+      return [
+        _ReportState(state, { flashMessage: "Invalid report id." }),
+        cmd(),
+      ]
     }
 
     return [
@@ -195,7 +206,10 @@ export function submitAdminUpdateStatus(reportID: string): Action {
     try {
       parsedID = parseReportID(reportID)
     } catch (_e) {
-      return [_ReportState(state, { flashMessage: "Invalid report id." }), cmd()]
+      return [
+        _ReportState(state, { flashMessage: "Invalid report id." }),
+        cmd(),
+      ]
     }
 
     const nextStatus = state.report.statusDraftByReportID[reportID]
@@ -206,8 +220,11 @@ export function submitAdminUpdateStatus(reportID: string): Action {
       ]
     }
 
-    const rawResult = (state.report.adminResultDraftByReportID[reportID] ?? "").trim()
-    const resultTextAdmin = rawResult === "" ? null : createResultTextAdmin(rawResult)
+    const rawResult = (
+      state.report.adminResultDraftByReportID[reportID] ?? ""
+    ).trim()
+    const resultTextAdmin =
+      rawResult === "" ? null : createResultTextAdmin(rawResult)
 
     if (rawResult !== "" && resultTextAdmin == null) {
       return [
