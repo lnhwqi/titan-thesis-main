@@ -20,6 +20,7 @@ export type Schema = {
   product_variant: ProductVariantTable
   order_payment: OrderPaymentTable
   order_payment_item: OrderPaymentItemTable
+  report: ReportTable
   wallet_deposit: WalletDepositTable
   poster: PosterTable
 }
@@ -191,6 +192,35 @@ export type PosterTable = {
   startDate: Date
   endDate: Date | null
   isPermanent: boolean
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+
+export type ReportTable = {
+  id: string
+  sellerId: string
+  userId: string
+  orderId: string
+  category: "WRONG_ITEM" | "DEFECTIVE" | "ITEM_NOT_RECEIVED" | "FALSE_CLAIM"
+  title:
+    | "Wrong Product"
+    | "Defective Product"
+    | "Item Not Received"
+    | "False Claim"
+  userDescription: string
+  userUrlImgs: string[]
+  sellerDescription: string | null
+  sellerUrlImgs: string[]
+  status:
+    | "OPEN"
+    | "SELLER_REPLIED"
+    | "UNDER_REVIEW"
+    | "REFUND_APPROVED"
+    | "CASHBACK_COMPLETED"
+    | "RESOLVED"
+    | "REJECTED"
+  resultTextAdmin: string | null
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date

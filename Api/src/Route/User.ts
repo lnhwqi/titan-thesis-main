@@ -18,6 +18,8 @@ import * as OrderPaymentConfirmDelivery from "../Api/Auth/User/OrderPayment/Conf
 import * as OrderPaymentListMine from "../Api/Auth/User/OrderPayment/ListMine"
 import * as WalletDepositCreate from "../Api/Auth/User/Wallet/DepositCreate"
 import * as WalletDepositQuery from "../Api/Auth/User/Wallet/DepositQuery"
+import * as ReportCreate from "../Api/Auth/User/Report/Create"
+import * as ReportListMine from "../Api/Auth/User/Report/ListMine"
 import { userAuthApi } from "../Api/AuthApi"
 
 export function userRoutes(app: Express): void {
@@ -36,6 +38,8 @@ export function userRoutes(app: Express): void {
   userAuthApi(app, CartUpdateQuantity)
   userAuthApi(app, WalletDepositCreate)
   userAuthApi(app, WalletDepositQuery)
+  userAuthApi(app, ReportCreate)
+  userAuthApi(app, ReportListMine)
   userAuthApi(app, OrderPaymentCreate)
   userAuthApi(app, OrderPaymentConfirmDelivery)
   userAuthApi(app, OrderPaymentListMine)
