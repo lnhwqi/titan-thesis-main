@@ -130,6 +130,24 @@ export async function update(
     })
 }
 
+export async function updateWallet(id: AdminID, wallet: Wallet): Promise<AdminRow> {
+  return db
+    .updateTable(tableName)
+    .set({
+      wallet: wallet.unwrap(),
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(adminRowDecoder.verify)
+    .catch((e) => {
+      Logger.error(`#${tableName}.updateWallet error ${e}`)
+      throw e
+    })
+}
+
 export async function count(): Promise<Nat> {
   return db
     .selectFrom(tableName)

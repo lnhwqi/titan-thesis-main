@@ -11,6 +11,7 @@ import * as HomeSeller from "../Api/Auth/Seller/HomeSeller"
 import * as GetProfile from "../Api/Public/Seller/GetProfile"
 import * as OrderPaymentUpdateTracking from "../Api/Auth/Seller/OrderPayment/UpdateTracking"
 import * as OrderPaymentListMine from "../Api/Auth/Seller/OrderPayment/ListMine"
+import * as UpdateWallet from "../Api/Auth/Seller/Wallet/Update"
 import { sellerAuthApi } from "../Api/AuthApi"
 
 export function sellerRoutes(app: Express): void {
@@ -23,6 +24,7 @@ export function sellerRoutes(app: Express): void {
   sellerAuthApi(app, HomeSeller)
   sellerAuthApi(app, OrderPaymentListMine)
   sellerAuthApi(app, OrderPaymentUpdateTracking)
+  sellerAuthApi(app, UpdateWallet)
   // Register generic /seller/:id route last to avoid swallowing specific routes.
   publicApi(app, GetProfile)
 }

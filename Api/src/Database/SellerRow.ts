@@ -289,3 +289,24 @@ export async function updateShopProfile(
       throw e
     })
 }
+
+export async function updateWallet(
+  id: SellerID,
+  wallet: Wallet,
+): Promise<SellerRow> {
+  return db
+    .updateTable(tableName)
+    .set({
+      wallet: wallet.unwrap(),
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(sellerRowDecoder.verify)
+    .catch((e: unknown) => {
+      Logger.error(`#${tableName}.updateWallet error: ${e}`)
+      throw e
+    })
+}
