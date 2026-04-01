@@ -130,7 +130,10 @@ export async function update(
     })
 }
 
-export async function updateWallet(id: AdminID, wallet: Wallet): Promise<AdminRow> {
+export async function updateWallet(
+  id: AdminID,
+  wallet: Wallet,
+): Promise<AdminRow> {
   return db
     .updateTable(tableName)
     .set({

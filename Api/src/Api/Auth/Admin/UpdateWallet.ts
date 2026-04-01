@@ -7,16 +7,16 @@ import { toAdmin } from "../../../App/Admin"
 export const contract = API.contract
 
 export async function handler(
-	admin: AuthAdmin,
-	params: API.UrlParams & API.BodyParams,
+  admin: AuthAdmin,
+  params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-	try {
-		const updated = await AdminRow.updateWallet(admin.id, params.wallet)
+  try {
+    const updated = await AdminRow.updateWallet(admin.id, params.wallet)
 
-		return ok({
-			admin: toAdmin(updated),
-		})
-	} catch (_error: unknown) {
-		return err("WALLET_UPDATE_FAILED")
-	}
+    return ok({
+      admin: toAdmin(updated),
+    })
+  } catch (_error: unknown) {
+    return err("WALLET_UPDATE_FAILED")
+  }
 }
