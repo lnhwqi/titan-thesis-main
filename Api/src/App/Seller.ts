@@ -15,5 +15,7 @@ export function toSeller(row: SellerRow): Seller {
     revenue: row.revenue,
     withdrawn: row.withdrawn,
     profit: row.profit,
+    tier: row.tier,
+    tax: row.tax,
   }
 }

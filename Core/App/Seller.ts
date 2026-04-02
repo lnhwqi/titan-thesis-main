@@ -11,6 +11,8 @@ import { VacationMode, vacationModeDecoder } from "./Seller/VacationMode"
 import { Revenue, revenueDecoder } from "./Seller/Revenue"
 import { Withdrawn, withdrawnDecoder } from "./Seller/Withdrawn"
 import { Profit, profitDecoder } from "./Seller/Profit"
+import { Tier, tierDecoder } from "./Seller/Tier"
+import { Tax, taxDecoder } from "./Seller/Tax"
 
 export type Seller = {
   id: SellerID
@@ -25,6 +27,8 @@ export type Seller = {
   revenue: Revenue
   withdrawn: Withdrawn
   profit: Profit
+  tier: Tier
+  tax: Tax
 }
 
 export const sellerDecoder: JD.Decoder<Seller> = JD.object({
@@ -40,4 +44,6 @@ export const sellerDecoder: JD.Decoder<Seller> = JD.object({
   revenue: revenueDecoder,
   withdrawn: withdrawnDecoder,
   profit: profitDecoder,
+  tier: tierDecoder,
+  tax: taxDecoder,
 })

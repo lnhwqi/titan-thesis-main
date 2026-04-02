@@ -27,11 +27,14 @@ import {
 import { Revenue, revenueDecoder } from "../../../Core/App/Seller/Revenue"
 import { Withdrawn, withdrawnDecoder } from "../../../Core/App/Seller/Withdrawn"
 import { Profit, profitDecoder } from "../../../Core/App/Seller/Profit"
+import { Tier, tierDecoder } from "../../../Core/App/Seller/Tier"
+import { Tax, taxDecoder } from "../../../Core/App/Seller/Tax"
 import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
 import {
   createDescription,
   Description,
 } from "../../../Core/App/Seller/ShopDescription"
+import * as SellerTierPolicyRow from "./SellerTierPolicyRow"
 
 const tableName = "seller"
 const defaultShopDescription = "No shop description yet"
@@ -50,6 +53,8 @@ export type SellerRow = {
   revenue: Revenue
   withdrawn: Withdrawn
   profit: Profit
+  tier: Tier
+  tax: Tax
   isDeleted: boolean
   updatedAt: Timestamp
   createdAt: Timestamp
@@ -83,6 +88,8 @@ export const sellerRowDecoder: JD.Decoder<SellerRow> = JD.object({
   revenue: revenueDecoder,
   withdrawn: withdrawnDecoder,
   profit: profitDecoder,
+  tier: tierDecoder,
+  tax: taxDecoder,
   isDeleted: JD.boolean,
   updatedAt: timestampJSDateDecoder,
   createdAt: timestampJSDateDecoder,
@@ -108,6 +115,8 @@ export async function create(params: CreateParams): Promise<SellerRow> {
       revenue: 0,
       withdrawn: 0,
       profit: 0,
+      tier: "bronze",
+      tax: 10,
       isDeleted: false,
       createdAt: now,
       updatedAt: now,
@@ -309,4 +318,79 @@ export async function updateWallet(
       Logger.error(`#${tableName}.updateWallet error: ${e}`)
       throw e
     })
+}
+
+export async function syncTierAndTaxByProfit(id: SellerID): Promise<SellerRow> {
+  const seller = await getByID(id)
+  if (seller == null) {
+    throw new Error("SELLER_NOT_FOUND")
+  }
+
+  const policy = await SellerTierPolicyRow.getOrCreate()
+  const tierAndTax = SellerTierPolicyRow.tierAndTaxFromProfit(
+    seller.profit,
+    policy,
+  )
+
+  const currentTier = seller.tier.unwrap()
+  const currentTax = seller.tax.unwrap()
+
+  if (
+    currentTier === tierAndTax.tier.unwrap() &&
+    currentTax === tierAndTax.tax.unwrap()
+  ) {
+    return seller
+  }
+
+  return db
+    .updateTable(tableName)
+    .set({
+      tier: tierAndTax.tier.unwrap(),
+      tax: tierAndTax.tax.unwrap(),
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(sellerRowDecoder.verify)
+    .catch((e) => {
+      Logger.error(`#${tableName}.syncTierAndTaxByProfit error: ${e}`)
+      throw e
+    })
+}
+
+export async function syncAllTierAndTaxByProfit(): Promise<void> {
+  const policy = await SellerTierPolicyRow.getOrCreate()
+  const sellers = await db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .execute()
+    .then((rows) => JD.array(sellerRowDecoder).verify(rows))
+
+  for (const seller of sellers) {
+    const tierAndTax = SellerTierPolicyRow.tierAndTaxFromProfit(
+      seller.profit,
+      policy,
+    )
+
+    if (
+      seller.tier.unwrap() === tierAndTax.tier.unwrap() &&
+      seller.tax.unwrap() === tierAndTax.tax.unwrap()
+    ) {
+      continue
+    }
+
+    await db
+      .updateTable(tableName)
+      .set({
+        tier: tierAndTax.tier.unwrap(),
+        tax: tierAndTax.tax.unwrap(),
+        updatedAt: toDate(createNow()),
+      })
+      .where("id", "=", seller.id.unwrap())
+      .where("isDeleted", "=", false)
+      .executeTakeFirst()
+  }
 }

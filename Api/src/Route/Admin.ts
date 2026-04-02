@@ -19,6 +19,8 @@ import * as UpdateWallet from "../Api/Auth/Admin/UpdateWallet"
 import * as OrderPaymentList from "../Api/Auth/Admin/OrderPayment/List"
 import * as ReportList from "../Api/Auth/Admin/Report/List"
 import * as ReportUpdateStatus from "../Api/Auth/Admin/Report/UpdateStatus"
+import * as SellerTierPolicyGet from "../Api/Auth/Admin/SellerTierPolicy/Get"
+import * as SellerTierPolicyUpdate from "../Api/Auth/Admin/SellerTierPolicy/Update"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -41,4 +43,6 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, OrderPaymentList)
   adminAuthApi(app, ReportList)
   adminAuthApi(app, ReportUpdateStatus)
+  adminAuthApi(app, SellerTierPolicyGet)
+  adminAuthApi(app, SellerTierPolicyUpdate)
 }

@@ -23,6 +23,7 @@ export type Schema = {
   report: ReportTable
   wallet_deposit: WalletDepositTable
   poster: PosterTable
+  seller_tier_policy: SellerTierPolicyTable
 }
 
 type UserTable = {
@@ -53,7 +54,20 @@ type SellerTable = {
   revenue: number
   withdrawn: number
   profit: number
+  tier: string
+  tax: number
   isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+
+type SellerTierPolicyTable = {
+  id: string
+  silverProfitThreshold: number
+  goldProfitThreshold: number
+  bronzeTax: number
+  silverTax: number
+  goldTax: number
   updatedAt: Date
   createdAt: Date
 }

@@ -4,7 +4,7 @@ import { Result, toMaybe, err, mapOk, ok } from "../../Data/Result"
 import { Maybe, throwIfNull } from "../../Data/Maybe"
 
 const key: unique symbol = Symbol()
-export type TierLevel = "bronze" | "silver" | "gold" | "diamond"
+export type TierLevel = "bronze" | "silver" | "gold"
 export type Tier = Opaque<TierLevel, typeof key>
 export type ErrorTier = "INVALID_TIER"
 
@@ -21,7 +21,6 @@ function _validate(s: string): Result<ErrorTier, TierLevel> {
     case "bronze":
     case "silver":
     case "gold":
-    case "diamond":
       return ok(s)
     default:
       return err("INVALID_TIER")

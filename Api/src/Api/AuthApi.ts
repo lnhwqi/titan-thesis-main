@@ -267,7 +267,8 @@ export const sellerAuthApi = <
       if (seller == null || seller.verified.unwrap() === false) {
         return null
       }
-      return seller
+
+      return SellerRow.syncTierAndTaxByProfit(id)
     },
     sellerIDDecoder,
   )
