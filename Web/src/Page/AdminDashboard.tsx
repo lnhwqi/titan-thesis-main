@@ -764,7 +764,9 @@ function renderSellerTierPolicyStatus(
 ): JSX.Element {
   switch (response._t) {
     case "NotAsked":
-      return <div className={styles.sellerMeta}>Policy data not loaded yet.</div>
+      return (
+        <div className={styles.sellerMeta}>Policy data not loaded yet.</div>
+      )
     case "Loading":
       return <div className={styles.sellerMeta}>Loading policy...</div>
     case "Failure":

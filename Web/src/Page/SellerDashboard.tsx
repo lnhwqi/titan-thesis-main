@@ -220,6 +220,26 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
             {formatCurrency(seller?.withdrawn.unwrap() ?? 0)}
           </div>
         </article>
+        <article className={styles.statCard}>
+          <div className={styles.statLabel}>Tier And Tax</div>
+          <div className={styles.tierRow}>
+            <span className={styles.tierPill}>
+              {formatTier(seller?.tier.unwrap() ?? "bronze")}
+            </span>
+            <span className={styles.taxValue}>
+              Tax: {seller?.tax.unwrap() ?? 0}%
+            </span>
+          </div>
+          <div className={styles.tierHint}>
+            {buildTierUpgradeHint(
+              seller?.tier.unwrap() ?? "bronze",
+              seller?.profit.unwrap() ?? 0,
+              sellerState.profileResponse._t === "Success"
+                ? sellerState.profileResponse.data.sellerTierPolicy
+                : null,
+            )}
+          </div>
+        </article>
       </section>
 
       <section className={styles.panel}>
@@ -333,6 +353,39 @@ function formatCurrency(value: number): string {
   return `T ${new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
   }).format(value)}`
+}
+
+function formatTier(value: "bronze" | "silver" | "gold"): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function buildTierUpgradeHint(
+  tier: "bronze" | "silver" | "gold",
+  profit: number,
+  policy: null | {
+    silverProfitThreshold: { unwrap(): number }
+    goldProfitThreshold: { unwrap(): number }
+  },
+): string {
+  if (policy == null) {
+    return "Loading tier policy..."
+  }
+
+  if (tier === "bronze") {
+    const need = Math.max(0, policy.silverProfitThreshold.unwrap() - profit)
+    return need === 0
+      ? "You reached silver threshold. Refresh to sync your tier."
+      : `Need ${formatCurrency(need)} profit to upgrade to Silver.`
+  }
+
+  if (tier === "silver") {
+    const need = Math.max(0, policy.goldProfitThreshold.unwrap() - profit)
+    return need === 0
+      ? "You reached gold threshold. Refresh to sync your tier."
+      : `Need ${formatCurrency(need)} profit to upgrade to Gold.`
+  }
+
+  return "You are at the highest tier (Gold)."
 }
 
 const styles = {
@@ -484,6 +537,34 @@ const styles = {
   statValue: css({
     ...font.boldH5_20,
     color: color.secondary500,
+  }),
+  tierRow: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s2,
+    flexWrap: "wrap",
+  }),
+  tierPill: css({
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: theme.s3,
+    padding: `2px ${theme.s2}`,
+    border: `1px solid ${color.secondary300}`,
+    background: color.secondary50,
+    color: color.secondary500,
+    ...font.bold12,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+  }),
+  taxValue: css({
+    ...font.bold14,
+    color: color.secondary500,
+  }),
+  tierHint: css({
+    marginTop: theme.s2,
+    ...font.regular12,
+    color: color.neutral600,
   }),
   productGrid: css({
     marginTop: theme.s2,

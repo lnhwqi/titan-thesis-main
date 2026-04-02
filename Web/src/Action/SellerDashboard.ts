@@ -594,10 +594,21 @@ function onUpdateShopResponse(response: UpdateProfileApi.Response): Action {
       ]
     }
 
+    const currentPolicy =
+      state.sellerDashboard.profileResponse._t === "Success"
+        ? state.sellerDashboard.profileResponse.data.sellerTierPolicy
+        : null
+
     return [
       _SellerDashboardState(state, {
         updateShopResponse: RD.success(response.value),
-        profileResponse: RD.success({ seller: response.value.seller }),
+        profileResponse:
+          currentPolicy == null
+            ? state.sellerDashboard.profileResponse
+            : RD.success({
+                seller: response.value.seller,
+                sellerTierPolicy: currentPolicy,
+              }),
         isEditingShop: false,
         shopName: response.value.seller.shopName.unwrap(),
         shopDescription: response.value.seller.shopDescription.unwrap(),

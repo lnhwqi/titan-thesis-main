@@ -236,7 +236,9 @@ function onSellerTierPolicyGetResponse(
     return [
       _AdminDashboardState(state, {
         sellerTierPolicyResponse: RD.success(response.value),
-        silverProfitThresholdInput: String(policy.silverProfitThreshold.unwrap()),
+        silverProfitThresholdInput: String(
+          policy.silverProfitThreshold.unwrap(),
+        ),
         goldProfitThresholdInput: String(policy.goldProfitThreshold.unwrap()),
         bronzeTaxInput: String(policy.bronzeTax.unwrap()),
         silverTaxInput: String(policy.silverTax.unwrap()),
@@ -267,7 +269,9 @@ function onSellerTierPolicyUpdateResponse(
       _AdminDashboardState(state, {
         isSavingSellerTierPolicy: false,
         sellerTierPolicyResponse: RD.success(response.value),
-        silverProfitThresholdInput: String(policy.silverProfitThreshold.unwrap()),
+        silverProfitThresholdInput: String(
+          policy.silverProfitThreshold.unwrap(),
+        ),
         goldProfitThresholdInput: String(policy.goldProfitThreshold.unwrap()),
         bronzeTaxInput: String(policy.bronzeTax.unwrap()),
         silverTaxInput: String(policy.silverTax.unwrap()),
