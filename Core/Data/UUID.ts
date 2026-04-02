@@ -2,7 +2,7 @@ import * as JD from "decoders"
 import { Result, toMaybe, err, mapOk, ok } from "./Result"
 import { Maybe, throwIfNull } from "./Maybe"
 import { Opaque, jsonValueCreate } from "./Opaque"
-import { v6, validate, version } from "uuid"
+import { v6, validate } from "uuid"
 
 const uuidVersion = 6
 const key: unique symbol = Symbol()
@@ -22,7 +22,5 @@ function _create(s: string): Maybe<UUID> {
 }
 
 function _validate(s: string): Result<ErrorUUID, string> {
-  return validate(s) === true && version(s) === uuidVersion
-    ? ok(s)
-    : err("INVALID_UUID")
+  return validate(s) === true ? ok(s) : err("INVALID_UUID")
 }

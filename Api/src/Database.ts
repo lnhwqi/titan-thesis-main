@@ -149,6 +149,7 @@ export type OrderPaymentTable = {
     | "IN_TRANSIT"
     | "DELIVERED"
     | "RECEIVED"
+    | "REPORTED"
     | "DELIVERY_ISSUE"
     | "CANCELLED"
   price: number

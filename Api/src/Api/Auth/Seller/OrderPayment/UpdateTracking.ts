@@ -16,7 +16,11 @@ export async function handler(
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   const { id, status, trackingCode } = params
 
-  if (status === "RECEIVED" || status === "DELIVERY_ISSUE") {
+  if (
+    status === "RECEIVED" ||
+    status === "DELIVERY_ISSUE" ||
+    status === "REPORTED"
+  ) {
     return err("INVALID_STATUS_TRANSITION")
   }
 

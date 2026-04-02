@@ -29,6 +29,7 @@ export type AdminDashboardState = {
   categoryChildName: string
   categoryEditID: CategoryID | null
   categoryEditName: string
+  reportWindowHours: string
   deleteCategoryTarget: {
     id: CategoryID
     name: string
@@ -58,6 +59,7 @@ export function initAdminDashboardState(): AdminDashboardState {
     categoryChildName: "",
     categoryEditID: null,
     categoryEditName: "",
+    reportWindowHours: "72",
     deleteCategoryTarget: null,
     deletingCategoryIDs: [],
     creatingCategoryResponse: RD.notAsked(),

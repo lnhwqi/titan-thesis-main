@@ -4,6 +4,7 @@ import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
 import * as OrderPaymentAction from "../Action/OrderPayment"
+import * as ReportAction from "../Action/Report"
 import { navigateTo, toRoute } from "../Route"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
 import * as AuthToken from "../App/AuthToken"
@@ -66,8 +67,18 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
               : parseGoodsSummary(order.goodsSummary)
           const currentStatus =
             state.orderPayment.statusDraftByOrderID[orderID] ?? order.status
+          const report = state.report.sellerReports.find(
+            (x) => x.orderID.unwrap() === orderID,
+          )
+          const canAgreeCashbackByOrder =
+            report != null &&
+            (report.status === "OPEN" ||
+              report.status === "SELLER_REPLIED" ||
+              report.status === "UNDER_REVIEW")
           const lockedByBuyer =
-            order.status === "RECEIVED" || order.status === "DELIVERY_ISSUE"
+            order.status === "RECEIVED" ||
+            order.status === "DELIVERY_ISSUE" ||
+            order.status === "REPORTED"
 
           return (
             <article
@@ -143,7 +154,9 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
 
               {lockedByBuyer ? (
                 <div className={styles.noticeBox}>
-                  Buyer has completed this delivery flow.
+                  {order.status === "REPORTED"
+                    ? "This order is under report review."
+                    : "Buyer has completed this delivery flow."}
                 </div>
               ) : (
                 <>
@@ -205,6 +218,28 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                   </button>
                 </>
               )}
+
+              {order.status === "REPORTED" ? (
+                <div className={styles.actionRow}>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => emit(navigateTo(toRoute("SellerReports", {})))}
+                  >
+                    Send Evidence
+                  </button>
+                  <button
+                    className={styles.primaryButton}
+                    disabled={canAgreeCashbackByOrder === false}
+                    onClick={() => {
+                      if (report != null) {
+                        emit(ReportAction.approveSellerRefund(report.id.unwrap()))
+                      }
+                    }}
+                  >
+                    Agree Cashback
+                  </button>
+                </div>
+              ) : null}
             </article>
           )
         })}
@@ -266,6 +301,8 @@ function statusTone(status: OrderPaymentStatus): "neutral" | "blue" | "green" {
       return "green"
     case "RECEIVED":
       return "green"
+    case "REPORTED":
+      return "neutral"
     case "DELIVERY_ISSUE":
       return "neutral"
     case "CANCELLED":
@@ -285,6 +322,8 @@ function formatStatusOption(status: OrderPaymentStatus): string {
       return "Delivered"
     case "RECEIVED":
       return "Received by buyer"
+    case "REPORTED":
+      return "Under report review"
     case "DELIVERY_ISSUE":
       return "Delivery issue reported"
     case "CANCELLED":
@@ -387,6 +426,11 @@ const styles = {
     ...font.regular14,
     color: color.neutral700,
     lineHeight: 1.45,
+  }),
+  actionRow: css({
+    display: "flex",
+    gap: theme.s2,
+    flexWrap: "wrap",
   }),
   rowField: css({ display: "grid", gap: theme.s1 }),
   label: css({ ...font.medium14, color: color.secondary500 }),

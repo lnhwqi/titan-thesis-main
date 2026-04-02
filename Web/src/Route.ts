@@ -97,8 +97,31 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "UserReports"
+      path: "/reports"
+      params: NoParams
+    }
+  | {
+      _t: "UserReportCreate"
+      path: "/reports/new/:orderID/:sellerID"
+      params: {
+        orderID: string
+        sellerID: string
+      }
+    }
+  | {
       _t: "SellerOrders"
       path: "/seller/orders"
+      params: NoParams
+    }
+  | {
+      _t: "SellerReports"
+      path: "/seller/reports"
+      params: NoParams
+    }
+  | {
+      _t: "AdminReports"
+      path: "/admin/reports"
       params: NoParams
     }
   | {
@@ -303,11 +326,46 @@ const router: RouteTable = {
       params: JD.object({}),
     }),
   },
+  UserReports: {
+    path: "/reports",
+    decoder: JD.object({
+      _t: JD.always("UserReports"),
+      path: JD.always("/reports"),
+      params: JD.object({}),
+    }),
+  },
+  UserReportCreate: {
+    path: "/reports/new/:orderID/:sellerID",
+    decoder: JD.object({
+      _t: JD.always("UserReportCreate"),
+      path: JD.always("/reports/new/:orderID/:sellerID"),
+      params: JD.object({
+        orderID: JD.string,
+        sellerID: JD.string,
+      }),
+    }),
+  },
   SellerOrders: {
     path: "/seller/orders",
     decoder: JD.object({
       _t: JD.always("SellerOrders"),
       path: JD.always("/seller/orders"),
+      params: JD.object({}),
+    }),
+  },
+  SellerReports: {
+    path: "/seller/reports",
+    decoder: JD.object({
+      _t: JD.always("SellerReports"),
+      path: JD.always("/seller/reports"),
+      params: JD.object({}),
+    }),
+  },
+  AdminReports: {
+    path: "/admin/reports",
+    decoder: JD.object({
+      _t: JD.always("AdminReports"),
+      path: JD.always("/admin/reports"),
       params: JD.object({}),
     }),
   },

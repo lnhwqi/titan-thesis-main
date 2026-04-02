@@ -111,6 +111,40 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
         </article>
 
         <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Report Settings</h2>
+          <p className={styles.cardText}>
+            Define how many hours users can submit reports after delivery.
+          </p>
+          <div className={styles.formRow}>
+            <input
+              className={styles.input}
+              value={state.adminDashboard.reportWindowHours}
+              onChange={(e) =>
+                emit(
+                  AdminDashboardAction.onChangeReportWindowHours(
+                    e.currentTarget.value,
+                  ),
+                )
+              }
+              placeholder="72"
+              inputMode="numeric"
+            />
+            <button
+              className={styles.secondaryButton}
+              onClick={() => emit(AdminDashboardAction.saveReportWindowHours())}
+            >
+              Save
+            </button>
+          </div>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(navigateTo(toRoute("AdminReports", {})))}
+          >
+            Open reports queue
+          </button>
+        </article>
+
+        <article className={styles.card}>
           <h2 className={styles.cardTitle}>Platform Health</h2>
           <p className={styles.cardText}>
             Monitor product availability, pricing consistency, and stock alerts.
@@ -267,6 +301,18 @@ const styles = {
     ...font.medium14,
     cursor: "pointer",
     width: "fit-content",
+  }),
+  formRow: css({
+    display: "flex",
+    gap: theme.s2,
+    alignItems: "center",
+  }),
+  input: css({
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.regular14,
+    width: "120px",
   }),
   sellerList: css({
     marginTop: theme.s2,
@@ -487,6 +533,10 @@ function renderOrderPayments(
               <div className={styles.statValue}>
                 {(statusCount.DELIVERED ?? 0) + (statusCount.RECEIVED ?? 0)}
               </div>
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Reported</div>
+              <div className={styles.statValue}>{statusCount.REPORTED ?? 0}</div>
             </div>
           </div>
 

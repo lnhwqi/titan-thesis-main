@@ -11,6 +11,7 @@ import * as SellerDashboardAction from "./SellerDashboard"
 import * as VoucherAction from "./Voucher"
 import * as PaymentAction from "./Payment"
 import * as OrderPaymentAction from "./OrderPayment"
+import * as ReportAction from "./Report"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 import { categoryIDDecoder } from "../../../Core/App/Category/CategoryID"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
@@ -49,10 +50,34 @@ export function onUrlChange(s: State): [State, Cmd] {
       return withHomePoster([state, cmd()])
 
     case "UserOrders":
-      return withHomePoster(OrderPaymentAction.onEnterUserOrdersRoute()(state))
+      {
+        const [nextState, orderCmd] =
+          OrderPaymentAction.onEnterUserOrdersRoute()(state)
+        const [reportState, reportCmd] =
+          ReportAction.onEnterUserReportsRoute()(nextState)
+        return withHomePoster([reportState, [...orderCmd, ...reportCmd]])
+      }
+
+    case "UserReports":
+      return withHomePoster(ReportAction.onEnterUserReportsRoute()(state))
+
+    case "UserReportCreate":
+      return withHomePoster(ReportAction.resetCreateDraft()(state))
 
     case "SellerOrders":
-      return OrderPaymentAction.onEnterSellerOrdersRoute()(state)
+      {
+        const [nextState, orderCmd] =
+          OrderPaymentAction.onEnterSellerOrdersRoute()(state)
+        const [reportState, reportCmd] =
+          ReportAction.onEnterSellerReportsRoute()(nextState)
+        return [reportState, [...orderCmd, ...reportCmd]]
+      }
+
+    case "SellerReports":
+      return ReportAction.onEnterSellerReportsRoute()(state)
+
+    case "AdminReports":
+      return ReportAction.onEnterAdminReportsRoute()(state)
 
     case "AdminLogin":
     case "SellerLogin":

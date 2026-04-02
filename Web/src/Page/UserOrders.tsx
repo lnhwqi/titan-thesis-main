@@ -5,6 +5,7 @@ import { color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as OrderPaymentAction from "../Action/OrderPayment"
+import { canReportDeliveredOrder } from "../Data/ReportConfig"
 
 type Props = { state: State }
 
@@ -25,12 +26,20 @@ export default function UserOrdersPage(props: Props): JSX.Element {
 
       <div className={styles.headerRow}>
         <h1 className={styles.title}>My Orders</h1>
-        <button
-          className={styles.secondaryButton}
-          onClick={() => emit(navigateTo(toRoute("Home", {})))}
-        >
-          Back Home
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(navigateTo(toRoute("UserReports", {})))}
+          >
+            My Reports
+          </button>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(navigateTo(toRoute("Home", {})))}
+          >
+            Back Home
+          </button>
+        </div>
       </div>
 
       {state.orderPayment.userOrdersResponse._t === "Loading" ? (
@@ -54,6 +63,15 @@ export default function UserOrdersPage(props: Props): JSX.Element {
               : parseGoodsSummary(order.goodsSummary)
           const canConfirmDelivery =
             order.isPaid && order.status === "DELIVERED"
+          const alreadyReported = state.report.userReports.some(
+            (report) => report.orderID.unwrap() === orderID,
+          )
+          const isReportableStatus =
+            order.status === "DELIVERED" ||
+            order.status === "RECEIVED" ||
+            order.status === "DELIVERY_ISSUE"
+          const canOpenReport =
+            isReportableStatus && canReportDeliveredOrder(order.updatedAt)
           const confirmingDelivery =
             state.orderPayment.confirmDeliveryResponse._t === "Loading"
 
@@ -137,6 +155,27 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                   </button>
                 </div>
               ) : null}
+
+              {canOpenReport ? (
+                <div className={styles.actionRow}>
+                  <button
+                    className={styles.secondaryActionButton}
+                    disabled={alreadyReported}
+                    onClick={() =>
+                      emit(
+                        navigateTo(
+                          toRoute("UserReportCreate", {
+                            orderID,
+                            sellerID: order.sellerID.unwrap(),
+                          }),
+                        ),
+                      )
+                    }
+                  >
+                    {alreadyReported ? "Already Reported" : "Report Product"}
+                  </button>
+                </div>
+              ) : null}
             </article>
           )
         })}
@@ -179,6 +218,8 @@ function formatOrderStatus(status: string, isPaid: boolean): string {
       return "Delivered - awaiting your confirmation"
     case "RECEIVED":
       return "Received"
+    case "REPORTED":
+      return "Reported - under review"
     case "DELIVERY_ISSUE":
       return "Delivery issue reported"
     case "CANCELLED":
@@ -207,6 +248,10 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: theme.s4,
+  }),
+  headerActions: css({
+    display: "flex",
+    gap: theme.s2,
   }),
   list: css({ display: "grid", gap: theme.s3 }),
   card: css({

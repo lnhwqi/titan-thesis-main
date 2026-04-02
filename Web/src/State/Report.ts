@@ -1,5 +1,5 @@
 import * as RD from "../../../Core/Data/RemoteData"
-import { Report, ReportStatus } from "../../../Core/App/Report"
+import { Report, ReportCategory, ReportStatus } from "../../../Core/App/Report"
 import type { State } from "../State"
 import { ApiError } from "../Api"
 import * as UserListApi from "../Api/Auth/User/Report/ListMine"
@@ -7,10 +7,19 @@ import * as SellerListApi from "../Api/Auth/Seller/Report/ListMine"
 import * as UserCreateApi from "../Api/Auth/User/Report/Create"
 import * as SellerRespondApi from "../Api/Auth/Seller/Report/Respond"
 import * as AdminUpdateStatusApi from "../Api/Auth/Admin/Report/UpdateStatus"
+import * as AdminListApi from "../Api/Auth/Admin/Report/List"
+
+export type ReportCreateDraft = {
+  category: ReportCategory
+  userDescription: string
+  userUrlImgsRaw: string
+}
 
 export type ReportState = {
   userReports: Report[]
   sellerReports: Report[]
+  adminReports: Report[]
+  createDraft: ReportCreateDraft
   userReportsResponse: RD.RemoteData<
     ApiError<UserListApi.ErrorCode>,
     UserListApi.Payload
@@ -31,6 +40,10 @@ export type ReportState = {
     ApiError<AdminUpdateStatusApi.ErrorCode>,
     AdminUpdateStatusApi.Payload
   >
+  adminReportsResponse: RD.RemoteData<
+    ApiError<AdminListApi.ErrorCode>,
+    AdminListApi.Payload
+  >
   statusDraftByReportID: Record<string, ReportStatus>
   sellerEvidenceDraftByReportID: Record<string, string>
   sellerEvidenceUrlsDraftByReportID: Record<string, string>
@@ -42,11 +55,18 @@ export function initReportState(): ReportState {
   return {
     userReports: [],
     sellerReports: [],
+    adminReports: [],
+    createDraft: {
+      category: "WRONG_ITEM",
+      userDescription: "",
+      userUrlImgsRaw: "",
+    },
     userReportsResponse: RD.notAsked(),
     sellerReportsResponse: RD.notAsked(),
     createResponse: RD.notAsked(),
     sellerRespondResponse: RD.notAsked(),
     adminUpdateStatusResponse: RD.notAsked(),
+    adminReportsResponse: RD.notAsked(),
     statusDraftByReportID: {},
     sellerEvidenceDraftByReportID: {},
     sellerEvidenceUrlsDraftByReportID: {},

@@ -27,6 +27,10 @@ import PaymentResultPage from "./Page/PaymentResult"
 import WalletDepositPage from "./Page/WalletDeposit"
 import UserOrdersPage from "./Page/UserOrders"
 import SellerOrdersPage from "./Page/SellerOrders"
+import UserReportsPage from "./Page/UserReports"
+import UserReportCreatePage from "./Page/UserReportCreate"
+import SellerReportsPage from "./Page/SellerReports"
+import AdminReportsPage from "./Page/AdminReports"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
 import SellerProfilePage from "./Page/SellerProfile"
@@ -86,6 +90,20 @@ export default function View(props: Props): JSX.Element {
         <HomeLayout
           state={state}
           Page={UserOrdersPage}
+        />
+      )
+    case "UserReports":
+      return (
+        <HomeLayout
+          state={state}
+          Page={UserReportsPage}
+        />
+      )
+    case "UserReportCreate":
+      return (
+        <HomeLayout
+          state={state}
+          Page={UserReportCreatePage}
         />
       )
     case "NotFound":
@@ -178,6 +196,20 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={SellerOrdersPage}
+        />
+      )
+    case "SellerReports":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={SellerReportsPage}
+        />
+      )
+    case "AdminReports":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminReportsPage}
         />
       )
     case "Login":

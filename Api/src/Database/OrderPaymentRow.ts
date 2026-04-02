@@ -190,6 +190,27 @@ export async function updateStatusByUser(
     )
 }
 
+export async function updateStatusByReportFlow(
+  id: OrderPaymentID,
+  nextStatus: OrderPaymentStatus,
+): Promise<Maybe<OrderPaymentRow>> {
+  return db
+    .updateTable(tableName)
+    .set({
+      status: nextStatus,
+      updatedAt: toDate(createNow()),
+    })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) =>
+      row == null
+        ? null
+        : orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+    )
+}
+
 export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
   return db
     .selectFrom(tableName)

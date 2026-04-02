@@ -3,6 +3,7 @@ import { ok, err, Result } from "../../../../../../Core/Data/Result"
 import { AuthAdmin } from "../../../AuthApi"
 import { ReportStatus } from "../../../../../../Core/App/Report"
 import * as ReportRow from "../../../../Database/ReportRow"
+import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
 import { toReport } from "../../../../App/Report"
 
 export const contract = API.contract
@@ -30,7 +31,26 @@ export async function handler(
     return err("REPORT_NOT_FOUND")
   }
 
+  await OrderPaymentRow.updateStatusByReportFlow(
+    updated.orderId,
+    mapReportStatusToOrderPaymentStatus(updated.status),
+  )
+
   return ok({ report: toReport(updated) })
+}
+
+function mapReportStatusToOrderPaymentStatus(status: ReportStatus): "REPORTED" | "DELIVERY_ISSUE" {
+  switch (status) {
+    case "OPEN":
+    case "SELLER_REPLIED":
+    case "UNDER_REVIEW":
+    case "REFUND_APPROVED":
+      return "REPORTED"
+    case "CASHBACK_COMPLETED":
+    case "RESOLVED":
+    case "REJECTED":
+      return "DELIVERY_ISSUE"
+  }
 }
 
 function canTransition(from: ReportStatus, to: ReportStatus): boolean {

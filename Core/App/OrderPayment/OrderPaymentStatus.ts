@@ -6,6 +6,7 @@ export type OrderPaymentStatus =
   | "IN_TRANSIT"
   | "DELIVERED"
   | "RECEIVED"
+  | "REPORTED"
   | "DELIVERY_ISSUE"
   | "CANCELLED"
 
@@ -16,6 +17,7 @@ export const orderPaymentStatusDecoder: JD.Decoder<OrderPaymentStatus> =
     "IN_TRANSIT",
     "DELIVERED",
     "RECEIVED",
+    "REPORTED",
     "DELIVERY_ISSUE",
     "CANCELLED",
   ])

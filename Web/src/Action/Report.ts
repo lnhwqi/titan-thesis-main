@@ -6,11 +6,13 @@ import * as SellerListApi from "../Api/Auth/Seller/Report/ListMine"
 import * as UserCreateApi from "../Api/Auth/User/Report/Create"
 import * as SellerRespondApi from "../Api/Auth/Seller/Report/Respond"
 import * as AdminUpdateStatusApi from "../Api/Auth/Admin/Report/UpdateStatus"
+import * as AdminListApi from "../Api/Auth/Admin/Report/List"
 import {
   parseReportID,
   createSellerDescription,
   createResultTextAdmin,
   ReportStatus,
+  ReportCategory,
 } from "../../../Core/App/Report"
 import { createSellerUrlImgs } from "../../../Core/App/Report/SellerUrlImgs"
 
@@ -36,6 +38,64 @@ export function onEnterSellerReportsRoute(): Action {
     }),
     cmd(SellerListApi.call().then(onSellerListResponse)),
   ]
+}
+
+export function onEnterAdminReportsRoute(): Action {
+  return (state) => [
+    _ReportState(state, {
+      adminReportsResponse: RD.loading(),
+      flashMessage: null,
+    }),
+    cmd(AdminListApi.call().then(onAdminListResponse)),
+  ]
+}
+
+export function resetCreateDraft(): Action {
+  return (state) => [
+    _ReportState(state, {
+      createDraft: {
+        category: "WRONG_ITEM",
+        userDescription: "",
+        userUrlImgsRaw: "",
+      },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeCreateDraftCategory(category: ReportCategory): Action {
+  return (state) => [
+    _ReportState(state, {
+      createDraft: { ...state.report.createDraft, category },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeCreateDraftDescription(value: string): Action {
+  return (state) => [
+    _ReportState(state, {
+      createDraft: { ...state.report.createDraft, userDescription: value },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeCreateDraftUrls(value: string): Action {
+  return (state) => [
+    _ReportState(state, {
+      createDraft: { ...state.report.createDraft, userUrlImgsRaw: value },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function setFlashMessage(message: string | null): Action {
+  return (state) => [_ReportState(state, { flashMessage: message }), cmd()]
 }
 
 export function submitUserReport(params: UserCreateApi.BodyParams): Action {
@@ -318,6 +378,11 @@ function onCreateResponse(response: UserCreateApi.Response): Action {
     return [
       _ReportState(state, {
         createResponse: RD.success(response.value),
+        createDraft: {
+          category: "WRONG_ITEM",
+          userDescription: "",
+          userUrlImgsRaw: "",
+        },
         flashMessage: "Report submitted successfully.",
       }),
       cmd(UserListApi.call().then(onUserListResponse)),
@@ -366,7 +431,39 @@ function onAdminUpdateStatusResponse(
         adminUpdateStatusResponse: RD.success(response.value),
         flashMessage: "Report status updated.",
       }),
-      cmd(SellerListApi.call().then(onSellerListResponse)),
+      cmd(AdminListApi.call().then(onAdminListResponse)),
+    ]
+  }
+}
+
+function onAdminListResponse(response: AdminListApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _ReportState(state, {
+          adminReportsResponse: RD.failure(response.error),
+          flashMessage: AdminListApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const nextStatusDraft = { ...state.report.statusDraftByReportID }
+    const nextAdminResultDraft = { ...state.report.adminResultDraftByReportID }
+    response.value.reports.forEach((report) => {
+      const key = report.id.unwrap()
+      nextStatusDraft[key] = report.status
+      nextAdminResultDraft[key] = report.resultTextAdmin?.unwrap() ?? ""
+    })
+
+    return [
+      _ReportState(state, {
+        adminReportsResponse: RD.success(response.value),
+        adminReports: response.value.reports,
+        statusDraftByReportID: nextStatusDraft,
+        adminResultDraftByReportID: nextAdminResultDraft,
+      }),
+      cmd(),
     ]
   }
 }

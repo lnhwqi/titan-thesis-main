@@ -4,6 +4,7 @@ import { AuthUser } from "../../../AuthApi"
 import { createReportID } from "../../../../../../Core/App/Report"
 import db from "../../../../Database"
 import * as ReportRow from "../../../../Database/ReportRow"
+import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
 import { toReport } from "../../../../App/Report"
 
 export const contract = API.contract
@@ -53,6 +54,8 @@ export async function handler(
     userUrlImgs: params.userUrlImgs,
     status: "OPEN",
   })
+
+  await OrderPaymentRow.updateStatusByReportFlow(params.orderID, "REPORTED")
 
   return ok({ report: toReport(report) })
 }

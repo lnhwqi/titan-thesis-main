@@ -143,6 +143,16 @@ export async function listBySellerID(sellerId: SellerID): Promise<ReportRow[]> {
     .then((rows) => JD.array(reportRowDecoder).verify(rows))
 }
 
+export async function listAll(): Promise<ReportRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => JD.array(reportRowDecoder).verify(rows))
+}
+
 export async function updateSellerResponse(
   id: ReportID,
   sellerId: SellerID,
