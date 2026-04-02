@@ -17,6 +17,7 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
   const pending = state.adminDashboard.pendingSellersResponse
   const adminHome = state.adminDashboard.adminHomeResponse
   const orderPayments = state.adminDashboard.orderPaymentsResponse
+  const sellerTierPolicy = state.adminDashboard.sellerTierPolicyResponse
   const approving = state.adminDashboard.approvingSellerIDs
   const sendingVerifyEmail = state.adminDashboard.sendingVerifyEmailSellerIDs
   const flashMessage = state.adminDashboard.flashMessage
@@ -142,6 +143,116 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           >
             Open reports queue
           </button>
+        </article>
+
+        <article className={styles.cardWide}>
+          <h2 className={styles.cardTitle}>Seller Tier And Tax Policy</h2>
+          <p className={styles.cardText}>
+            Set profit thresholds for tier upgrades and tax percentage per tier.
+          </p>
+
+          {renderSellerTierPolicyStatus(sellerTierPolicy)}
+
+          <div className={styles.statsRow}>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Silver Threshold</div>
+              <input
+                className={styles.input}
+                value={state.adminDashboard.silverProfitThresholdInput}
+                onChange={(e) =>
+                  emit(
+                    AdminDashboardAction.onChangeSellerTierPolicyInput(
+                      "silverProfitThresholdInput",
+                      e.currentTarget.value,
+                    ),
+                  )
+                }
+                inputMode="numeric"
+              />
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Gold Threshold</div>
+              <input
+                className={styles.input}
+                value={state.adminDashboard.goldProfitThresholdInput}
+                onChange={(e) =>
+                  emit(
+                    AdminDashboardAction.onChangeSellerTierPolicyInput(
+                      "goldProfitThresholdInput",
+                      e.currentTarget.value,
+                    ),
+                  )
+                }
+                inputMode="numeric"
+              />
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Bronze Tax (%)</div>
+              <input
+                className={styles.input}
+                value={state.adminDashboard.bronzeTaxInput}
+                onChange={(e) =>
+                  emit(
+                    AdminDashboardAction.onChangeSellerTierPolicyInput(
+                      "bronzeTaxInput",
+                      e.currentTarget.value,
+                    ),
+                  )
+                }
+                inputMode="numeric"
+              />
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Silver Tax (%)</div>
+              <input
+                className={styles.input}
+                value={state.adminDashboard.silverTaxInput}
+                onChange={(e) =>
+                  emit(
+                    AdminDashboardAction.onChangeSellerTierPolicyInput(
+                      "silverTaxInput",
+                      e.currentTarget.value,
+                    ),
+                  )
+                }
+                inputMode="numeric"
+              />
+            </div>
+            <div className={styles.statCell}>
+              <div className={styles.statLabel}>Gold Tax (%)</div>
+              <input
+                className={styles.input}
+                value={state.adminDashboard.goldTaxInput}
+                onChange={(e) =>
+                  emit(
+                    AdminDashboardAction.onChangeSellerTierPolicyInput(
+                      "goldTaxInput",
+                      e.currentTarget.value,
+                    ),
+                  )
+                }
+                inputMode="numeric"
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => emit(AdminDashboardAction.loadSellerTierPolicy())}
+            >
+              Refresh policy
+            </button>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => emit(AdminDashboardAction.saveSellerTierPolicy())}
+              disabled={state.adminDashboard.isSavingSellerTierPolicy}
+            >
+              {state.adminDashboard.isSavingSellerTierPolicy
+                ? "Saving..."
+                : "Save policy"}
+            </button>
+          </div>
         </article>
 
         <article className={styles.card}>
@@ -645,5 +756,20 @@ function renderPendingSellers(
         </div>
       )
     }
+  }
+}
+
+function renderSellerTierPolicyStatus(
+  response: State["adminDashboard"]["sellerTierPolicyResponse"],
+): JSX.Element {
+  switch (response._t) {
+    case "NotAsked":
+      return <div className={styles.sellerMeta}>Policy data not loaded yet.</div>
+    case "Loading":
+      return <div className={styles.sellerMeta}>Loading policy...</div>
+    case "Failure":
+      return <div className={styles.sellerMeta}>Unable to load policy.</div>
+    case "Success":
+      return <div className={styles.sellerMeta}>Policy loaded from server.</div>
   }
 }

@@ -5,6 +5,8 @@ import { Action, cmd, Cmd } from "../Action"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
+import * as SellerTierPolicyGetApi from "../Api/Auth/Admin/SellerTierPolicyGet"
+import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import * as ApproveSellerApi from "../Api/Auth/Admin/ApproveSeller"
 import * as SendSellerVerifyEmailApi from "../Api/Auth/Admin/SendSellerVerifyEmail"
 import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
@@ -60,11 +62,85 @@ export function loadOverview(): Action {
       _AdminDashboardState(nextState, {
         adminHomeResponse: RD.loading(),
         orderPaymentsResponse: RD.loading(),
+        sellerTierPolicyResponse: RD.loading(),
       }),
       cmd(
         ...pendingCmd,
         HomeAdminApi.call().then(onAdminHomeResponse),
         AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
+        SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse),
+      ),
+    ]
+  }
+}
+
+export function loadSellerTierPolicy(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      sellerTierPolicyResponse: RD.loading(),
+      flashMessage: null,
+    }),
+    cmd(SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse)),
+  ]
+}
+
+export function onChangeSellerTierPolicyInput(
+  field:
+    | "silverProfitThresholdInput"
+    | "goldProfitThresholdInput"
+    | "bronzeTaxInput"
+    | "silverTaxInput"
+    | "goldTaxInput",
+  value: string,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      [field]: value,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function saveSellerTierPolicy(): Action {
+  return (state) => {
+    const silverProfitThreshold = Number(
+      state.adminDashboard.silverProfitThresholdInput.trim(),
+    )
+    const goldProfitThreshold = Number(
+      state.adminDashboard.goldProfitThresholdInput.trim(),
+    )
+    const bronzeTax = Number(state.adminDashboard.bronzeTaxInput.trim())
+    const silverTax = Number(state.adminDashboard.silverTaxInput.trim())
+    const goldTax = Number(state.adminDashboard.goldTaxInput.trim())
+
+    const decoded = SellerTierPolicyUpdateApi.paramsDecoder.decode({
+      silverProfitThreshold,
+      goldProfitThreshold,
+      bronzeTax,
+      silverTax,
+      goldTax,
+    })
+
+    if (decoded.ok === false) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage:
+            "Invalid tier policy input. Use integers for thresholds and 0-100 for tax.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        isSavingSellerTierPolicy: true,
+        flashMessage: null,
+      }),
+      cmd(
+        SellerTierPolicyUpdateApi.call(decoded.value).then(
+          onSellerTierPolicyUpdateResponse,
+        ),
       ),
     ]
   }
@@ -140,6 +216,67 @@ function onOrderPaymentsResponse(
     }),
     cmd(),
   ]
+}
+
+function onSellerTierPolicyGetResponse(
+  response: SellerTierPolicyGetApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          sellerTierPolicyResponse: RD.failure(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const policy = response.value.sellerTierPolicy
+
+    return [
+      _AdminDashboardState(state, {
+        sellerTierPolicyResponse: RD.success(response.value),
+        silverProfitThresholdInput: String(policy.silverProfitThreshold.unwrap()),
+        goldProfitThresholdInput: String(policy.goldProfitThreshold.unwrap()),
+        bronzeTaxInput: String(policy.bronzeTax.unwrap()),
+        silverTaxInput: String(policy.silverTax.unwrap()),
+        goldTaxInput: String(policy.goldTax.unwrap()),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+function onSellerTierPolicyUpdateResponse(
+  response: SellerTierPolicyUpdateApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          isSavingSellerTierPolicy: false,
+          flashMessage: SellerTierPolicyUpdateApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const policy = response.value.sellerTierPolicy
+
+    return [
+      _AdminDashboardState(state, {
+        isSavingSellerTierPolicy: false,
+        sellerTierPolicyResponse: RD.success(response.value),
+        silverProfitThresholdInput: String(policy.silverProfitThreshold.unwrap()),
+        goldProfitThresholdInput: String(policy.goldProfitThreshold.unwrap()),
+        bronzeTaxInput: String(policy.bronzeTax.unwrap()),
+        silverTaxInput: String(policy.silverTax.unwrap()),
+        goldTaxInput: String(policy.goldTax.unwrap()),
+        flashMessage: "Seller tier policy updated.",
+      }),
+      cmd(),
+    ]
+  }
 }
 
 export function approveSeller(sellerID: SellerID): Action {

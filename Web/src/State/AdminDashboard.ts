@@ -6,6 +6,8 @@ import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
 import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
+import * as SellerTierPolicyGetApi from "../Api/Auth/Admin/SellerTierPolicyGet"
+import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
 export type AdminDashboardState = {
@@ -21,8 +23,18 @@ export type AdminDashboardState = {
     ApiError<AdminOrderPaymentListApi.ErrorCode>,
     AdminOrderPaymentListApi.Payload
   >
+  sellerTierPolicyResponse: RD.RemoteData<
+    ApiError<SellerTierPolicyGetApi.ErrorCode>,
+    SellerTierPolicyGetApi.Payload
+  >
   approvingSellerIDs: string[]
   sendingVerifyEmailSellerIDs: string[]
+  silverProfitThresholdInput: string
+  goldProfitThresholdInput: string
+  bronzeTaxInput: string
+  silverTaxInput: string
+  goldTaxInput: string
+  isSavingSellerTierPolicy: boolean
   categoryRootName: string
   categoryChildParentID: CategoryID | null
   categoryChildParentName: string | null
@@ -51,8 +63,15 @@ export function initAdminDashboardState(): AdminDashboardState {
     pendingSellersResponse: RD.notAsked(),
     adminHomeResponse: RD.notAsked(),
     orderPaymentsResponse: RD.notAsked(),
+    sellerTierPolicyResponse: RD.notAsked(),
     approvingSellerIDs: [],
     sendingVerifyEmailSellerIDs: [],
+    silverProfitThresholdInput: "1000",
+    goldProfitThresholdInput: "5000",
+    bronzeTaxInput: "10",
+    silverTaxInput: "8",
+    goldTaxInput: "5",
+    isSavingSellerTierPolicy: false,
     categoryRootName: "",
     categoryChildParentID: null,
     categoryChildParentName: null,
