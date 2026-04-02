@@ -1,5 +1,6 @@
 import { Report } from "../../../Core/App/Report"
 import { ReportRow } from "../Database/ReportRow"
+import { toMillisecond } from "../../../Core/Data/Time/Timestamp"
 
 export function toReport(row: ReportRow): Report {
   return {
@@ -15,5 +16,6 @@ export function toReport(row: ReportRow): Report {
     sellerUrlImgs: row.sellerUrlImgs,
     status: row.status,
     resultTextAdmin: row.resultTextAdmin,
+    createdAt: toMillisecond(row.createdAt),
   }
 }

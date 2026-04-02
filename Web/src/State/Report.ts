@@ -15,6 +15,25 @@ export type ReportCreateDraft = {
   userUrlImgsRaw: string
 }
 
+export type SellerConfirmAction = "SUBMIT_EVIDENCE" | "AGREE_CASHBACK"
+
+export type SellerConfirmState = {
+  reportID: string
+  action: SellerConfirmAction
+} | null
+
+export type UserCreateConfirmState = {
+  params: UserCreateApi.BodyParams
+} | null
+
+export type AdminStatusFilter = "ALL" | ReportStatus
+export type AdminSortOrder = "STATUS_ASC" | "STATUS_DESC"
+
+export type AdminFinalStatusConfirmState = {
+  reportID: string
+  status: "RESOLVED" | "REJECTED"
+} | null
+
 export type ReportState = {
   userReports: Report[]
   sellerReports: Report[]
@@ -48,6 +67,12 @@ export type ReportState = {
   sellerEvidenceDraftByReportID: Record<string, string>
   sellerEvidenceUrlsDraftByReportID: Record<string, string>
   adminResultDraftByReportID: Record<string, string>
+  sellerConfirmState: SellerConfirmState
+  userCreateConfirmState: UserCreateConfirmState
+  adminStatusFilter: AdminStatusFilter
+  adminMonthFilter: "ALL" | string
+  adminSortOrder: AdminSortOrder
+  adminFinalStatusConfirmState: AdminFinalStatusConfirmState
   flashMessage: string | null
 }
 
@@ -71,6 +96,12 @@ export function initReportState(): ReportState {
     sellerEvidenceDraftByReportID: {},
     sellerEvidenceUrlsDraftByReportID: {},
     adminResultDraftByReportID: {},
+    sellerConfirmState: null,
+    userCreateConfirmState: null,
+    adminStatusFilter: "ALL",
+    adminMonthFilter: "ALL",
+    adminSortOrder: "STATUS_ASC",
+    adminFinalStatusConfirmState: null,
     flashMessage: null,
   }
 }

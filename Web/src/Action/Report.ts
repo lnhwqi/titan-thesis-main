@@ -1,6 +1,6 @@
 import * as RD from "../../../Core/Data/RemoteData"
-import { Action, cmd } from "../Action"
-import { _ReportState } from "../State/Report"
+import { Action, cmd, perform } from "../Action"
+import { _ReportState, SellerConfirmAction } from "../State/Report"
 import * as UserListApi from "../Api/Auth/User/Report/ListMine"
 import * as SellerListApi from "../Api/Auth/Seller/Report/ListMine"
 import * as UserCreateApi from "../Api/Auth/User/Report/Create"
@@ -15,6 +15,7 @@ import {
   ReportCategory,
 } from "../../../Core/App/Report"
 import { createSellerUrlImgs } from "../../../Core/App/Report/SellerUrlImgs"
+import { navigateTo, toRoute } from "../Route"
 
 export function clearFlashMessage(): Action {
   return (state) => [_ReportState(state, { flashMessage: null }), cmd()]
@@ -98,10 +99,167 @@ export function setFlashMessage(message: string | null): Action {
   return (state) => [_ReportState(state, { flashMessage: message }), cmd()]
 }
 
+export function openUserCreateConfirm(
+  params: UserCreateApi.BodyParams,
+): Action {
+  return (state) => [
+    _ReportState(state, {
+      userCreateConfirmState: { params },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function closeUserCreateConfirm(): Action {
+  return (state) => [
+    _ReportState(state, { userCreateConfirmState: null }),
+    cmd(),
+  ]
+}
+
+export function confirmUserCreateReport(): Action {
+  return (state) => {
+    const confirmState = state.report.userCreateConfirmState
+    if (confirmState == null) {
+      return [state, cmd()]
+    }
+
+    return submitUserReport(confirmState.params)(
+      _ReportState(state, { userCreateConfirmState: null }),
+    )
+  }
+}
+
+export function openSellerConfirmCard(
+  reportID: string,
+  action: SellerConfirmAction,
+): Action {
+  return (state) => {
+    if (action === "AGREE_CASHBACK") {
+      const report = state.report.sellerReports.find(
+        (item) => item.id.unwrap() === reportID,
+      )
+
+      if (
+        report == null ||
+        canSellerAgreeCashbackByStatus(report.status) === false
+      ) {
+        return [
+          _ReportState(state, {
+            flashMessage:
+              "Cashback can no longer be agreed for this report status.",
+            sellerConfirmState: null,
+          }),
+          cmd(),
+        ]
+      }
+    }
+
+    return [
+      _ReportState(state, {
+        sellerConfirmState: { reportID, action },
+        flashMessage: null,
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function closeSellerConfirmCard(): Action {
+  return (state) => [_ReportState(state, { sellerConfirmState: null }), cmd()]
+}
+
+export function onChangeAdminStatusFilter(
+  filter: "ALL" | ReportStatus,
+): Action {
+  return (state) => [
+    _ReportState(state, {
+      adminStatusFilter: filter,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeAdminMonthFilter(month: "ALL" | string): Action {
+  return (state) => [
+    _ReportState(state, {
+      adminMonthFilter: month,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeAdminSortOrder(
+  order: "STATUS_ASC" | "STATUS_DESC",
+): Action {
+  return (state) => [
+    _ReportState(state, {
+      adminSortOrder: order,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function openAdminFinalStatusConfirm(
+  reportID: string,
+  status: "RESOLVED" | "REJECTED",
+): Action {
+  return (state) => [
+    _ReportState(state, {
+      adminFinalStatusConfirmState: { reportID, status },
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function closeAdminFinalStatusConfirm(): Action {
+  return (state) => [
+    _ReportState(state, { adminFinalStatusConfirmState: null }),
+    cmd(),
+  ]
+}
+
+export function confirmAdminFinalStatus(): Action {
+  return (state) => {
+    const confirmState = state.report.adminFinalStatusConfirmState
+    if (confirmState == null) {
+      return [state, cmd()]
+    }
+
+    return submitAdminUpdateStatusInternal(
+      confirmState.reportID,
+      true,
+    )(_ReportState(state, { adminFinalStatusConfirmState: null }))
+  }
+}
+
+export function confirmSellerAction(): Action {
+  return (state) => {
+    const confirmState = state.report.sellerConfirmState
+    if (confirmState == null) {
+      return [state, cmd()]
+    }
+
+    return confirmState.action === "SUBMIT_EVIDENCE"
+      ? submitSellerEvidence(confirmState.reportID)(
+          _ReportState(state, { sellerConfirmState: null }),
+        )
+      : approveSellerRefund(confirmState.reportID)(
+          _ReportState(state, { sellerConfirmState: null }),
+        )
+  }
+}
+
 export function submitUserReport(params: UserCreateApi.BodyParams): Action {
   return (state) => [
     _ReportState(state, {
       createResponse: RD.loading(),
+      userCreateConfirmState: null,
       flashMessage: null,
     }),
     cmd(UserCreateApi.call(params).then(onCreateResponse)),
@@ -231,6 +389,23 @@ export function submitSellerEvidence(reportID: string): Action {
 
 export function approveSellerRefund(reportID: string): Action {
   return (state) => {
+    const current = state.report.sellerReports.find(
+      (item) => item.id.unwrap() === reportID,
+    )
+
+    if (
+      current == null ||
+      canSellerAgreeCashbackByStatus(current.status) === false
+    ) {
+      return [
+        _ReportState(state, {
+          flashMessage:
+            "Cashback can no longer be agreed for this report status.",
+        }),
+        cmd(),
+      ]
+    }
+
     let parsedID
     try {
       parsedID = parseReportID(reportID)
@@ -260,8 +435,39 @@ export function approveSellerRefund(reportID: string): Action {
   }
 }
 
+function canSellerAgreeCashbackByStatus(status: ReportStatus): boolean {
+  return (
+    status === "OPEN" ||
+    status === "SELLER_REPLIED" ||
+    status === "UNDER_REVIEW"
+  )
+}
+
 export function submitAdminUpdateStatus(reportID: string): Action {
+  return submitAdminUpdateStatusInternal(reportID, false)
+}
+
+function submitAdminUpdateStatusInternal(
+  reportID: string,
+  bypassFinalConfirm = false,
+): Action {
   return (state) => {
+    const current = state.report.adminReports.find(
+      (item) => item.id.unwrap() === reportID,
+    )
+    if (current == null) {
+      return [_ReportState(state, { flashMessage: "Report not found." }), cmd()]
+    }
+
+    if (isAdminReportClosed(current.status)) {
+      return [
+        _ReportState(state, {
+          flashMessage: "Rejected/Resolved reports cannot be edited anymore.",
+        }),
+        cmd(),
+      ]
+    }
+
     let parsedID
     try {
       parsedID = parseReportID(reportID)
@@ -276,6 +482,22 @@ export function submitAdminUpdateStatus(reportID: string): Action {
     if (nextStatus == null) {
       return [
         _ReportState(state, { flashMessage: "Please select report status." }),
+        cmd(),
+      ]
+    }
+
+    if (
+      bypassFinalConfirm === false &&
+      (nextStatus === "RESOLVED" || nextStatus === "REJECTED")
+    ) {
+      return [
+        _ReportState(state, {
+          adminFinalStatusConfirmState: {
+            reportID,
+            status: nextStatus,
+          },
+          flashMessage: null,
+        }),
         cmd(),
       ]
     }
@@ -296,6 +518,7 @@ export function submitAdminUpdateStatus(reportID: string): Action {
     return [
       _ReportState(state, {
         adminUpdateStatusResponse: RD.loading(),
+        adminFinalStatusConfirmState: null,
         flashMessage: null,
       }),
       cmd(
@@ -306,6 +529,14 @@ export function submitAdminUpdateStatus(reportID: string): Action {
       ),
     ]
   }
+}
+
+function isAdminReportClosed(status: ReportStatus): boolean {
+  return (
+    status === "RESOLVED" ||
+    status === "REJECTED" ||
+    status === "CASHBACK_COMPLETED"
+  )
 }
 
 function onUserListResponse(response: UserListApi.Response): Action {
@@ -385,7 +616,10 @@ function onCreateResponse(response: UserCreateApi.Response): Action {
         },
         flashMessage: "Report submitted successfully.",
       }),
-      cmd(UserListApi.call().then(onUserListResponse)),
+      cmd(
+        UserListApi.call().then(onUserListResponse),
+        perform(navigateTo(toRoute("UserOrders", {}))),
+      ),
     ]
   }
 }

@@ -6,6 +6,7 @@ import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as OrderPaymentAction from "../Action/OrderPayment"
 import { canReportDeliveredOrder } from "../Data/ReportConfig"
+import { ReportStatus } from "../../../Core/App/Report"
 
 type Props = { state: State }
 
@@ -66,6 +67,9 @@ export default function UserOrdersPage(props: Props): JSX.Element {
           const alreadyReported = state.report.userReports.some(
             (report) => report.orderID.unwrap() === orderID,
           )
+          const relatedReport = state.report.userReports.find(
+            (report) => report.orderID.unwrap() === orderID,
+          )
           const isReportableStatus =
             order.status === "DELIVERED" ||
             order.status === "RECEIVED" ||
@@ -94,7 +98,12 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                 Payment Status: {order.isPaid ? "Paid" : "Unpaid"}
               </div>
               <div className={styles.row}>
-                Status: {formatOrderStatus(order.status, order.isPaid)}
+                Status:{" "}
+                {formatOrderStatus(
+                  order.status,
+                  order.isPaid,
+                  relatedReport?.status,
+                )}
               </div>
               <div className={styles.row}>
                 Address: {order.address.unwrap()}
@@ -202,9 +211,20 @@ function formatOrderDate(value: number): string {
   }).format(date)
 }
 
-function formatOrderStatus(status: string, isPaid: boolean): string {
+function formatOrderStatus(
+  status: string,
+  isPaid: boolean,
+  reportStatus?: ReportStatus,
+): string {
   if (isPaid === false) {
     return "Awaiting payment"
+  }
+
+  if (
+    (status === "REPORTED" || status === "DELIVERY_ISSUE") &&
+    reportStatus != null
+  ) {
+    return `Report: ${humanizeReportStatus(reportStatus)}`
   }
 
   switch (status) {
@@ -226,6 +246,25 @@ function formatOrderStatus(status: string, isPaid: boolean): string {
       return "Cancelled"
     default:
       return status
+  }
+}
+
+function humanizeReportStatus(status: ReportStatus): string {
+  switch (status) {
+    case "OPEN":
+      return "Open"
+    case "SELLER_REPLIED":
+      return "Seller Replied"
+    case "UNDER_REVIEW":
+      return "Under Review"
+    case "REFUND_APPROVED":
+      return "Refund Approved"
+    case "CASHBACK_COMPLETED":
+      return "Cashback Completed"
+    case "RESOLVED":
+      return "Resolved"
+    case "REJECTED":
+      return "Rejected"
   }
 }
 

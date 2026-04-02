@@ -20,6 +20,7 @@ export default function SellerReportsPage(props: Props): JSX.Element {
   }
 
   const isSubmitting = state.report.sellerRespondResponse._t === "Loading"
+  const confirmState = state.report.sellerConfirmState
 
   return (
     <div className={styles.page}>
@@ -57,18 +58,7 @@ export default function SellerReportsPage(props: Props): JSX.Element {
       <div className={styles.list}>
         {state.report.sellerReports.map((report) => {
           const id = report.id.unwrap()
-          const canSubmitEvidence = canSellerSubmitEvidence(report.status)
           const canAgreeCashback = canSellerAgreeCashback(report.status)
-          const evidenceDescription =
-            state.report.sellerEvidenceDraftByReportID[id] ?? ""
-          const evidenceUrlsRaw =
-            state.report.sellerEvidenceUrlsDraftByReportID[id] ?? ""
-          const hasEvidenceInput =
-            evidenceDescription.trim() !== "" ||
-            evidenceUrlsRaw
-              .split(/\r?\n/)
-              .map((v) => v.trim())
-              .some((v) => v !== "")
 
           return (
             <article
@@ -100,66 +90,57 @@ export default function SellerReportsPage(props: Props): JSX.Element {
               <div className={styles.sectionTitle}>Admin Decision</div>
               <div>Admin Result: {report.resultTextAdmin?.unwrap() ?? "-"}</div>
 
-              <textarea
-                className={styles.textarea}
-                placeholder="Seller evidence description"
-                value={evidenceDescription}
-                onChange={(e) =>
-                  emit(
-                    ReportAction.onChangeSellerEvidenceDraft(
-                      id,
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-              />
-              <textarea
-                className={styles.textarea}
-                placeholder="Seller evidence image URLs (one per line)"
-                value={evidenceUrlsRaw}
-                onChange={(e) =>
-                  emit(
-                    ReportAction.onChangeSellerEvidenceUrlsDraft(
-                      id,
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-              />
-
               <div className={styles.actions}>
                 <button
                   className={styles.primaryButton}
-                  disabled={
-                    isSubmitting ||
-                    canSubmitEvidence === false ||
-                    hasEvidenceInput === false
-                  }
-                  onClick={() => emit(ReportAction.submitSellerEvidence(id))}
-                >
-                  Send Evidence
-                </button>
-                <button
-                  className={styles.secondaryButton}
                   disabled={isSubmitting || canAgreeCashback === false}
-                  onClick={() => emit(ReportAction.approveSellerRefund(id))}
+                  onClick={() =>
+                    emit(
+                      ReportAction.openSellerConfirmCard(id, "AGREE_CASHBACK"),
+                    )
+                  }
                 >
                   Agree Cashback
                 </button>
               </div>
-              <div className={styles.hint}>
-                {sellerHint(report.status, hasEvidenceInput)}
-              </div>
+              <div className={styles.hint}>{sellerHint(report.status)}</div>
             </article>
           )
         })}
       </div>
+
+      {confirmState != null ? (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmCard}>
+            <h3 className={styles.confirmTitle}>Please Confirm</h3>
+            <p className={styles.confirmText}>
+              Agreeing cashback is treated as your final agreement for this
+              report stage. Confirm to continue.
+            </p>
+            <p className={styles.confirmMeta}>
+              Report ID: {confirmState.reportID}
+            </p>
+            <div className={styles.confirmActions}>
+              <button
+                className={styles.secondaryButton}
+                disabled={isSubmitting}
+                onClick={() => emit(ReportAction.closeSellerConfirmCard())}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                disabled={isSubmitting}
+                onClick={() => emit(ReportAction.confirmSellerAction())}
+              >
+                {isSubmitting ? "Processing..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
-}
-
-function canSellerSubmitEvidence(status: ReportStatus): boolean {
-  return status === "OPEN" || status === "UNDER_REVIEW"
 }
 
 function canSellerAgreeCashback(status: ReportStatus): boolean {
@@ -189,7 +170,7 @@ function humanizeStatus(status: ReportStatus): string {
   }
 }
 
-function sellerHint(status: ReportStatus, hasEvidenceInput: boolean): string {
+function sellerHint(status: ReportStatus): string {
   if (status === "REFUND_APPROVED") {
     return "You agreed cashback. Admin will complete cashback and close the report."
   }
@@ -202,11 +183,7 @@ function sellerHint(status: ReportStatus, hasEvidenceInput: boolean): string {
     return "This report is closed. No additional seller actions are available."
   }
 
-  if (hasEvidenceInput === false) {
-    return "Add evidence text or image URLs to enable Send Evidence."
-  }
-
-  return "You can send evidence or agree cashback based on your decision."
+  return "You can agree cashback for this reported order."
 }
 
 const styles = {
@@ -254,11 +231,34 @@ const styles = {
     "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
   hint: css({ ...font.regular13, color: color.neutral700 }),
-  textarea: css({
-    border: `1px solid ${color.secondary300}`,
+  confirmOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s4,
+    zIndex: 50,
+  }),
+  confirmCard: css({
+    width: "100%",
+    maxWidth: "520px",
+    background: color.neutral0,
     borderRadius: theme.s2,
-    padding: theme.s2,
-    minHeight: "80px",
+    border: `1px solid ${color.secondary100}`,
+    boxShadow: theme.elevation.medium,
+    padding: theme.s4,
+    display: "grid",
+    gap: theme.s2,
+  }),
+  confirmTitle: css({ ...font.boldH5_20, margin: 0, color: color.neutral900 }),
+  confirmText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
+  confirmMeta: css({ ...font.regular13, margin: 0, color: color.secondary500 }),
+  confirmActions: css({
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: theme.s2,
   }),
   notice: css({ ...font.regular14, color: color.secondary500 }),
   info: css({ ...font.regular14, color: color.neutral700 }),

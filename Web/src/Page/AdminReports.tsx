@@ -30,6 +30,20 @@ export default function AdminReportsPage(props: Props): JSX.Element {
   }
 
   const isUpdating = state.report.adminUpdateStatusResponse._t === "Loading"
+  const monthOptions = getMonthOptions(state.report.adminReports)
+  const filteredSortedReports = state.report.adminReports
+    .filter((report) =>
+      state.report.adminStatusFilter === "ALL"
+        ? true
+        : report.status === state.report.adminStatusFilter,
+    )
+    .filter((report) =>
+      state.report.adminMonthFilter === "ALL"
+        ? true
+        : toMonthKey(report.createdAt) === state.report.adminMonthFilter,
+    )
+    .sort((a, b) => b.createdAt - a.createdAt)
+  const confirmState = state.report.adminFinalStatusConfirmState
 
   return (
     <div className={styles.page}>
@@ -64,9 +78,57 @@ export default function AdminReportsPage(props: Props): JSX.Element {
         <div className={styles.info}>No reports found.</div>
       ) : null}
 
+      <div className={styles.filtersRow}>
+        <select
+          className={styles.input}
+          value={state.report.adminStatusFilter}
+          onChange={(e) => {
+            const nextFilter = parseAdminStatusFilter(e.currentTarget.value)
+            if (nextFilter != null) {
+              emit(ReportAction.onChangeAdminStatusFilter(nextFilter))
+            }
+          }}
+        >
+          <option value="ALL">All Statuses</option>
+          {STATUSES.map((status) => (
+            <option
+              key={status}
+              value={status}
+            >
+              {humanizeStatus(status)}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={styles.input}
+          value={state.report.adminMonthFilter}
+          onChange={(e) => {
+            const nextMonth = parseAdminMonthFilter(e.currentTarget.value)
+            if (nextMonth != null) {
+              emit(ReportAction.onChangeAdminMonthFilter(nextMonth))
+            }
+          }}
+        >
+          <option value="ALL">All Months</option>
+          {monthOptions.map((option) => (
+            <option
+              key={option.key}
+              value={option.key}
+            >
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className={styles.list}>
-        {state.report.adminReports.map((report) => {
+        {filteredSortedReports.map((report) => {
           const id = report.id.unwrap()
+          const isClosed =
+            report.status === "REJECTED" ||
+            report.status === "RESOLVED" ||
+            report.status === "CASHBACK_COMPLETED"
           const nextStatusOptions = STATUSES.filter((status) =>
             canAdminTransition(report.status, status),
           )
@@ -84,6 +146,7 @@ export default function AdminReportsPage(props: Props): JSX.Element {
               <div>Category: {report.category}</div>
               <div>Title: {report.title}</div>
               <div>Status: {humanizeStatus(report.status)}</div>
+              <div>Date: {formatDayMonth(report.createdAt)}</div>
               <div>User Description: {report.userDescription.unwrap()}</div>
               <div>
                 User Images:{" "}
@@ -98,51 +161,161 @@ export default function AdminReportsPage(props: Props): JSX.Element {
               </div>
               <div>Admin Result: {report.resultTextAdmin?.unwrap() ?? "-"}</div>
 
-              <select
-                className={styles.input}
-                value={selectedStatus}
-                onChange={(e) => {
-                  const nextStatus = parseReportStatus(e.currentTarget.value)
-                  if (nextStatus != null) {
-                    emit(ReportAction.onChangeStatusDraft(id, nextStatus))
-                  }
-                }}
-              >
-                {nextStatusOptions.map((s) => (
-                  <option
-                    key={s}
-                    value={s}
+              {isClosed ? (
+                <div className={styles.hint}>
+                  This report is finalized and cannot be edited.
+                </div>
+              ) : (
+                <>
+                  <select
+                    className={styles.input}
+                    value={selectedStatus}
+                    disabled={isUpdating}
+                    onChange={(e) => {
+                      const nextStatus = parseReportStatus(
+                        e.currentTarget.value,
+                      )
+                      if (nextStatus != null) {
+                        emit(ReportAction.onChangeStatusDraft(id, nextStatus))
+                      }
+                    }}
                   >
-                    {humanizeStatus(s)}
-                  </option>
-                ))}
-              </select>
-              <textarea
-                className={styles.textarea}
-                placeholder="Admin result text"
-                value={state.report.adminResultDraftByReportID[id] ?? ""}
-                onChange={(e) =>
-                  emit(
-                    ReportAction.onChangeAdminResultDraft(
-                      id,
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-              />
-              <button
-                className={styles.primaryButton}
-                disabled={isUpdating}
-                onClick={() => emit(ReportAction.submitAdminUpdateStatus(id))}
-              >
-                Update Status
-              </button>
+                    {nextStatusOptions.map((s) => (
+                      <option
+                        key={s}
+                        value={s}
+                      >
+                        {humanizeStatus(s)}
+                      </option>
+                    ))}
+                  </select>
+                  <textarea
+                    className={styles.textarea}
+                    placeholder="Admin result text"
+                    disabled={isUpdating}
+                    value={state.report.adminResultDraftByReportID[id] ?? ""}
+                    onChange={(e) =>
+                      emit(
+                        ReportAction.onChangeAdminResultDraft(
+                          id,
+                          e.currentTarget.value,
+                        ),
+                      )
+                    }
+                  />
+                  <button
+                    className={styles.primaryButton}
+                    disabled={isUpdating}
+                    onClick={() =>
+                      emit(ReportAction.submitAdminUpdateStatus(id))
+                    }
+                  >
+                    Update Status
+                  </button>
+                </>
+              )}
             </article>
           )
         })}
       </div>
+
+      {confirmState != null ? (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmCard}>
+            <h3 className={styles.confirmTitle}>Confirm Final Status</h3>
+            <p className={styles.confirmText}>
+              {confirmState.status === "RESOLVED"
+                ? "Setting this report to Resolved will finalize it and lock further edits."
+                : "Setting this report to Rejected will finalize it and lock further edits."}
+            </p>
+            <p className={styles.confirmMeta}>
+              Report ID: {confirmState.reportID}
+            </p>
+            <div className={styles.confirmActions}>
+              <button
+                className={styles.secondaryButton}
+                disabled={isUpdating}
+                onClick={() =>
+                  emit(ReportAction.closeAdminFinalStatusConfirm())
+                }
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                disabled={isUpdating}
+                onClick={() => emit(ReportAction.confirmAdminFinalStatus())}
+              >
+                {isUpdating ? "Processing..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
+}
+
+function formatDayMonth(value: number): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown"
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+  }).format(date)
+}
+
+function parseAdminStatusFilter(value: string): "ALL" | ReportStatus | null {
+  if (value === "ALL") {
+    return "ALL"
+  }
+
+  return parseReportStatus(value)
+}
+
+function parseAdminMonthFilter(value: string): "ALL" | string | null {
+  if (value === "ALL") {
+    return "ALL"
+  }
+
+  return /^\d{4}-\d{2}$/.test(value) ? value : null
+}
+
+function toMonthKey(value: number): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ""
+  }
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  return `${year}-${month}`
+}
+
+function getMonthOptions(
+  reports: State["report"]["adminReports"],
+): Array<{ key: string; label: string }> {
+  const keys = Array.from(
+    new Set(
+      reports
+        .map((report) => toMonthKey(report.createdAt))
+        .filter((value) => value !== ""),
+    ),
+  ).sort((a, b) => b.localeCompare(a))
+
+  return keys.map((key) => {
+    const [year, month] = key.split("-")
+    const date = new Date(Number(year), Number(month) - 1, 1)
+    const label = new Intl.DateTimeFormat("en-GB", {
+      month: "long",
+      year: "numeric",
+    }).format(date)
+
+    return { key, label }
+  })
 }
 
 function parseReportStatus(value: string): ReportStatus | null {
@@ -226,6 +399,11 @@ const styles = {
   }),
   headerActions: css({ display: "flex", gap: theme.s2 }),
   list: css({ display: "grid", gap: theme.s2 }),
+  filtersRow: css({
+    display: "flex",
+    gap: theme.s2,
+    flexWrap: "wrap",
+  }),
   card: css({
     border: `1px solid ${color.secondary100}`,
     borderRadius: theme.s2,
@@ -245,6 +423,7 @@ const styles = {
     borderRadius: theme.s2,
     padding: theme.s2,
     minHeight: "80px",
+    "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
   primaryButton: css({
     border: "none",
@@ -264,6 +443,36 @@ const styles = {
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
     width: "fit-content",
+  }),
+  hint: css({ ...font.regular13, color: color.neutral700 }),
+  confirmOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s4,
+    zIndex: 50,
+  }),
+  confirmCard: css({
+    width: "100%",
+    maxWidth: "520px",
+    background: color.neutral0,
+    borderRadius: theme.s2,
+    border: `1px solid ${color.secondary100}`,
+    boxShadow: theme.elevation.medium,
+    padding: theme.s4,
+    display: "grid",
+    gap: theme.s2,
+  }),
+  confirmTitle: css({ ...font.boldH5_20, margin: 0, color: color.neutral900 }),
+  confirmText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
+  confirmMeta: css({ ...font.regular13, margin: 0, color: color.secondary500 }),
+  confirmActions: css({
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: theme.s2,
   }),
   notice: css({ ...font.regular14, color: color.secondary500 }),
   info: css({ ...font.regular14, color: color.neutral700 }),

@@ -35,6 +35,8 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
   const form = state.report.createDraft
   const category = form.category
   const title = reportTitleFromCategory(category)
+  const isSubmitting = state.report.createResponse._t === "Loading"
+  const userConfirmState = state.report.userCreateConfirmState
 
   return (
     <div className={styles.page}>
@@ -44,6 +46,7 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
       <label className={styles.label}>Category</label>
       <select
         className={styles.input}
+        disabled={isSubmitting}
         value={form.category}
         onChange={(e) => {
           const nextCategory = parseReportCategory(e.currentTarget.value)
@@ -65,6 +68,7 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
       <label className={styles.label}>Description</label>
       <textarea
         className={styles.textarea}
+        disabled={isSubmitting}
         value={form.userDescription}
         onChange={(e) =>
           emit(
@@ -76,6 +80,7 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
       <label className={styles.label}>Evidence Image URLs (one per line)</label>
       <textarea
         className={styles.textarea}
+        disabled={isSubmitting}
         value={form.userUrlImgsRaw}
         onChange={(e) =>
           emit(ReportAction.onChangeCreateDraftUrls(e.currentTarget.value))
@@ -85,6 +90,7 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
       <div className={styles.actions}>
         <button
           className={styles.primaryButton}
+          disabled={isSubmitting}
           onClick={() => {
             const decoded = UserReportCreateApi.paramsDecoder.decode({
               sellerID: route.params.sellerID,
@@ -99,7 +105,7 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
             })
 
             if (decoded.ok) {
-              emit(ReportAction.submitUserReport(decoded.value))
+              emit(ReportAction.openUserCreateConfirm(decoded.value))
             } else {
               emit(ReportAction.setFlashMessage("Invalid report input."))
             }
@@ -109,6 +115,7 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
         </button>
         <button
           className={styles.secondaryButton}
+          disabled={isSubmitting}
           onClick={() => emit(navigateTo(toRoute("UserOrders", {})))}
         >
           Cancel
@@ -117,6 +124,34 @@ export default function UserReportCreatePage(props: Props): JSX.Element {
 
       {state.report.flashMessage != null ? (
         <div className={styles.notice}>{state.report.flashMessage}</div>
+      ) : null}
+
+      {userConfirmState != null ? (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmCard}>
+            <h3 className={styles.confirmTitle}>Confirm Report Submission</h3>
+            <p className={styles.confirmText}>
+              You can submit this report only once for this order stage. Confirm
+              to submit and return to your orders page.
+            </p>
+            <div className={styles.confirmActions}>
+              <button
+                className={styles.secondaryButton}
+                disabled={isSubmitting}
+                onClick={() => emit(ReportAction.closeUserCreateConfirm())}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.primaryButton}
+                disabled={isSubmitting}
+                onClick={() => emit(ReportAction.confirmUserCreateReport())}
+              >
+                {isSubmitting ? "Submitting..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   )
@@ -148,12 +183,14 @@ const styles = {
     border: `1px solid ${color.secondary300}`,
     borderRadius: theme.s2,
     padding: theme.s2,
+    "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
   textarea: css({
     border: `1px solid ${color.secondary300}`,
     borderRadius: theme.s2,
     padding: theme.s2,
     minHeight: "100px",
+    "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
   actions: css({ display: "flex", gap: theme.s2 }),
   primaryButton: css({
@@ -174,4 +211,32 @@ const styles = {
   }),
   info: css({ ...font.regular14, color: color.neutral700 }),
   notice: css({ ...font.regular14, color: color.secondary500 }),
+  confirmOverlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s4,
+    zIndex: 50,
+  }),
+  confirmCard: css({
+    width: "100%",
+    maxWidth: "520px",
+    background: color.neutral0,
+    borderRadius: theme.s2,
+    border: `1px solid ${color.secondary100}`,
+    boxShadow: theme.elevation.medium,
+    padding: theme.s4,
+    display: "grid",
+    gap: theme.s2,
+  }),
+  confirmTitle: css({ ...font.boldH5_20, margin: 0, color: color.neutral900 }),
+  confirmText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
+  confirmActions: css({
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: theme.s2,
+  }),
 }

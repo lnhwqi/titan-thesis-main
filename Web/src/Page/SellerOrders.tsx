@@ -7,6 +7,7 @@ import * as OrderPaymentAction from "../Action/OrderPayment"
 import * as ReportAction from "../Action/Report"
 import { navigateTo, toRoute } from "../Route"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
+import { ReportStatus } from "../../../Core/App/Report"
 import * as AuthToken from "../App/AuthToken"
 
 type Props = { state: State }
@@ -70,6 +71,10 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
           const report = state.report.sellerReports.find(
             (x) => x.orderID.unwrap() === orderID,
           )
+          const displayStatus = formatStatusOption(
+            currentStatus,
+            report?.status,
+          )
           const canAgreeCashbackByOrder =
             report != null &&
             (report.status === "OPEN" ||
@@ -91,7 +96,7 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                   className={styles.statusPill}
                   data-tone={statusTone(currentStatus)}
                 >
-                  {formatStatusOption(currentStatus)}
+                  {displayStatus}
                 </div>
               </div>
 
@@ -154,9 +159,13 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
 
               {lockedByBuyer ? (
                 <div className={styles.noticeBox}>
-                  {order.status === "REPORTED"
-                    ? "This order is under report review."
-                    : "Buyer has completed this delivery flow."}
+                  {report != null &&
+                  (order.status === "REPORTED" ||
+                    order.status === "DELIVERY_ISSUE")
+                    ? `Report status: ${humanizeReportStatus(report.status)}`
+                    : order.status === "REPORTED"
+                      ? "This order is under report review."
+                      : "Buyer has completed this delivery flow."}
                 </div>
               ) : (
                 <>
@@ -314,7 +323,17 @@ function statusTone(status: OrderPaymentStatus): "neutral" | "blue" | "green" {
   }
 }
 
-function formatStatusOption(status: OrderPaymentStatus): string {
+function formatStatusOption(
+  status: OrderPaymentStatus,
+  reportStatus?: ReportStatus,
+): string {
+  if (
+    (status === "REPORTED" || status === "DELIVERY_ISSUE") &&
+    reportStatus != null
+  ) {
+    return `Report: ${humanizeReportStatus(reportStatus)}`
+  }
+
   switch (status) {
     case "PAID":
       return "Seller is preparing"
@@ -332,6 +351,25 @@ function formatStatusOption(status: OrderPaymentStatus): string {
       return "Delivery issue reported"
     case "CANCELLED":
       return "Cancelled"
+  }
+}
+
+function humanizeReportStatus(status: ReportStatus): string {
+  switch (status) {
+    case "OPEN":
+      return "Open"
+    case "SELLER_REPLIED":
+      return "Seller Replied"
+    case "UNDER_REVIEW":
+      return "Under Review"
+    case "REFUND_APPROVED":
+      return "Refund Approved"
+    case "CASHBACK_COMPLETED":
+      return "Cashback Completed"
+    case "RESOLVED":
+      return "Resolved"
+    case "REJECTED":
+      return "Rejected"
   }
 }
 

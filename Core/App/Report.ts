@@ -75,6 +75,7 @@ export type Report = {
   sellerUrlImgs: SellerUrlImgs
   status: ReportStatus
   resultTextAdmin: Maybe<ResultTextAdmin>
+  createdAt: number
 }
 
 export const reportDecoder: JD.Decoder<Report> = JD.object({
@@ -90,4 +91,5 @@ export const reportDecoder: JD.Decoder<Report> = JD.object({
   sellerUrlImgs: sellerUrlImgsDecoder,
   status: reportStatusDecoder,
   resultTextAdmin: maybeOptionalDecoder(resultTextAdminDecoder),
+  createdAt: JD.number,
 })
