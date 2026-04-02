@@ -54,6 +54,7 @@ export type PanelItem = {
 
 export type ErrorCode =
   | "SELLER_NOT_FOUND"
+  | "ADMIN_NOT_FOUND"
   | "VARIANT_NOT_FOUND"
   | "INSUFFICIENT_STOCK"
   | "INSUFFICIENT_WALLET"
@@ -93,6 +94,7 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "SELLER_NOT_FOUND",
+  "ADMIN_NOT_FOUND",
   "VARIANT_NOT_FOUND",
   "INSUFFICIENT_STOCK",
   "INSUFFICIENT_WALLET",

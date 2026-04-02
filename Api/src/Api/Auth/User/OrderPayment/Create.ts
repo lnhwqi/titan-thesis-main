@@ -242,6 +242,19 @@ export async function handler(
         if (Number(deductWallet.numUpdatedRows) === 0) {
           throw new Error("INSUFFICIENT_WALLET")
         }
+
+        const creditAdmin = await trx
+          .updateTable("admin")
+          .set((eb) => ({
+            wallet: eb("wallet", "+", totalWalletCharge),
+            updatedAt: now,
+          }))
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        if (Number(creditAdmin.numUpdatedRows) === 0) {
+          throw new Error("ADMIN_NOT_FOUND")
+        }
       }
 
       if (isPaid) {
@@ -302,6 +315,8 @@ export async function handler(
       switch (e.message) {
         case "SELLER_NOT_FOUND":
           return err("SELLER_NOT_FOUND")
+        case "ADMIN_NOT_FOUND":
+          return err("ADMIN_NOT_FOUND")
         case "VARIANT_NOT_FOUND":
           return err("VARIANT_NOT_FOUND")
         case "INSUFFICIENT_STOCK":

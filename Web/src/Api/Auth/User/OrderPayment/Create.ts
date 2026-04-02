@@ -25,6 +25,8 @@ export function errorString(code: ApiError<ErrorCode>): string {
     switch (errorCode) {
       case "SELLER_NOT_FOUND":
         return "Seller not found."
+      case "ADMIN_NOT_FOUND":
+        return "Payment receiver is not configured. Please contact support."
       case "VARIANT_NOT_FOUND":
         return "A selected product variant was not found."
       case "INSUFFICIENT_STOCK":
