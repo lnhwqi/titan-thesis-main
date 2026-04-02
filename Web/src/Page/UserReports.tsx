@@ -45,7 +45,8 @@ export default function UserReportsPage(props: Props): JSX.Element {
         <div className={styles.info}>Loading reports...</div>
       ) : null}
 
-      {reports.length === 0 && state.report.userReportsResponse._t === "Success" ? (
+      {reports.length === 0 &&
+      state.report.userReportsResponse._t === "Success" ? (
         <div className={styles.info}>No reports yet.</div>
       ) : null}
 

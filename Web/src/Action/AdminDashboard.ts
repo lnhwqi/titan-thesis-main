@@ -15,7 +15,10 @@ import { _AdminDashboardState } from "../State/AdminDashboard"
 import { State } from "../State"
 import { createName } from "../../../Core/App/Category/Name"
 import { slugify } from "../../../Core/App/Category/Slug"
-import { getReportWindowHours, setReportWindowHours } from "../Data/ReportConfig"
+import {
+  getReportWindowHours,
+  setReportWindowHours,
+} from "../Data/ReportConfig"
 
 export function onEnterRoute(state: State): [State, Cmd] {
   return loadOverview()(

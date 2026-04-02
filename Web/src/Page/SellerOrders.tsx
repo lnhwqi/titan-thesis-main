@@ -223,7 +223,9 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                 <div className={styles.actionRow}>
                   <button
                     className={styles.secondaryButton}
-                    onClick={() => emit(navigateTo(toRoute("SellerReports", {})))}
+                    onClick={() =>
+                      emit(navigateTo(toRoute("SellerReports", {})))
+                    }
                   >
                     Send Evidence
                   </button>
@@ -232,7 +234,9 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                     disabled={canAgreeCashbackByOrder === false}
                     onClick={() => {
                       if (report != null) {
-                        emit(ReportAction.approveSellerRefund(report.id.unwrap()))
+                        emit(
+                          ReportAction.approveSellerRefund(report.id.unwrap()),
+                        )
                       }
                     }}
                   >

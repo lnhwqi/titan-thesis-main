@@ -49,14 +49,13 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "WalletDeposit":
       return withHomePoster([state, cmd()])
 
-    case "UserOrders":
-      {
-        const [nextState, orderCmd] =
-          OrderPaymentAction.onEnterUserOrdersRoute()(state)
-        const [reportState, reportCmd] =
-          ReportAction.onEnterUserReportsRoute()(nextState)
-        return withHomePoster([reportState, [...orderCmd, ...reportCmd]])
-      }
+    case "UserOrders": {
+      const [nextState, orderCmd] =
+        OrderPaymentAction.onEnterUserOrdersRoute()(state)
+      const [reportState, reportCmd] =
+        ReportAction.onEnterUserReportsRoute()(nextState)
+      return withHomePoster([reportState, [...orderCmd, ...reportCmd]])
+    }
 
     case "UserReports":
       return withHomePoster(ReportAction.onEnterUserReportsRoute()(state))
@@ -64,14 +63,13 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "UserReportCreate":
       return withHomePoster(ReportAction.resetCreateDraft()(state))
 
-    case "SellerOrders":
-      {
-        const [nextState, orderCmd] =
-          OrderPaymentAction.onEnterSellerOrdersRoute()(state)
-        const [reportState, reportCmd] =
-          ReportAction.onEnterSellerReportsRoute()(nextState)
-        return [reportState, [...orderCmd, ...reportCmd]]
-      }
+    case "SellerOrders": {
+      const [nextState, orderCmd] =
+        OrderPaymentAction.onEnterSellerOrdersRoute()(state)
+      const [reportState, reportCmd] =
+        ReportAction.onEnterSellerReportsRoute()(nextState)
+      return [reportState, [...orderCmd, ...reportCmd]]
+    }
 
     case "SellerReports":
       return ReportAction.onEnterSellerReportsRoute()(state)

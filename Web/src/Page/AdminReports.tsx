@@ -73,7 +73,10 @@ export default function AdminReportsPage(props: Props): JSX.Element {
           const selectedStatus =
             state.report.statusDraftByReportID[id] ?? report.status
           return (
-            <article key={id} className={styles.card}>
+            <article
+              key={id}
+              className={styles.card}
+            >
               <div>ID: {id}</div>
               <div>Order ID: {report.orderID.unwrap()}</div>
               <div>User ID: {report.userID.unwrap()}</div>
@@ -82,21 +85,58 @@ export default function AdminReportsPage(props: Props): JSX.Element {
               <div>Title: {report.title}</div>
               <div>Status: {humanizeStatus(report.status)}</div>
               <div>User Description: {report.userDescription.unwrap()}</div>
-              <div>User Images: {report.userUrlImgs.map((i) => i.unwrap()).join(", ") || "-"}</div>
-              <div>Seller Description: {report.sellerDescription?.unwrap() ?? "-"}</div>
-              <div>Seller Images: {report.sellerUrlImgs.map((i) => i.unwrap()).join(", ") || "-"}</div>
+              <div>
+                User Images:{" "}
+                {report.userUrlImgs.map((i) => i.unwrap()).join(", ") || "-"}
+              </div>
+              <div>
+                Seller Description: {report.sellerDescription?.unwrap() ?? "-"}
+              </div>
+              <div>
+                Seller Images:{" "}
+                {report.sellerUrlImgs.map((i) => i.unwrap()).join(", ") || "-"}
+              </div>
               <div>Admin Result: {report.resultTextAdmin?.unwrap() ?? "-"}</div>
 
-              <select className={styles.input} value={selectedStatus} onChange={(e) => {
-                const nextStatus = parseReportStatus(e.currentTarget.value)
-                if (nextStatus != null) {
-                  emit(ReportAction.onChangeStatusDraft(id, nextStatus))
-                }
-              }}>
-                {nextStatusOptions.map((s) => <option key={s} value={s}>{humanizeStatus(s)}</option>)}
+              <select
+                className={styles.input}
+                value={selectedStatus}
+                onChange={(e) => {
+                  const nextStatus = parseReportStatus(e.currentTarget.value)
+                  if (nextStatus != null) {
+                    emit(ReportAction.onChangeStatusDraft(id, nextStatus))
+                  }
+                }}
+              >
+                {nextStatusOptions.map((s) => (
+                  <option
+                    key={s}
+                    value={s}
+                  >
+                    {humanizeStatus(s)}
+                  </option>
+                ))}
               </select>
-              <textarea className={styles.textarea} placeholder="Admin result text" value={state.report.adminResultDraftByReportID[id] ?? ""} onChange={(e) => emit(ReportAction.onChangeAdminResultDraft(id, e.currentTarget.value))} />
-              <button className={styles.primaryButton} disabled={isUpdating} onClick={() => emit(ReportAction.submitAdminUpdateStatus(id))}>Update Status</button>
+              <textarea
+                className={styles.textarea}
+                placeholder="Admin result text"
+                value={state.report.adminResultDraftByReportID[id] ?? ""}
+                onChange={(e) =>
+                  emit(
+                    ReportAction.onChangeAdminResultDraft(
+                      id,
+                      e.currentTarget.value,
+                    ),
+                  )
+                }
+              />
+              <button
+                className={styles.primaryButton}
+                disabled={isUpdating}
+                onClick={() => emit(ReportAction.submitAdminUpdateStatus(id))}
+              >
+                Update Status
+              </button>
             </article>
           )
         })}
@@ -134,7 +174,9 @@ function canAdminTransition(from: ReportStatus, to: ReportStatus): boolean {
   }
 
   if (to === "REFUND_APPROVED") {
-    return from === "OPEN" || from === "SELLER_REPLIED" || from === "UNDER_REVIEW"
+    return (
+      from === "OPEN" || from === "SELLER_REPLIED" || from === "UNDER_REVIEW"
+    )
   }
 
   if (to === "CASHBACK_COMPLETED") {
@@ -146,7 +188,9 @@ function canAdminTransition(from: ReportStatus, to: ReportStatus): boolean {
   }
 
   if (to === "REJECTED") {
-    return from === "OPEN" || from === "SELLER_REPLIED" || from === "UNDER_REVIEW"
+    return (
+      from === "OPEN" || from === "SELLER_REPLIED" || from === "UNDER_REVIEW"
+    )
   }
 
   return from === to
@@ -182,11 +226,45 @@ const styles = {
   }),
   headerActions: css({ display: "flex", gap: theme.s2 }),
   list: css({ display: "grid", gap: theme.s2 }),
-  card: css({ border: `1px solid ${color.secondary100}`, borderRadius: theme.s2, padding: theme.s3, display: "grid", gap: theme.s1, background: color.neutral0, ...font.regular14 }),
-  input: css({ border: `1px solid ${color.secondary300}`, borderRadius: theme.s2, padding: theme.s2 }),
-  textarea: css({ border: `1px solid ${color.secondary300}`, borderRadius: theme.s2, padding: theme.s2, minHeight: "80px" }),
-  primaryButton: css({ border: "none", background: color.secondary500, color: color.neutral0, borderRadius: theme.s2, padding: `${theme.s2} ${theme.s3}`, cursor: "pointer", width: "fit-content", "&:disabled": { opacity: 0.6, cursor: "not-allowed" } }),
-  secondaryButton: css({ border: `1px solid ${color.secondary300}`, background: color.neutral0, color: color.secondary500, borderRadius: theme.s2, padding: `${theme.s2} ${theme.s3}`, cursor: "pointer", width: "fit-content" }),
+  card: css({
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s2,
+    padding: theme.s3,
+    display: "grid",
+    gap: theme.s1,
+    background: color.neutral0,
+    ...font.regular14,
+  }),
+  input: css({
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s2,
+    padding: theme.s2,
+  }),
+  textarea: css({
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s2,
+    padding: theme.s2,
+    minHeight: "80px",
+  }),
+  primaryButton: css({
+    border: "none",
+    background: color.secondary500,
+    color: color.neutral0,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    cursor: "pointer",
+    width: "fit-content",
+    "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
+  }),
+  secondaryButton: css({
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    cursor: "pointer",
+    width: "fit-content",
+  }),
   notice: css({ ...font.regular14, color: color.secondary500 }),
   info: css({ ...font.regular14, color: color.neutral700 }),
 }

@@ -39,7 +39,9 @@ export async function handler(
   return ok({ report: toReport(updated) })
 }
 
-function mapReportStatusToOrderPaymentStatus(status: ReportStatus): "REPORTED" | "DELIVERY_ISSUE" {
+function mapReportStatusToOrderPaymentStatus(
+  status: ReportStatus,
+): "REPORTED" | "DELIVERY_ISSUE" {
   switch (status) {
     case "OPEN":
     case "SELLER_REPLIED":

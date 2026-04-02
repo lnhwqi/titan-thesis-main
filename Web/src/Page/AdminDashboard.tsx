@@ -536,7 +536,9 @@ function renderOrderPayments(
             </div>
             <div className={styles.statCell}>
               <div className={styles.statLabel}>Reported</div>
-              <div className={styles.statValue}>{statusCount.REPORTED ?? 0}</div>
+              <div className={styles.statValue}>
+                {statusCount.REPORTED ?? 0}
+              </div>
             </div>
           </div>
 
