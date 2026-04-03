@@ -33,6 +33,8 @@ export async function handler(
     return err("ORDER_PAYMENT_NOT_FOUND")
   }
 
+  await OrderPaymentRow.autoSettleDueOrders()
+
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentID(row.id)
 
   return ok({

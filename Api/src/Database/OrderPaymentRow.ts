@@ -28,6 +28,7 @@ import {
   OrderPaymentTrackingCode,
   orderPaymentTrackingCodeDecoder,
 } from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
+// import * as MarketConfigRow from "./MarketConfigRow"
 
 const tableName = "order_payment"
 
@@ -43,6 +44,8 @@ export type OrderPaymentRow = {
   status: OrderPaymentStatus
   price: Price
   trackingCode: Maybe<OrderPaymentTrackingCode>
+  isSellerSettled: boolean
+  settledAt: Maybe<Timestamp>
   isDeleted: boolean
   updatedAt: Timestamp
   createdAt: Timestamp
@@ -73,6 +76,8 @@ export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
   trackingCode: maybeDecoder(orderPaymentTrackingCodeDecoder),
+  isSellerSettled: JD.boolean,
+  settledAt: maybeDecoder(timestampJSDateDecoder),
   isDeleted: JD.boolean,
   updatedAt: JD.unknown.transform(timestampJSDateDecoder.verify),
   createdAt: JD.unknown.transform(timestampJSDateDecoder.verify),
@@ -106,6 +111,8 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
       status: "PAID",
       price: params.price.unwrap(),
       trackingCode: null,
+      isSellerSettled: false,
+      settledAt: null,
       isDeleted: false,
       updatedAt: now,
       createdAt: now,
@@ -256,4 +263,198 @@ export async function getAllPaid(): Promise<OrderPaymentRow[]> {
         orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
       ),
     )
+}
+
+export async function autoSettleDueOrders(): Promise<number> {
+  // const config = await MarketConfigRow.getOrCreate()
+  const now = new Date()
+  // const cutoff = new Date(
+  //   now.getTime() - config.reportWindowHours.unwrap() * 60 * 60 * 1000,
+  // )
+  const cutoff = new Date(now.getTime() - 0)
+
+  return db.transaction().execute(async (trx) => {
+    const candidates = await trx
+      .selectFrom("order_payment")
+      .leftJoin("report", (join) =>
+        join
+          .onRef("report.orderId", "=", "order_payment.id")
+          .on("report.isDeleted", "=", false),
+      )
+      .innerJoin("seller", "seller.id", "order_payment.sellerId")
+      .select([
+        "order_payment.id as orderID",
+        "order_payment.sellerId as sellerID",
+        "order_payment.price as orderPrice",
+        "seller.tax as sellerTax",
+      ])
+      .where("order_payment.isDeleted", "=", false)
+      .where("order_payment.isPaid", "=", true)
+      .where("order_payment.isSellerSettled", "=", false)
+      .where("order_payment.status", "in", ["DELIVERED", "RECEIVED"])
+      .where("order_payment.updatedAt", "<=", cutoff)
+      .where("seller.isDeleted", "=", false)
+      .where("report.id", "is", null)
+      .execute()
+
+    let settledCount = 0
+
+    for (const candidate of candidates) {
+      const tax = Math.max(0, Math.min(100, Number(candidate.sellerTax)))
+      const gross = Number(candidate.orderPrice)
+      const payout = Math.floor((gross * (100 - tax)) / 100)
+
+      const orderClaimed = await trx
+        .updateTable("order_payment")
+        .set({
+          isSellerSettled: true,
+          settledAt: now,
+          updatedAt: now,
+        })
+        .where("id", "=", candidate.orderID)
+        .where("isSellerSettled", "=", false)
+        .where("isDeleted", "=", false)
+        .executeTakeFirst()
+
+      if (Number(orderClaimed.numUpdatedRows) === 0) {
+        continue
+      }
+
+      const admin = await trx
+        .selectFrom("admin")
+        .select(["id"])
+        .where("isDeleted", "=", false)
+        .orderBy("createdAt", "asc")
+        .executeTakeFirst()
+
+      if (admin == null) {
+        await trx
+          .updateTable("order_payment")
+          .set({
+            isSellerSettled: false,
+            settledAt: null,
+            updatedAt: now,
+          })
+          .where("id", "=", candidate.orderID)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        continue
+      }
+
+      const adminDebited = await trx
+        .updateTable("admin")
+        .set((eb) => ({
+          wallet: eb("wallet", "-", payout),
+          updatedAt: now,
+        }))
+        .where("id", "=", admin.id)
+        .where("wallet", ">=", payout)
+        .where("isDeleted", "=", false)
+        .executeTakeFirst()
+
+      if (Number(adminDebited.numUpdatedRows) === 0) {
+        await trx
+          .updateTable("order_payment")
+          .set({
+            isSellerSettled: false,
+            settledAt: null,
+            updatedAt: now,
+          })
+          .where("id", "=", candidate.orderID)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        continue
+      }
+
+      const sellerCredited = await trx
+        .updateTable("seller")
+        .set((eb) => ({
+          wallet: eb("wallet", "+", payout),
+          revenue: eb("revenue", "+", gross),
+          profit: eb("profit", "+", payout),
+          updatedAt: now,
+        }))
+        .where("id", "=", candidate.sellerID)
+        .where("isDeleted", "=", false)
+        .executeTakeFirst()
+
+      if (Number(sellerCredited.numUpdatedRows) === 0) {
+        await trx
+          .updateTable("admin")
+          .set((eb) => ({
+            wallet: eb("wallet", "+", payout),
+            updatedAt: now,
+          }))
+          .where("id", "=", admin.id)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        await trx
+          .updateTable("order_payment")
+          .set({
+            isSellerSettled: false,
+            settledAt: null,
+            updatedAt: now,
+          })
+          .where("id", "=", candidate.orderID)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        continue
+      }
+
+      const orderSettled = await trx
+        .updateTable("order_payment")
+        .set({
+          status: "RECEIVED",
+          updatedAt: now,
+        })
+        .where("id", "=", candidate.orderID)
+        .where("isDeleted", "=", false)
+        .executeTakeFirst()
+
+      if (Number(orderSettled.numUpdatedRows) === 0) {
+        await trx
+          .updateTable("seller")
+          .set((eb) => ({
+            wallet: eb("wallet", "-", payout),
+            revenue: eb("revenue", "-", gross),
+            profit: eb("profit", "-", payout),
+            updatedAt: now,
+          }))
+          .where("id", "=", candidate.sellerID)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        await trx
+          .updateTable("admin")
+          .set((eb) => ({
+            wallet: eb("wallet", "+", payout),
+            updatedAt: now,
+          }))
+          .where("id", "=", admin.id)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        await trx
+          .updateTable("order_payment")
+          .set({
+            isSellerSettled: false,
+            settledAt: null,
+            updatedAt: now,
+          })
+          .where("id", "=", candidate.orderID)
+          .where("isDeleted", "=", false)
+          .executeTakeFirst()
+
+        continue
+      }
+
+      settledCount += 1
+    }
+
+    return settledCount
+  })
 }

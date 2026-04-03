@@ -24,6 +24,7 @@ export type Schema = {
   wallet_deposit: WalletDepositTable
   poster: PosterTable
   seller_tier_policy: SellerTierPolicyTable
+  market_config: MarketConfigTable
 }
 
 type UserTable = {
@@ -68,6 +69,13 @@ type SellerTierPolicyTable = {
   bronzeTax: number
   silverTax: number
   goldTax: number
+  updatedAt: Date
+  createdAt: Date
+}
+
+type MarketConfigTable = {
+  id: string
+  reportWindowHours: number
   updatedAt: Date
   createdAt: Date
 }
@@ -168,6 +176,8 @@ export type OrderPaymentTable = {
     | "CANCELLED"
   price: number
   trackingCode: string | null
+  isSellerSettled: boolean
+  settledAt: Date | null
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date

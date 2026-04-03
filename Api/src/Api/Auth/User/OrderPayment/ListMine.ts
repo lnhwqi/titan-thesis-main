@@ -14,6 +14,8 @@ export async function handler(
   user: AuthUser,
   _params: API.NoUrlParams & API.NoBodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
+  await OrderPaymentRow.autoSettleDueOrders()
+
   const rows = await OrderPaymentRow.getByUserID(user.id)
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentIDs(
     rows.map((row) => row.id),

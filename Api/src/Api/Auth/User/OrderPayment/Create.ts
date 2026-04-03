@@ -185,6 +185,8 @@ export async function handler(
             status: "PAID",
             price: payablePrice.unwrap(),
             trackingCode: null,
+            isSellerSettled: false,
+            settledAt: null,
             isDeleted: false,
             createdAt: now,
             updatedAt: now,
@@ -243,12 +245,24 @@ export async function handler(
           throw new Error("INSUFFICIENT_WALLET")
         }
 
+        const treasuryAdmin = await trx
+          .selectFrom("admin")
+          .select(["id"])
+          .where("isDeleted", "=", false)
+          .orderBy("createdAt", "asc")
+          .executeTakeFirst()
+
+        if (treasuryAdmin == null) {
+          throw new Error("ADMIN_NOT_FOUND")
+        }
+
         const creditAdmin = await trx
           .updateTable("admin")
           .set((eb) => ({
             wallet: eb("wallet", "+", totalWalletCharge),
             updatedAt: now,
           }))
+          .where("id", "=", treasuryAdmin.id)
           .where("isDeleted", "=", false)
           .executeTakeFirst()
 

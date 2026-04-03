@@ -14,6 +14,8 @@ export async function handler(
   seller: AuthSeller,
   _params: API.NoUrlParams & API.NoBodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
+  await OrderPaymentRow.autoSettleDueOrders()
+
   const rows = (await OrderPaymentRow.getBySellerID(seller.id)).filter(
     (row) => row.isPaid,
   )

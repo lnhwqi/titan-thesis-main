@@ -5,6 +5,8 @@ import { Action, cmd, Cmd } from "../Action"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
+import * as ReportWindowGetApi from "../Api/Auth/Admin/ReportWindowGet"
+import * as ReportWindowUpdateApi from "../Api/Auth/Admin/ReportWindowUpdate"
 import * as SellerTierPolicyGetApi from "../Api/Auth/Admin/SellerTierPolicyGet"
 import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import * as ApproveSellerApi from "../Api/Auth/Admin/ApproveSeller"
@@ -17,15 +19,11 @@ import { _AdminDashboardState } from "../State/AdminDashboard"
 import { State } from "../State"
 import { createName } from "../../../Core/App/Category/Name"
 import { slugify } from "../../../Core/App/Category/Slug"
-import {
-  getReportWindowHours,
-  setReportWindowHours,
-} from "../Data/ReportConfig"
 
 export function onEnterRoute(state: State): [State, Cmd] {
   return loadOverview()(
     _AdminDashboardState(state, {
-      reportWindowHours: String(getReportWindowHours()),
+      reportWindowHours: state.adminDashboard.reportWindowHours,
     }),
   )
 }
@@ -43,14 +41,26 @@ export function onChangeReportWindowHours(value: string): Action {
 export function saveReportWindowHours(): Action {
   return (state) => {
     const value = Number(state.adminDashboard.reportWindowHours.trim())
-    const saved = setReportWindowHours(value)
+    const decoded = ReportWindowUpdateApi.paramsDecoder.decode({
+      reportWindowHours: value,
+    })
+
+    if (decoded.ok === false) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Invalid report window hours.",
+        }),
+        cmd(),
+      ]
+    }
 
     return [
       _AdminDashboardState(state, {
-        reportWindowHours: String(saved),
-        flashMessage: `Report button window is now ${saved} hour(s).`,
+        flashMessage: null,
       }),
-      cmd(),
+      cmd(
+        ReportWindowUpdateApi.call(decoded.value).then(onReportWindowUpdated),
+      ),
     ]
   }
 }
@@ -68,8 +78,49 @@ export function loadOverview(): Action {
         ...pendingCmd,
         HomeAdminApi.call().then(onAdminHomeResponse),
         AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
+        ReportWindowGetApi.call().then(onReportWindowLoaded),
         SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse),
       ),
+    ]
+  }
+}
+
+function onReportWindowLoaded(response: ReportWindowGetApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [state, cmd()]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        reportWindowHours: String(response.value.reportWindowHours.unwrap()),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+function onReportWindowUpdated(
+  response: ReportWindowUpdateApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: ReportWindowUpdateApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const saved = response.value.reportWindowHours.unwrap()
+
+    return [
+      _AdminDashboardState(state, {
+        reportWindowHours: String(saved),
+        flashMessage: `Report button window is now ${saved} hour(s).`,
+      }),
+      cmd(),
     ]
   }
 }

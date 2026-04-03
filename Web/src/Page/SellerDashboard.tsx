@@ -209,9 +209,9 @@ export default function SellerDashboardPage(props: Props): JSX.Element {
           </div>
         </article>
         <article className={styles.statCard}>
-          <div className={styles.statLabel}>Profit</div>
+          <div className={styles.statLabel}>Wallet</div>
           <div className={styles.statValue}>
-            {formatCurrency(seller?.profit.unwrap() ?? 0)}
+            {formatCurrency(seller?.wallet.unwrap() ?? 0)}
           </div>
         </article>
         <article className={styles.statCard}>
