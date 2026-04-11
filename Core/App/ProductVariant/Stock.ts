@@ -3,8 +3,11 @@ import { Opaque, jsonValueCreate } from "../../Data/Opaque"
 import { Result, toMaybe, err, ok } from "../../Data/Result"
 import { Maybe, throwIfNull } from "../../Data/Maybe"
 
+import { createNatE } from "../../Data/Number/Nat"
+
 const key: unique symbol = Symbol()
 export type Stock = Opaque<number, typeof key>
+
 export type ErrorStock = "INVALID_STOCK"
 
 export function createStock(n: number): Maybe<Stock> {
@@ -12,12 +15,11 @@ export function createStock(n: number): Maybe<Stock> {
 }
 
 export function createStockE(n: number): Result<ErrorStock, Stock> {
-  if (!Number.isInteger(n)) return err("INVALID_STOCK")
+  const natResult = createNatE(n)
 
-  if (n < 0) return err("INVALID_STOCK")
-
-  if (n > 1000000) return err("INVALID_STOCK")
-
+  if (natResult._t === "Err") {
+    return err("INVALID_STOCK")
+  }
   return ok(jsonValueCreate<number, typeof key>(key)(n))
 }
 

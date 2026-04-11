@@ -16,23 +16,11 @@ import { Price, priceDecoder } from "./Product/Price"
 import { Name, nameDecoder } from "./User/Name"
 import { UserID, userIDDecoder } from "./User/UserID"
 import { SellerID, sellerIDDecoder } from "./Seller/SellerID"
-import { ProductID, productIDDecoder } from "./Product/ProductID"
-import {
-  ProductVariantID,
-  productVariantIDDecoder,
-} from "./ProductVariant/ProductVariantID"
+import { OrderPaymentItem, orderPaymentItemDecoder } from "./OrderPaymentItem"
 import {
   OrderPaymentTrackingCode,
   orderPaymentTrackingCodeDecoder,
 } from "./OrderPayment/OrderPaymentTrackingCode"
-
-export type OrderPaymentItem = {
-  productID: ProductID
-  variantID: ProductVariantID
-  productName: string
-  variantName: string
-  quantity: number
-}
 
 export type OrderPayment = {
   id: OrderPaymentID
@@ -50,14 +38,6 @@ export type OrderPayment = {
   createdAt: number
   updatedAt: number
 }
-
-export const orderPaymentItemDecoder: JD.Decoder<OrderPaymentItem> = JD.object({
-  productID: productIDDecoder,
-  variantID: productVariantIDDecoder,
-  productName: JD.string,
-  variantName: JD.string,
-  quantity: JD.number,
-})
 
 export const orderPaymentDecoder: JD.Decoder<OrderPayment> = JD.object({
   id: orderPaymentIDDecoder,
