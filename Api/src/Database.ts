@@ -25,6 +25,8 @@ export type Schema = {
   poster: PosterTable
   seller_tier_policy: SellerTierPolicyTable
   market_config: MarketConfigTable
+  product_rating: ProductRatingTable
+  product_rating_report: ProductRatingReportTable
 }
 
 type UserTable = {
@@ -246,6 +248,31 @@ export type ReportTable = {
     | "RESOLVED"
     | "REJECTED"
   resultTextAdmin: string | null
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+
+export type ProductRatingTable = {
+  orderId: string
+  productId: string
+  userId: string
+  score: number
+  feedback: string | null
+  isDeleted: boolean
+  updatedAt: Date
+  createdAt: Date
+}
+
+export type ProductRatingReportTable = {
+  id: string
+  orderId: string
+  productId: string
+  reporterUserId: string
+  reason: "SPAM"
+  detail: string | null
+  status: "OPEN" | "UNDER_REVIEW" | "APPROVED_DELETE" | "REJECTED"
+  reviewedAt: Date | null
   isDeleted: boolean
   updatedAt: Date
   createdAt: Date

@@ -23,6 +23,10 @@ import * as ReportWindowGet from "../Api/Auth/Admin/ReportWindow/Get"
 import * as ReportWindowUpdate from "../Api/Auth/Admin/ReportWindow/Update"
 import * as SellerTierPolicyGet from "../Api/Auth/Admin/SellerTierPolicy/Get"
 import * as SellerTierPolicyUpdate from "../Api/Auth/Admin/SellerTierPolicy/Update"
+import * as ProductRatingWindowGet from "../Api/Auth/Admin/ProductRatingWindow/Get"
+import * as ProductRatingWindowUpdate from "../Api/Auth/Admin/ProductRatingWindow/Update"
+import * as ProductRatingReportUpdateStatus from "../Api/Auth/Admin/ProductRatingReport/UpdateStatus"
+import * as ProductRatingDelete from "../Api/Auth/Admin/ProductRating/Delete"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -47,6 +51,10 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, ReportUpdateStatus)
   adminAuthApi(app, ReportWindowGet)
   adminAuthApi(app, ReportWindowUpdate)
+  adminAuthApi(app, ProductRatingWindowGet)
+  adminAuthApi(app, ProductRatingWindowUpdate)
+  adminAuthApi(app, ProductRatingReportUpdateStatus)
+  adminAuthApi(app, ProductRatingDelete)
   adminAuthApi(app, SellerTierPolicyGet)
   adminAuthApi(app, SellerTierPolicyUpdate)
 }
