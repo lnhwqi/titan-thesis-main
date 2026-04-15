@@ -10,7 +10,7 @@ import {
   orderPaymentIDDecoder,
 } from "../../../../App/OrderPayment/OrderPaymentID"
 import { ProductID, productIDDecoder } from "../../../../App/Product/ProductID"
-
+export type BodyParams = NoBodyParams
 export type Contract = AuthApi<
   AuthAdmin,
   "DELETE",

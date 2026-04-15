@@ -47,6 +47,7 @@ export type ErrorCode =
   | "PRODUCT_NOT_IN_ORDER"
   | "RATING_NOT_FOUND"
   | "RATING_REPORT_ALREADY_EXISTS"
+  | "DAILY_REPORT_LIMIT_REACHED"
 
 export type Payload = {
   report: ProductRatingReport
@@ -71,6 +72,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "PRODUCT_NOT_IN_ORDER",
   "RATING_NOT_FOUND",
   "RATING_REPORT_ALREADY_EXISTS",
+  "DAILY_REPORT_LIMIT_REACHED",
 ])
 
 export const contract: Contract = {

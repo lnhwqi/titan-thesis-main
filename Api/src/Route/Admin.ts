@@ -26,6 +26,8 @@ import * as SellerTierPolicyUpdate from "../Api/Auth/Admin/SellerTierPolicy/Upda
 import * as ProductRatingWindowGet from "../Api/Auth/Admin/ProductRatingWindow/Get"
 import * as ProductRatingWindowUpdate from "../Api/Auth/Admin/ProductRatingWindow/Update"
 import * as ProductRatingReportUpdateStatus from "../Api/Auth/Admin/ProductRatingReport/UpdateStatus"
+import * as ProductRatingReportLimitGet from "../Api/Auth/Admin/ProductRatingReportLimit/Get"
+import * as ProductRatingReportLimitUpdate from "../Api/Auth/Admin/ProductRatingReportLimit/Update"
 import * as ProductRatingDelete from "../Api/Auth/Admin/ProductRating/Delete"
 import { adminAuthApi } from "../Api/AuthApi"
 
@@ -54,6 +56,8 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, ProductRatingWindowGet)
   adminAuthApi(app, ProductRatingWindowUpdate)
   adminAuthApi(app, ProductRatingReportUpdateStatus)
+  adminAuthApi(app, ProductRatingReportLimitGet)
+  adminAuthApi(app, ProductRatingReportLimitUpdate)
   adminAuthApi(app, ProductRatingDelete)
   adminAuthApi(app, SellerTierPolicyGet)
   adminAuthApi(app, SellerTierPolicyUpdate)

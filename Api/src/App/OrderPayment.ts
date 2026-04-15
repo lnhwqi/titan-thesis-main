@@ -1,4 +1,9 @@
-import { OrderPayment, OrderPaymentItem } from "../../../Core/App/OrderPayment"
+import { OrderPayment } from "../../../Core/App/OrderPayment"
+import { OrderPaymentItem } from "../../../Core/App/OrderPaymentItem"
+import { summaryGoodsDecoder } from "../../../Core/App/OrderPayment/SummaryGoods"
+import { nameDecoder as productNameDecoder } from "../../../Core/App/Product/Name"
+import { productVariantNameDecoder } from "../../../Core/App/ProductVariant/ProductVariantName"
+import { stockDecoder } from "../../../Core/App/ProductVariant/Stock"
 import { OrderPaymentRow } from "../Database/OrderPaymentRow"
 import { OrderPaymentItemRow } from "../Database/OrderPaymentItemRow"
 
@@ -6,9 +11,9 @@ export function toOrderPaymentItem(row: OrderPaymentItemRow): OrderPaymentItem {
   return {
     productID: row.productId,
     variantID: row.variantId,
-    productName: row.productName,
-    variantName: row.variantName,
-    quantity: row.quantity,
+    productName: productNameDecoder.verify(row.productName),
+    variantName: productVariantNameDecoder.verify(row.variantName),
+    quantity: stockDecoder.verify(row.quantity),
   }
 }
 
@@ -22,14 +27,16 @@ export function toOrderPayment(
     sellerID: row.sellerId,
     username: row.username,
     address: row.address,
-    goodsSummary: row.goodsSummary,
+    goodsSummary: summaryGoodsDecoder.verify(
+      row.goodsSummary === "" ? "No goods info" : row.goodsSummary,
+    ),
     paymentMethod: row.paymentMethod,
     isPaid: row.isPaid,
     items,
     status: row.status,
     price: row.price,
     trackingCode: row.trackingCode,
-    createdAt: row.createdAt.unwrap(),
-    updatedAt: row.updatedAt.unwrap(),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   }
 }

@@ -1,5 +1,4 @@
 import { ProductRatingReport } from "../../../Core/App/ProductRatingReport"
-import { toMillisecond } from "../../../Core/Data/Time/Timestamp"
 import { ProductRatingReportRow } from "../Database/ProductRatingReportRow"
 
 export function toProductRatingReport(
@@ -13,7 +12,7 @@ export function toProductRatingReport(
     reason: row.reason,
     detail: row.detail,
     status: row.status,
-    createdAt: toMillisecond(row.createdAt),
-    reviewedAt: row.reviewedAt == null ? null : toMillisecond(row.reviewedAt),
+    createdAt: row.createdAt,
+    reviewedAt: row.reviewedAt,
   }
 }

@@ -1,5 +1,4 @@
 import { ProductRating } from "../../../Core/App/ProductRating"
-import { toMillisecond } from "../../../Core/Data/Time/Timestamp"
 import { ProductRatingRow } from "../Database/ProductRatingRow"
 
 export function toProductRating(row: ProductRatingRow): ProductRating {
@@ -9,7 +8,7 @@ export function toProductRating(row: ProductRatingRow): ProductRating {
     userID: row.userId,
     score: row.score,
     feedback: row.feedback,
-    createdAt: toMillisecond(row.createdAt),
-    updatedAt: toMillisecond(row.updatedAt),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   }
 }

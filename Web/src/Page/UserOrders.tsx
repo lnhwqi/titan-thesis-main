@@ -5,6 +5,7 @@ import { color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as OrderPaymentAction from "../Action/OrderPayment"
+import * as ProductRatingAction from "../Action/ProductRating"
 import { canReportDeliveredOrder } from "../Data/ReportConfig"
 import { ReportStatus } from "../../../Core/App/Report"
 
@@ -23,6 +24,18 @@ export default function UserOrdersPage(props: Props): JSX.Element {
     <div className={styles.page}>
       {state.orderPayment.flashMessage != null ? (
         <div className={styles.notice}>{state.orderPayment.flashMessage}</div>
+      ) : null}
+
+      {state.productRating.flashMessage != null ? (
+        <div className={styles.notice}>
+          {state.productRating.flashMessage}
+          <button
+            className={styles.dismissBtn}
+            onClick={() => emit(ProductRatingAction.clearFlashMessage())}
+          >
+            ✕
+          </button>
+        </div>
       ) : null}
 
       <div className={styles.headerRow}>
@@ -59,9 +72,9 @@ export default function UserOrdersPage(props: Props): JSX.Element {
             order.items.length > 0
               ? order.items.map(
                   (item) =>
-                    `${item.productName} (${item.variantName}) x${item.quantity}`,
+                    `${item.productName.unwrap()} (${item.variantName.unwrap()}) x${item.quantity.unwrap()}`,
                 )
-              : parseGoodsSummary(order.goodsSummary)
+              : parseGoodsSummary(order.goodsSummary.unwrap())
           const canConfirmDelivery =
             order.isPaid && order.status === "DELIVERED"
           const alreadyReported = state.report.userReports.some(
@@ -75,7 +88,8 @@ export default function UserOrdersPage(props: Props): JSX.Element {
             order.status === "RECEIVED" ||
             order.status === "DELIVERY_ISSUE"
           const canOpenReport =
-            isReportableStatus && canReportDeliveredOrder(order.updatedAt)
+            isReportableStatus &&
+            canReportDeliveredOrder(order.updatedAt.unwrap())
           const confirmingDelivery =
             state.orderPayment.confirmDeliveryResponse._t === "Loading"
 
@@ -89,7 +103,7 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                 Shop ID: {order.sellerID.unwrap()}
               </div>
               <div className={styles.row}>
-                Date: {formatOrderDate(order.createdAt)}
+                Date: {formatOrderDate(order.createdAt.unwrap())}
               </div>
               <div className={styles.row}>
                 Payment Method: {order.paymentMethod}
@@ -183,6 +197,80 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                   >
                     {alreadyReported ? "Already Reported" : "Report Product"}
                   </button>
+                </div>
+              ) : null}
+
+              {order.status === "RECEIVED" && order.items.length > 0 ? (
+                <div className={styles.rateSection}>
+                  <div className={styles.rateSectionTitle}>Rate Products</div>
+                  {order.items.map((item) => {
+                    const key = `${orderID}:${item.productID.unwrap()}`
+                    const isRating = state.productRating.ratingKey === key
+                    const scoreDraft =
+                      state.productRating.scoreDraftByKey[key] ?? ""
+                    const feedbackDraft =
+                      state.productRating.feedbackDraftByKey[key] ?? ""
+
+                    return (
+                      <div
+                        key={key}
+                        className={styles.rateItem}
+                      >
+                        <div className={styles.rateItemName}>
+                          {item.productName.unwrap()}
+                        </div>
+                        <div className={styles.rateForm}>
+                          <select
+                            className={styles.select}
+                            value={scoreDraft}
+                            onChange={(e) =>
+                              emit(
+                                ProductRatingAction.onChangeScore(
+                                  key,
+                                  e.currentTarget.value,
+                                ),
+                              )
+                            }
+                          >
+                            <option value="">Score</option>
+                            <option value="1">1 ★</option>
+                            <option value="2">2 ★★</option>
+                            <option value="3">3 ★★★</option>
+                            <option value="4">4 ★★★★</option>
+                            <option value="5">5 ★★★★★</option>
+                          </select>
+                          <input
+                            className={styles.input}
+                            type="text"
+                            placeholder="Feedback (optional)"
+                            value={feedbackDraft}
+                            onChange={(e) =>
+                              emit(
+                                ProductRatingAction.onChangeFeedback(
+                                  key,
+                                  e.currentTarget.value,
+                                ),
+                              )
+                            }
+                          />
+                          <button
+                            className={styles.primaryButton}
+                            disabled={isRating || scoreDraft === ""}
+                            onClick={() =>
+                              emit(
+                                ProductRatingAction.submitRating(
+                                  orderID,
+                                  item.productID.unwrap(),
+                                ),
+                              )
+                            }
+                          >
+                            {isRating ? "Submitting..." : "Rate"}
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : null}
             </article>
@@ -353,6 +441,50 @@ const styles = {
     color: color.secondary500,
     marginBottom: theme.s2,
     textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.s2,
+  }),
+  dismissBtn: css({
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    ...font.medium14,
+    color: color.secondary500,
+    padding: 0,
+  }),
+  select: css({
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.regular14,
+  }),
+  input: css({
+    border: `1px solid ${color.secondary300}`,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.regular14,
+    flex: 1,
+    minWidth: "120px",
+  }),
+  rateSection: css({
+    display: "grid",
+    gap: theme.s2,
+    marginTop: theme.s2,
+    padding: `${theme.s3}`,
+    border: `1px solid ${color.secondary100}`,
+    borderRadius: theme.s2,
+    background: color.neutral50,
+  }),
+  rateSectionTitle: css({ ...font.bold14, color: color.neutral800 }),
+  rateItem: css({ display: "grid", gap: theme.s1 }),
+  rateItemName: css({ ...font.medium14, color: color.neutral700 }),
+  rateForm: css({
+    display: "flex",
+    gap: theme.s2,
+    flexWrap: "wrap",
+    alignItems: "center",
   }),
   secondaryButton: css({
     border: `1px solid ${color.secondary300}`,

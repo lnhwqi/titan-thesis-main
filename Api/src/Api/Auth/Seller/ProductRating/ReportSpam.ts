@@ -6,6 +6,7 @@ import * as ProductRow from "../../../../Database/ProductRow"
 import * as OrderPaymentItemRow from "../../../../Database/OrderPaymentItemRow"
 import * as ProductRatingRow from "../../../../Database/ProductRatingRow"
 import * as ProductRatingReportRow from "../../../../Database/ProductRatingReportRow"
+import * as MarketConfigRow from "../../../../Database/MarketConfigRow"
 import { toProductRatingReport } from "../../../../App/ProductRatingReport"
 
 export const contract = API.contract
@@ -64,6 +65,13 @@ export async function handler(
 
   if (existingReport != null) {
     return err("RATING_REPORT_ALREADY_EXISTS")
+  }
+
+  const config = await MarketConfigRow.getOrCreate()
+  const todayCount = await ProductRatingReportRow.countTodayBySeller(seller.id)
+
+  if (todayCount >= config.ratingReportMaxPerDay.unwrap()) {
+    return err("DAILY_REPORT_LIMIT_REACHED")
   }
 
   const report = await ProductRatingReportRow.create({

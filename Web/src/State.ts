@@ -15,6 +15,8 @@ import { VoucherState } from "./State/Voucher"
 import { PaymentState } from "./State/Payment"
 import { OrderPaymentState } from "./State/OrderPayment"
 import { ReportState } from "./State/Report"
+import { ProductRatingReportState } from "./State/ProductRatingReport"
+import { ProductRatingState } from "./State/ProductRating"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
@@ -29,6 +31,8 @@ export type PublicState = {
   payment: PaymentState
   orderPayment: OrderPaymentState
   report: ReportState
+  productRatingReport: ProductRatingReportState
+  productRating: ProductRatingState
   product: ProductState
   category: CategoryState
   cart: CartState

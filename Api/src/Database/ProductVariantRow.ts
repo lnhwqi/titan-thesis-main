@@ -6,8 +6,8 @@ import {
   productIDDecoder,
 } from "../../../Core/App/Product/ProductID"
 import {
-  Name,
-  nameDecoder,
+  ProductVariantName,
+  productVariantNameDecoder,
 } from "../../../Core/App/ProductVariant/ProductVariantName"
 import {
   Price,
@@ -28,7 +28,7 @@ const tableName = "product_variant"
 export type ProductVariantRow = {
   id: ProductVariantID
   productID: ProductID
-  name: Name
+  name: ProductVariantName
   sku: SKU
   price: Price
   stock: Stock
@@ -149,7 +149,7 @@ export const productVariantRowDecoder: JD.Decoder<ProductVariantRow> =
   JD.object({
     id: productVariantIDDecoder,
     productID: productIDDecoder,
-    name: nameDecoder,
+    name: productVariantNameDecoder,
     sku: skuDecoder,
     price: priceDecoder,
     stock: stockDecoder,

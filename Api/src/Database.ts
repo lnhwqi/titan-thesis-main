@@ -78,6 +78,7 @@ type SellerTierPolicyTable = {
 type MarketConfigTable = {
   id: string
   reportWindowHours: number
+  ratingReportMaxPerDay: number
   updatedAt: Date
   createdAt: Date
 }

@@ -16,6 +16,8 @@ import { initVoucherState } from "./Voucher"
 import { initPaymentState } from "./Payment"
 import { initOrderPaymentState } from "./OrderPayment"
 import { initReportState } from "./Report"
+import { initProductRatingReportState } from "./ProductRatingReport"
+import { initProductRatingState } from "./ProductRating"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -32,6 +34,8 @@ export function initState(route: Route): State {
     payment: initPaymentState(),
     orderPayment: initOrderPaymentState(),
     report: initReportState(),
+    productRatingReport: initProductRatingReportState(),
+    productRating: initProductRatingState(),
     product: initProductState(),
     category: initCategoryState(),
     cart: initCartState(),

@@ -145,6 +145,36 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           </button>
         </article>
 
+        <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Rating Report Limit</h2>
+          <p className={styles.cardText}>
+            Max spam-report submissions a seller can make per day.
+          </p>
+          <div className={styles.formRow}>
+            <input
+              className={styles.input}
+              value={state.adminDashboard.ratingReportMaxPerDay}
+              onChange={(e) =>
+                emit(
+                  AdminDashboardAction.onChangeRatingReportMaxPerDay(
+                    e.currentTarget.value,
+                  ),
+                )
+              }
+              placeholder="5"
+              inputMode="numeric"
+            />
+            <button
+              className={styles.secondaryButton}
+              onClick={() =>
+                emit(AdminDashboardAction.saveRatingReportMaxPerDay())
+              }
+            >
+              Save
+            </button>
+          </div>
+        </article>
+
         <article className={styles.cardWide}>
           <h2 className={styles.cardTitle}>Seller Tier And Tax Policy</h2>
           <p className={styles.cardText}>

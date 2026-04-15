@@ -7,6 +7,8 @@ import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import * as ReportWindowGetApi from "../Api/Auth/Admin/ReportWindowGet"
 import * as ReportWindowUpdateApi from "../Api/Auth/Admin/ReportWindowUpdate"
+import * as ProductRatingReportLimitGetApi from "../Api/Auth/Admin/ProductRatingReportLimitGet"
+import * as ProductRatingReportLimitUpdateApi from "../Api/Auth/Admin/ProductRatingReportLimitUpdate"
 import * as SellerTierPolicyGetApi from "../Api/Auth/Admin/SellerTierPolicyGet"
 import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import * as ApproveSellerApi from "../Api/Auth/Admin/ApproveSeller"
@@ -79,6 +81,7 @@ export function loadOverview(): Action {
         HomeAdminApi.call().then(onAdminHomeResponse),
         AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
         ReportWindowGetApi.call().then(onReportWindowLoaded),
+        ProductRatingReportLimitGetApi.call().then(onRatingReportLimitLoaded),
         SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse),
       ),
     ]
@@ -119,6 +122,91 @@ function onReportWindowUpdated(
       _AdminDashboardState(state, {
         reportWindowHours: String(saved),
         flashMessage: `Report button window is now ${saved} hour(s).`,
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function onChangeRatingReportMaxPerDay(value: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      ratingReportMaxPerDay: value,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function saveRatingReportMaxPerDay(): Action {
+  return (state) => {
+    const value = Number(state.adminDashboard.ratingReportMaxPerDay.trim())
+    const decoded = ProductRatingReportLimitUpdateApi.paramsDecoder.decode({
+      ratingReportMaxPerDay: value,
+    })
+
+    if (decoded.ok === false) {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Invalid rating report limit per day.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        flashMessage: null,
+      }),
+      cmd(
+        ProductRatingReportLimitUpdateApi.call(decoded.value).then(
+          onRatingReportLimitUpdated,
+        ),
+      ),
+    ]
+  }
+}
+
+function onRatingReportLimitLoaded(
+  response: ProductRatingReportLimitGetApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [state, cmd()]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        ratingReportMaxPerDay: String(
+          response.value.ratingReportMaxPerDay.unwrap(),
+        ),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+function onRatingReportLimitUpdated(
+  response: ProductRatingReportLimitUpdateApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: ProductRatingReportLimitUpdateApi.errorString(
+            response.error,
+          ),
+        }),
+        cmd(),
+      ]
+    }
+
+    const saved = response.value.ratingReportMaxPerDay.unwrap()
+
+    return [
+      _AdminDashboardState(state, {
+        ratingReportMaxPerDay: String(saved),
+        flashMessage: `Seller rating-report limit is now ${saved} per day.`,
       }),
       cmd(),
     ]

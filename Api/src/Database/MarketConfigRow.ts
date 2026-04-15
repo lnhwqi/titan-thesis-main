@@ -12,10 +12,12 @@ import { Nat, natDecoder } from "../../../Core/Data/Number/Nat"
 const tableName = "market_config"
 const singletonID = "default"
 const defaultReportWindowHours = natDecoder.verify(72)
+const defaultRatingReportMaxPerDay = natDecoder.verify(5)
 
 export type MarketConfigRow = {
   id: string
   reportWindowHours: Nat
+  ratingReportMaxPerDay: Nat
   updatedAt: Timestamp
   createdAt: Timestamp
 }
@@ -23,6 +25,7 @@ export type MarketConfigRow = {
 export const marketConfigRowDecoder: JD.Decoder<MarketConfigRow> = JD.object({
   id: JD.string,
   reportWindowHours: natDecoder,
+  ratingReportMaxPerDay: natDecoder,
   updatedAt: timestampJSDateDecoder,
   createdAt: timestampJSDateDecoder,
 })
@@ -45,6 +48,7 @@ export async function getOrCreate(): Promise<MarketConfigRow> {
     .values({
       id: singletonID,
       reportWindowHours: defaultReportWindowHours.unwrap(),
+      ratingReportMaxPerDay: defaultRatingReportMaxPerDay.unwrap(),
       createdAt: now,
       updatedAt: now,
     })
@@ -74,6 +78,27 @@ export async function updateReportWindowHours(
     .then(marketConfigRowDecoder.verify)
     .catch((e) => {
       Logger.error(`#${tableName}.updateReportWindowHours error ${e}`)
+      throw e
+    })
+}
+
+export async function updateRatingReportMaxPerDay(
+  ratingReportMaxPerDay: Nat,
+): Promise<MarketConfigRow> {
+  const now = toDate(createNow())
+
+  return db
+    .updateTable(tableName)
+    .set({
+      ratingReportMaxPerDay: ratingReportMaxPerDay.unwrap(),
+      updatedAt: now,
+    })
+    .where("id", "=", singletonID)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+    .then(marketConfigRowDecoder.verify)
+    .catch((e) => {
+      Logger.error(`#${tableName}.updateRatingReportMaxPerDay error ${e}`)
       throw e
     })
 }

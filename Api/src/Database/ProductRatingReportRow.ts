@@ -161,3 +161,20 @@ export async function updateStatus(
       row == null ? null : productRatingReportRowDecoder.verify(row),
     )
 }
+
+export async function countTodayBySeller(
+  reporterSellerId: SellerID,
+): Promise<number> {
+  const startOfDay = new Date()
+  startOfDay.setHours(0, 0, 0, 0)
+
+  const result = await db
+    .selectFrom(tableName)
+    .select(db.fn.countAll<number>().as("count"))
+    .where("reporterSellerId", "=", reporterSellerId.unwrap())
+    .where("createdAt", ">=", startOfDay)
+    .where("isDeleted", "=", false)
+    .executeTakeFirstOrThrow()
+
+  return Number(result.count)
+}

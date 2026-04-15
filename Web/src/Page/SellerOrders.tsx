@@ -5,6 +5,7 @@ import { color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
 import * as OrderPaymentAction from "../Action/OrderPayment"
 import * as ReportAction from "../Action/Report"
+import * as ProductRatingReportAction from "../Action/ProductRatingReport"
 import { navigateTo, toRoute } from "../Route"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
 import { ReportStatus } from "../../../Core/App/Report"
@@ -37,6 +38,18 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
         <div className={styles.notice}>{state.orderPayment.flashMessage}</div>
       ) : null}
 
+      {state.productRatingReport.flashMessage != null ? (
+        <div className={styles.notice}>
+          {state.productRatingReport.flashMessage}
+          <button
+            className={styles.dismissBtn}
+            onClick={() => emit(ProductRatingReportAction.clearFlashMessage())}
+          >
+            ✕
+          </button>
+        </div>
+      ) : null}
+
       <div className={styles.headerRow}>
         <h1 className={styles.title}>Shop Orders</h1>
         <button
@@ -63,9 +76,9 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
             order.items.length > 0
               ? order.items.map(
                   (item) =>
-                    `${item.productName} (${item.variantName}) x${item.quantity}`,
+                    `${item.productName.unwrap()} (${item.variantName.unwrap()}) x${item.quantity.unwrap()}`,
                 )
-              : parseGoodsSummary(order.goodsSummary)
+              : parseGoodsSummary(order.goodsSummary.unwrap())
           const currentStatus =
             state.orderPayment.statusDraftByOrderID[orderID] ?? order.status
           const report = state.report.sellerReports.find(
@@ -108,7 +121,7 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                 <div className={styles.metaItem}>
                   <span className={styles.metaLabel}>Created</span>
                   <span className={styles.metaValue}>
-                    {formatDateTime(order.createdAt)}
+                    {formatDateTime(order.createdAt.unwrap())}
                   </span>
                 </div>
                 <div className={styles.metaItem}>
@@ -251,6 +264,39 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                   >
                     Agree Cashback
                   </button>
+                </div>
+              ) : null}
+
+              {(order.status === "DELIVERED" || order.status === "RECEIVED") &&
+              order.items.length > 0 ? (
+                <div className={styles.section}>
+                  <div className={styles.sectionTitle}>Report Spam Rating</div>
+                  <div className={styles.ratingReportRow}>
+                    {order.items.map((item) => {
+                      const key = `${orderID}:${item.productID.unwrap()}`
+                      const isReporting =
+                        state.productRatingReport.reportingKey === key
+                      return (
+                        <button
+                          key={key}
+                          className={styles.secondaryButton}
+                          disabled={isReporting}
+                          onClick={() =>
+                            emit(
+                              ProductRatingReportAction.reportSpamRating(
+                                orderID,
+                                item.productID.unwrap(),
+                              ),
+                            )
+                          }
+                        >
+                          {isReporting
+                            ? "Reporting..."
+                            : `Report "${item.productName.unwrap()}"`}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               ) : null}
             </article>
@@ -497,6 +543,23 @@ const styles = {
     color: color.secondary500,
     marginBottom: theme.s2,
     textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: theme.s2,
+  }),
+  dismissBtn: css({
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    ...font.medium14,
+    color: color.secondary500,
+    padding: 0,
+  }),
+  ratingReportRow: css({
+    display: "flex",
+    gap: theme.s2,
+    flexWrap: "wrap",
   }),
   noticeBox: css({
     ...font.regular14,
