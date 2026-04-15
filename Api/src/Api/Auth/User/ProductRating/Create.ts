@@ -39,7 +39,9 @@ export async function handler(
     return err("PRODUCT_NOT_FOUND")
   }
 
-  const orderItems = await OrderPaymentItemRow.getByOrderPaymentID(params.orderID)
+  const orderItems = await OrderPaymentItemRow.getByOrderPaymentID(
+    params.orderID,
+  )
   const hasProductInOrder =
     orderItems.find(
       (item) => item.productId.unwrap() === params.productID.unwrap(),

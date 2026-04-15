@@ -4,7 +4,10 @@ import {
   OrderPaymentID,
   orderPaymentIDDecoder,
 } from "../../../Core/App/OrderPayment/OrderPaymentID"
-import { ProductID, productIDDecoder } from "../../../Core/App/Product/ProductID"
+import {
+  ProductID,
+  productIDDecoder,
+} from "../../../Core/App/Product/ProductID"
 import { Rating, ratingDecoder } from "../../../Core/App/Product/Rating"
 import { UserID, userIDDecoder } from "../../../Core/App/User/UserID"
 import { Maybe, maybeDecoder } from "../../../Core/Data/Maybe"

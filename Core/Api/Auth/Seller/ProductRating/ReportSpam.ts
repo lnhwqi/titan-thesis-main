@@ -2,7 +2,7 @@ import * as JD from "decoders"
 import {
   AuthApi,
   authResponseDecoder,
-  AuthUser,
+  AuthSeller,
 } from "../../../../Data/Api/Auth"
 import { NoUrlParams, noUrlParamsDecoder } from "../../../../Data/Api"
 import {
@@ -21,9 +21,9 @@ import { ProductID, productIDDecoder } from "../../../../App/Product/ProductID"
 import { Maybe, maybeOptionalDecoder } from "../../../../Data/Maybe"
 
 export type Contract = AuthApi<
-  AuthUser,
+  AuthSeller,
   "POST",
-  "/user/product-ratings/report",
+  "/seller/product-ratings/report",
   NoUrlParams,
   BodyParams,
   ErrorCode,
@@ -41,8 +41,9 @@ export type BodyParams = {
 
 export type ErrorCode =
   | "ORDER_PAYMENT_NOT_FOUND"
-  | "ORDER_NOT_OWNED_BY_USER"
+  | "ORDER_NOT_FOR_SELLER"
   | "PRODUCT_NOT_FOUND"
+  | "PRODUCT_NOT_FOR_SELLER"
   | "PRODUCT_NOT_IN_ORDER"
   | "RATING_NOT_FOUND"
   | "RATING_REPORT_ALREADY_EXISTS"
@@ -64,8 +65,9 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "ORDER_PAYMENT_NOT_FOUND",
-  "ORDER_NOT_OWNED_BY_USER",
+  "ORDER_NOT_FOR_SELLER",
   "PRODUCT_NOT_FOUND",
+  "PRODUCT_NOT_FOR_SELLER",
   "PRODUCT_NOT_IN_ORDER",
   "RATING_NOT_FOUND",
   "RATING_REPORT_ALREADY_EXISTS",
@@ -73,7 +75,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
 
 export const contract: Contract = {
   method: "POST",
-  route: "/user/product-ratings/report",
+  route: "/seller/product-ratings/report",
   urlDecoder: noUrlParamsDecoder,
   bodyDecoder: bodyParamsDecoder,
   responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),

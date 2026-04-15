@@ -13,8 +13,11 @@ import {
   OrderPaymentID,
   orderPaymentIDDecoder,
 } from "../../../Core/App/OrderPayment/OrderPaymentID"
-import { ProductID, productIDDecoder } from "../../../Core/App/Product/ProductID"
-import { UserID, userIDDecoder } from "../../../Core/App/User/UserID"
+import {
+  ProductID,
+  productIDDecoder,
+} from "../../../Core/App/Product/ProductID"
+import { SellerID, sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
 import { Maybe, maybeDecoder } from "../../../Core/Data/Maybe"
 import { Text512, text512Decoder } from "../../../Core/Data/Text"
 import {
@@ -30,7 +33,7 @@ export type ProductRatingReportRow = {
   id: ProductRatingReportID
   orderId: OrderPaymentID
   productId: ProductID
-  reporterUserId: UserID
+  reporterSellerId: SellerID
   reason: ProductRatingReportReason
   detail: Maybe<Text512>
   status: ProductRatingReportStatus
@@ -43,7 +46,7 @@ export type ProductRatingReportRow = {
 export type CreateParams = {
   orderId: OrderPaymentID
   productId: ProductID
-  reporterUserId: UserID
+  reporterSellerId: SellerID
   reason: ProductRatingReportReason
   detail: Maybe<Text512>
 }
@@ -53,7 +56,7 @@ export const productRatingReportRowDecoder: JD.Decoder<ProductRatingReportRow> =
     id: productRatingReportIDDecoder,
     orderId: orderPaymentIDDecoder,
     productId: productIDDecoder,
-    reporterUserId: userIDDecoder,
+    reporterSellerId: sellerIDDecoder,
     reason: productRatingReportReasonDecoder,
     detail: maybeDecoder(text512Decoder),
     status: productRatingReportStatusDecoder,
@@ -75,7 +78,7 @@ export async function create(
       id: id.unwrap(),
       orderId: params.orderId.unwrap(),
       productId: params.productId.unwrap(),
-      reporterUserId: params.reporterUserId.unwrap(),
+      reporterSellerId: params.reporterSellerId.unwrap(),
       reason: params.reason,
       detail: params.detail?.unwrap() ?? null,
       status: "OPEN",
@@ -104,14 +107,14 @@ export async function getByID(
 }
 
 export async function findByReporterOrderProduct(
-  reporterUserId: UserID,
+  reporterSellerId: SellerID,
   orderId: OrderPaymentID,
   productId: ProductID,
 ): Promise<Maybe<ProductRatingReportRow>> {
   return db
     .selectFrom(tableName)
     .selectAll()
-    .where("reporterUserId", "=", reporterUserId.unwrap())
+    .where("reporterSellerId", "=", reporterSellerId.unwrap())
     .where("orderId", "=", orderId.unwrap())
     .where("productId", "=", productId.unwrap())
     .where("isDeleted", "=", false)

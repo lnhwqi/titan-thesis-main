@@ -1,6 +1,6 @@
-import * as API from "../../../../../../Core/Api/Auth/User/ProductRating/ReportSpam"
+import * as API from "../../../../../../Core/Api/Auth/Seller/ProductRating/ReportSpam"
 import { err, ok, Result } from "../../../../../../Core/Data/Result"
-import { AuthUser } from "../../../AuthApi"
+import { AuthSeller } from "../../../AuthApi"
 import db from "../../../../Database"
 import * as ProductRow from "../../../../Database/ProductRow"
 import * as OrderPaymentItemRow from "../../../../Database/OrderPaymentItemRow"
@@ -11,7 +11,7 @@ import { toProductRatingReport } from "../../../../App/ProductRatingReport"
 export const contract = API.contract
 
 export async function handler(
-  user: AuthUser,
+  seller: AuthSeller,
   params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   const order = await db
@@ -25,16 +25,18 @@ export async function handler(
     return err("ORDER_PAYMENT_NOT_FOUND")
   }
 
-  if (order.userId !== user.id.unwrap()) {
-    return err("ORDER_NOT_OWNED_BY_USER")
-  }
-
   const product = await ProductRow.getByID(params.productID)
   if (product == null) {
     return err("PRODUCT_NOT_FOUND")
   }
 
-  const orderItems = await OrderPaymentItemRow.getByOrderPaymentID(params.orderID)
+  if (product.sellerId.unwrap() !== seller.id.unwrap()) {
+    return err("PRODUCT_NOT_FOR_SELLER")
+  }
+
+  const orderItems = await OrderPaymentItemRow.getByOrderPaymentID(
+    params.orderID,
+  )
   const hasProductInOrder =
     orderItems.find(
       (item) => item.productId.unwrap() === params.productID.unwrap(),
@@ -53,11 +55,12 @@ export async function handler(
     return err("RATING_NOT_FOUND")
   }
 
-  const existingReport = await ProductRatingReportRow.findByReporterOrderProduct(
-    user.id,
-    params.orderID,
-    params.productID,
-  )
+  const existingReport =
+    await ProductRatingReportRow.findByReporterOrderProduct(
+      seller.id,
+      params.orderID,
+      params.productID,
+    )
 
   if (existingReport != null) {
     return err("RATING_REPORT_ALREADY_EXISTS")
@@ -66,7 +69,7 @@ export async function handler(
   const report = await ProductRatingReportRow.create({
     orderId: params.orderID,
     productId: params.productID,
-    reporterUserId: user.id,
+    reporterSellerId: seller.id,
     reason: params.reason,
     detail: params.detail,
   })

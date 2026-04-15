@@ -7,7 +7,7 @@ import {
 } from "./OrderPayment/OrderPaymentID"
 import { ProductID, productIDDecoder } from "./Product/ProductID"
 import { Timestamp, timestampDecoder } from "../Data/Time/Timestamp"
-import { UserID, userIDDecoder } from "./User/UserID"
+import { SellerID, sellerIDDecoder } from "./Seller/SellerID"
 import { Opaque, jsonValueCreate } from "../Data/Opaque"
 import { createUUID, UUID, uuidDecoder } from "../Data/UUID"
 
@@ -39,7 +39,7 @@ export type ProductRatingReport = {
   id: ProductRatingReportID
   orderID: OrderPaymentID
   productID: ProductID
-  reporterUserID: UserID
+  reporterSellerID: SellerID
   reason: ProductRatingReportReason
   detail: Maybe<ProductRatingReportDetail>
   status: ProductRatingReportStatus
@@ -61,7 +61,7 @@ export const productRatingReportDecoder: JD.Decoder<ProductRatingReport> =
     id: productRatingReportIDDecoder,
     orderID: orderPaymentIDDecoder,
     productID: productIDDecoder,
-    reporterUserID: userIDDecoder,
+    reporterSellerID: sellerIDDecoder,
     reason: productRatingReportReasonDecoder,
     detail: maybeOptionalDecoder(productRatingReportDetailDecoder),
     status: productRatingReportStatusDecoder,

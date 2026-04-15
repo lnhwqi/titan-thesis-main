@@ -268,7 +268,7 @@ export type ProductRatingReportTable = {
   id: string
   orderId: string
   productId: string
-  reporterUserId: string
+  reporterSellerId: string
   reason: "SPAM"
   detail: string | null
   status: "OPEN" | "UNDER_REVIEW" | "APPROVED_DELETE" | "REJECTED"

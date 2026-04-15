@@ -9,7 +9,7 @@ export function toProductRatingReport(
     id: row.id,
     orderID: row.orderId,
     productID: row.productId,
-    reporterUserID: row.reporterUserId,
+    reporterSellerID: row.reporterSellerId,
     reason: row.reason,
     detail: row.detail,
     status: row.status,
