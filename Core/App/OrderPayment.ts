@@ -21,22 +21,23 @@ import {
   OrderPaymentTrackingCode,
   orderPaymentTrackingCodeDecoder,
 } from "./OrderPayment/OrderPaymentTrackingCode"
-
+import { Timestamp, timestampDecoder } from "../Data/Time/Timestamp"
+import { SummaryGoods, summaryGoodsDecoder } from "./OrderPayment/SummaryGoods"
 export type OrderPayment = {
   id: OrderPaymentID
   userID: UserID
   sellerID: SellerID
   username: Name
   address: OrderPaymentAddress
-  goodsSummary: string
+  goodsSummary: SummaryGoods
   paymentMethod: "ZALOPAY" | "WALLET"
   isPaid: boolean
   items: OrderPaymentItem[]
   status: OrderPaymentStatus
   price: Price
   trackingCode: Maybe<OrderPaymentTrackingCode>
-  createdAt: number
-  updatedAt: number
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 export const orderPaymentDecoder: JD.Decoder<OrderPayment> = JD.object({
@@ -45,13 +46,13 @@ export const orderPaymentDecoder: JD.Decoder<OrderPayment> = JD.object({
   sellerID: sellerIDDecoder,
   username: nameDecoder,
   address: orderPaymentAddressDecoder,
-  goodsSummary: JD.string,
+  goodsSummary: summaryGoodsDecoder,
   paymentMethod: JD.oneOf(["ZALOPAY", "WALLET"]),
   isPaid: JD.boolean,
   items: JD.array(orderPaymentItemDecoder),
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
   trackingCode: maybeDecoder(orderPaymentTrackingCodeDecoder),
-  createdAt: JD.number,
-  updatedAt: JD.number,
+  createdAt: timestampDecoder,
+  updatedAt: timestampDecoder,
 })
