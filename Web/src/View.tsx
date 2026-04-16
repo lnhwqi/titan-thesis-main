@@ -59,28 +59,28 @@ export default function View(props: Props): JSX.Element {
       )
     case "Saved":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={SavedPage}
         />
       )
     case "Payment":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={PaymentPage}
         />
       )
     case "PaymentResult":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={PaymentResultPage}
         />
       )
     case "WalletDeposit":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={WalletDepositPage}
         />
@@ -229,7 +229,7 @@ export default function View(props: Props): JSX.Element {
       )
     case "ProductDetail":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={ProductDetailPage}
         />

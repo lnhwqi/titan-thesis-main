@@ -285,7 +285,9 @@ async function createProduct(
   const price = createPrice(seed.price)
   const description = createDescription(seed.description)
   const attributes = createProductAttributes({})
-  const imageUrl = createImageUrl("https://placehold.co/400x400?text=Product")
+  const imageUrl = createImageUrl(
+    "https://placehold.co/400x400/1a1a1a/d4af37?text=TITAN-PRODUCT&font=playfair-display",
+  )
 
   if (
     name == null ||
