@@ -18,6 +18,8 @@ export type Env = {
   ZALO_KEY2: string
   ZALO_CREATE_URL: string
   ZALO_QUERY_URL: string
+  GHN_TOKEN: string
+  GHN_URL: string
 }
 
 const decoder: JD.Decoder<Env> = JD.object({
@@ -36,6 +38,8 @@ const decoder: JD.Decoder<Env> = JD.object({
   ZALO_KEY2: JD.string,
   ZALO_CREATE_URL: JD.string,
   ZALO_QUERY_URL: JD.string,
+  GHN_TOKEN: JD.string,
+  GHN_URL: JD.string,
 })
 
 // Private
@@ -59,6 +63,8 @@ function load(): Env | never {
     ZALO_KEY2: process.env.ZALO_KEY2,
     ZALO_CREATE_URL: process.env.ZALO_CREATE_URL,
     ZALO_QUERY_URL: process.env.ZALO_QUERY_URL,
+    GHN_TOKEN: process.env.GHN_TOKEN,
+    GHN_URL: process.env.GHN_URL,
   }
 
   const result = fromDecodeResult(decoder.decode(env))

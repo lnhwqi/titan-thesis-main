@@ -5,10 +5,19 @@ import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
 import * as WalletDepositCreateApi from "../Api/Auth/User/Wallet/DepositCreate"
 import * as WalletDepositQueryApi from "../Api/Auth/User/Wallet/DepositQuery"
 import * as VoucherListMineApi from "../Api/Auth/User/Voucher/ListMine"
+import { Province } from "../../../Core/Api/Public/Address/GetProvince"
+import { District } from "../../../Core/Api/Public/Address/GetDistrict"
+import { Ward } from "../../../Core/Api/Public/Address/GetWard"
 import type { State } from "../State"
 
 export type PaymentState = {
-  address: string
+  provinces: Province[]
+  districts: District[]
+  wards: Ward[]
+  selectedProvinceID: number | null
+  selectedDistrictID: number | null
+  selectedWardCode: string | null
+  addressDetail: string
   depositAmount: string
   selectedVoucherBySellerID: Record<string, string | null>
   sellerShopNameByID: Record<string, string>
@@ -40,7 +49,13 @@ export type PaymentState = {
 
 export function initPaymentState(): PaymentState {
   return {
-    address: "",
+    provinces: [],
+    districts: [],
+    wards: [],
+    selectedProvinceID: null,
+    selectedDistrictID: null,
+    selectedWardCode: null,
+    addressDetail: "",
     depositAmount: "",
     selectedVoucherBySellerID: {},
     sellerShopNameByID: {},

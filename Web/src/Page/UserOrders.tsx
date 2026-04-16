@@ -7,6 +7,7 @@ import { navigateTo, toRoute } from "../Route"
 import * as OrderPaymentAction from "../Action/OrderPayment"
 import * as ProductRatingAction from "../Action/ProductRating"
 import { canReportDeliveredOrder } from "../Data/ReportConfig"
+import { formatAddress } from "../../../Core/App/Address"
 import { ReportStatus } from "../../../Core/App/Report"
 
 type Props = { state: State }
@@ -120,7 +121,7 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                 )}
               </div>
               <div className={styles.row}>
-                Address: {order.address.unwrap()}
+                Address: {formatAddress(order.address)}
               </div>
               <div className={styles.row}>
                 Price: {formatT(order.price.unwrap())}

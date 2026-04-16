@@ -6,6 +6,9 @@ import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
 import * as WalletDepositCreateApi from "../Api/Auth/User/Wallet/DepositCreate"
 import * as WalletDepositQueryApi from "../Api/Auth/User/Wallet/DepositQuery"
 import * as SellerGetProfileApi from "../Api/Public/Seller/GetProfile"
+import * as GetProvinceApi from "../Api/Public/Address/GetProvince"
+import * as GetDistrictApi from "../Api/Public/Address/GetDistrict"
+import * as GetWardApi from "../Api/Public/Address/GetWard"
 import { _CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
@@ -27,10 +30,18 @@ export function onEnterRoute(): Action {
         pendingOrderPaymentIDs: [],
         isFinalizing: false,
         flashMessage: null,
+        provinces: [],
+        districts: [],
+        wards: [],
+        selectedProvinceID: null,
+        selectedDistrictID: null,
+        selectedWardCode: null,
+        addressDetail: "",
       }),
       cmd(
         VoucherListMineApi.call().then(onMineVouchersResponse),
         loadSellerProfiles(sellerIDs),
+        GetProvinceApi.call().then(onProvincesResponse),
       ),
     ]
   }
@@ -44,7 +55,67 @@ function openCheckoutInNewTab(orderURL: string): Action {
 }
 
 export function onChangeAddress(value: string): Action {
-  return (state) => [_PaymentState(state, { address: value }), cmd()]
+  return (state) => [_PaymentState(state, { addressDetail: value }), cmd()]
+}
+
+export function onSelectProvince(provinceID: number): Action {
+  return (state) => [
+    _PaymentState(state, {
+      selectedProvinceID: provinceID,
+      selectedDistrictID: null,
+      selectedWardCode: null,
+      districts: [],
+      wards: [],
+    }),
+    cmd(
+      GetDistrictApi.call({ province_id: String(provinceID) }).then(
+        onDistrictsResponse,
+      ),
+    ),
+  ]
+}
+
+export function onSelectDistrict(districtID: number): Action {
+  return (state) => [
+    _PaymentState(state, {
+      selectedDistrictID: districtID,
+      selectedWardCode: null,
+      wards: [],
+    }),
+    cmd(
+      GetWardApi.call({ district_id: String(districtID) }).then(
+        onWardsResponse,
+      ),
+    ),
+  ]
+}
+
+export function onSelectWard(wardCode: string): Action {
+  return (state) => [
+    _PaymentState(state, { selectedWardCode: wardCode }),
+    cmd(),
+  ]
+}
+
+function onProvincesResponse(response: GetProvinceApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") return [state, cmd()]
+    return [_PaymentState(state, { provinces: response.value }), cmd()]
+  }
+}
+
+function onDistrictsResponse(response: GetDistrictApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") return [state, cmd()]
+    return [_PaymentState(state, { districts: response.value }), cmd()]
+  }
+}
+
+function onWardsResponse(response: GetWardApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") return [state, cmd()]
+    return [_PaymentState(state, { wards: response.value }), cmd()]
+  }
 }
 
 export function onChangeDepositAmount(value: string): Action {
@@ -119,12 +190,64 @@ export function submitPayment(): Action {
       ]
     }
 
-    const address = state.payment.address.trim()
-    if (address === "") {
+    const { selectedProvinceID, selectedDistrictID, selectedWardCode } =
+      state.payment
+    const detail = state.payment.addressDetail.trim()
+
+    if (selectedProvinceID == null) {
       return [
-        _PaymentState(state, { flashMessage: "Address is required." }),
+        _PaymentState(state, { flashMessage: "Please select a province." }),
         cmd(),
       ]
+    }
+    if (selectedDistrictID == null) {
+      return [
+        _PaymentState(state, { flashMessage: "Please select a district." }),
+        cmd(),
+      ]
+    }
+    if (selectedWardCode == null) {
+      return [
+        _PaymentState(state, { flashMessage: "Please select a ward." }),
+        cmd(),
+      ]
+    }
+    if (detail === "") {
+      return [
+        _PaymentState(state, {
+          flashMessage: "Please enter house number and street name.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const province = state.payment.provinces.find(
+      (p) => p.ProvinceID === selectedProvinceID,
+    )
+    const district = state.payment.districts.find(
+      (d) => d.DistrictID === selectedDistrictID,
+    )
+    const ward = state.payment.wards.find(
+      (w) => w.WardCode === selectedWardCode,
+    )
+
+    if (province == null || district == null || ward == null) {
+      return [
+        _PaymentState(state, {
+          flashMessage: "Invalid address selection. Please try again.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const address = {
+      provinceCode: String(province.ProvinceID),
+      provinceName: province.ProvinceName,
+      districtCode: String(district.DistrictID),
+      districtName: district.DistrictName,
+      wardCode: ward.WardCode,
+      wardName: ward.WardName,
+      detail,
     }
 
     const grouped = new Map<

@@ -7,6 +7,7 @@ import { categoryRoutes } from "./Route/Category"
 import { voucherRoute } from "./Route/Voucher"
 import { zaloPayRoutes } from "./Route/ZaloPay"
 import { posterRoutes } from "./Route/Poster"
+import { addressRoutes } from "./Route/Address"
 import * as HealthCheck from "./Api/Public/HealthCheck"
 
 /**
@@ -36,4 +37,5 @@ export function routes(app: Express): void {
   posterRoutes(app)
   voucherRoute(app)
   zaloPayRoutes(app)
+  addressRoutes(app)
 }

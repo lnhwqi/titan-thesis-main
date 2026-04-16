@@ -4,10 +4,7 @@ import {
   OrderPaymentID,
   orderPaymentIDDecoder,
 } from "./OrderPayment/OrderPaymentID"
-import {
-  OrderPaymentAddress,
-  orderPaymentAddressDecoder,
-} from "./OrderPayment/OrderPaymentAddress"
+import { Address, addressDecoder } from "./Address"
 import {
   OrderPaymentStatus,
   orderPaymentStatusDecoder,
@@ -23,12 +20,13 @@ import {
 } from "./OrderPayment/OrderPaymentTrackingCode"
 import { Timestamp, timestampDecoder } from "../Data/Time/Timestamp"
 import { SummaryGoods, summaryGoodsDecoder } from "./OrderPayment/SummaryGoods"
+
 export type OrderPayment = {
   id: OrderPaymentID
   userID: UserID
   sellerID: SellerID
   username: Name
-  address: OrderPaymentAddress
+  address: Address
   goodsSummary: SummaryGoods
   paymentMethod: "ZALOPAY" | "WALLET"
   isPaid: boolean
@@ -45,7 +43,7 @@ export const orderPaymentDecoder: JD.Decoder<OrderPayment> = JD.object({
   userID: userIDDecoder,
   sellerID: sellerIDDecoder,
   username: nameDecoder,
-  address: orderPaymentAddressDecoder,
+  address: addressDecoder,
   goodsSummary: summaryGoodsDecoder,
   paymentMethod: JD.oneOf(["ZALOPAY", "WALLET"]),
   isPaid: JD.boolean,

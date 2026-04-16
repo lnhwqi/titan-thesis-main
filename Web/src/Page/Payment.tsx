@@ -130,12 +130,83 @@ export default function PaymentPage(props: Props): JSX.Element {
           />
         </div>
         <div className={styles.field}>
-          <span className={styles.label}>Shipping Address</span>
+          <span className={styles.label}>Province / City</span>
+          <select
+            className={styles.select}
+            value={state.payment.selectedProvinceID ?? ""}
+            onChange={(e) => {
+              const val = e.currentTarget.value
+              if (val !== "") {
+                emit(PaymentAction.onSelectProvince(Number(val)))
+              }
+            }}
+          >
+            <option value="">-- Select Province --</option>
+            {state.payment.provinces.map((p) => (
+              <option
+                key={p.ProvinceID}
+                value={p.ProvinceID}
+              >
+                {p.ProvinceName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>District</span>
+          <select
+            className={styles.select}
+            value={state.payment.selectedDistrictID ?? ""}
+            disabled={state.payment.selectedProvinceID == null}
+            onChange={(e) => {
+              const val = e.currentTarget.value
+              if (val !== "") {
+                emit(PaymentAction.onSelectDistrict(Number(val)))
+              }
+            }}
+          >
+            <option value="">-- Select District --</option>
+            {state.payment.districts.map((d) => (
+              <option
+                key={d.DistrictID}
+                value={d.DistrictID}
+              >
+                {d.DistrictName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>Ward</span>
+          <select
+            className={styles.select}
+            value={state.payment.selectedWardCode ?? ""}
+            disabled={state.payment.selectedDistrictID == null}
+            onChange={(e) => {
+              const val = e.currentTarget.value
+              if (val !== "") {
+                emit(PaymentAction.onSelectWard(val))
+              }
+            }}
+          >
+            <option value="">-- Select Ward --</option>
+            {state.payment.wards.map((w) => (
+              <option
+                key={w.WardCode}
+                value={w.WardCode}
+              >
+                {w.WardName}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.field}>
+          <span className={styles.label}>House Number & Street Name</span>
           <InputText
-            value={state.payment.address}
+            value={state.payment.addressDetail}
             type="text"
             invalid={false}
-            placeholder="Your full address"
+            placeholder="e.g. 123 Nguyen Hue Street"
             onChange={(v) => emit(PaymentAction.onChangeAddress(v))}
           />
         </div>

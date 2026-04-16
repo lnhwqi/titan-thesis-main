@@ -10,6 +10,7 @@ import {
 } from "../../../../App/OrderPayment"
 import { createPrice } from "../../../../../../Core/App/Product/Price"
 import { createOrderPaymentID } from "../../../../../../Core/App/OrderPayment/OrderPaymentID"
+import { toAddressStorage } from "../../../../App/Address"
 import { createNow, toDate } from "../../../../../../Core/Data/Time/Timestamp"
 import { createUUID } from "../../../../../../Core/Data/UUID"
 
@@ -178,7 +179,7 @@ export async function handler(
             userId: user.id.unwrap(),
             sellerId: panel.sellerID.unwrap(),
             username: user.name.unwrap(),
-            address: address.unwrap(),
+            address: toAddressStorage(address),
             goodsSummary,
             paymentMethod,
             isPaid,
@@ -194,7 +195,13 @@ export async function handler(
           .returningAll()
           .executeTakeFirstOrThrow()
 
-        const orderRow = OrderPaymentRow.orderPaymentRowDecoder.verify(inserted)
+        const orderRow = OrderPaymentRow.orderPaymentRowDecoder.verify({
+          ...inserted,
+          address:
+            typeof inserted.address === "string"
+              ? JSON.parse(inserted.address)
+              : inserted.address,
+        })
 
         const orderItems: OrderPaymentItemRow.OrderPaymentItemRow[] =
           orderItemValues.map((item) => ({

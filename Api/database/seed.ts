@@ -2,6 +2,7 @@ import ENV from "../src/Env"
 
 import * as User from "./Seed/User"
 import * as Admin from "./Seed/Admin"
+import * as Seller from "./Seed/Seller"
 // import * as Voucher from "./Seed/Voucher"
 
 export async function run(): Promise<void | never> {
@@ -12,18 +13,21 @@ export async function run(): Promise<void | never> {
     case "production":
       await User.seedProd()
       await Admin.seedProd()
+      await Seller.seedProd()
       // await Voucher.seedProd()
       return
 
     case "staging":
       await User.seedProd()
       await Admin.seedProd()
+      await Seller.seedProd()
       // await Voucher.seedProd()
       return
 
     case "development":
       await User.seedDev()
       await Admin.seedDev()
+      await Seller.seedDev()
       // await Voucher.seedDev()
       return
 

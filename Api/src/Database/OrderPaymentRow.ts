@@ -17,7 +17,8 @@ import { Name, nameDecoder } from "../../../Core/App/User/Name"
 import {
   OrderPaymentAddress,
   orderPaymentAddressDecoder,
-} from "../../../Core/App/OrderPayment/OrderPaymentAddress"
+} from "../../../Core/App/Address"
+import { toAddressStorage } from "../App/Address"
 import {
   OrderPaymentStatus,
   orderPaymentStatusDecoder,
@@ -29,6 +30,22 @@ import {
   orderPaymentTrackingCodeDecoder,
 } from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
 // import * as MarketConfigRow from "./MarketConfigRow"
+
+function parseJsonSafe(value: string): unknown {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return {
+      provinceCode: "0",
+      provinceName: value || "Unknown",
+      districtCode: "0",
+      districtName: "Unknown",
+      wardCode: "0",
+      wardName: "Unknown",
+      detail: value || "Unknown",
+    }
+  }
+}
 
 const tableName = "order_payment"
 
@@ -88,6 +105,10 @@ function normalizeOrderPaymentRow(
 ): Record<string, unknown> {
   return {
     ...row,
+    address:
+      typeof row.address === "string"
+        ? parseJsonSafe(row.address)
+        : row.address,
     goodsSummary: typeof row.goodsSummary === "string" ? row.goodsSummary : "",
     paymentMethod: row.paymentMethod === "WALLET" ? "WALLET" : "ZALOPAY",
   }
@@ -104,7 +125,7 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
       userId: params.userId.unwrap(),
       sellerId: params.sellerId.unwrap(),
       username: params.username.unwrap(),
-      address: params.address.unwrap(),
+      address: toAddressStorage(params.address),
       goodsSummary: "",
       paymentMethod: "ZALOPAY",
       isPaid: true,

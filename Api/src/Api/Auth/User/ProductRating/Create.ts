@@ -93,12 +93,14 @@ export async function handler(
     feedback: params.feedback,
   })
 
+  const blockedReason: ProductRatingBlockedReason | null = null
+
   return ok({
     rating: toProductRating(created),
     availability: {
       ...availability,
       canRate: true,
-      blockedReason: null as ProductRatingBlockedReason | null,
+      blockedReason,
     },
   })
 }

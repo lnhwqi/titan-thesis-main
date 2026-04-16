@@ -8,6 +8,7 @@ import * as ReportAction from "../Action/Report"
 import * as ProductRatingReportAction from "../Action/ProductRatingReport"
 import { navigateTo, toRoute } from "../Route"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
+import { formatAddress } from "../../../Core/App/Address"
 import { ReportStatus } from "../../../Core/App/Report"
 import * as AuthToken from "../App/AuthToken"
 
@@ -140,7 +141,7 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
 
               <div className={styles.section}>
                 <div className={styles.sectionTitle}>Ship to</div>
-                <div className={styles.row}>{order.address.unwrap()}</div>
+                <div className={styles.row}>{formatAddress(order.address)}</div>
               </div>
 
               <div className={styles.section}>

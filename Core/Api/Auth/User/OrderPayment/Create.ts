@@ -10,7 +10,7 @@ import { OrderPayment, orderPaymentDecoder } from "../../../../App/OrderPayment"
 import {
   OrderPaymentAddress,
   orderPaymentAddressDecoder,
-} from "../../../../App/OrderPayment/OrderPaymentAddress"
+} from "../../../../App/Address"
 import { Price, priceDecoder } from "../../../../App/Product/Price"
 import { ProductID, productIDDecoder } from "../../../../App/Product/ProductID"
 import {

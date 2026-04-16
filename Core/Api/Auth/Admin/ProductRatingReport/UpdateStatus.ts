@@ -10,7 +10,6 @@ import {
   ProductRatingReportID,
   productRatingReportIDDecoder,
   ProductRatingReportStatus,
-  productRatingReportStatusDecoder,
 } from "../../../../App/ProductRatingReport"
 
 export type Contract = AuthApi<
