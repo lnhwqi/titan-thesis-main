@@ -1,0 +1,18 @@
+import { createWallet, createWalletE } from "../../../../Core/App/Seller/Wallet"
+import { _fromErr } from "../../../Fixture/Result"
+
+describe("App/Seller/Wallet", () => {
+  it("valid wallet", () => {
+    ;[0, 1, 100].forEach((n) => {
+      const result = createWallet(n)
+      if (result == null) throw new Error(`${n} should be valid`)
+      assert.strictEqual(result.unwrap(), n)
+    })
+  })
+
+  it("invalid wallet", () => {
+    ;[-1, 1.5].forEach((n) => {
+      assert.strictEqual(createWallet(n), null)
+    })
+  })
+})
