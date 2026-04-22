@@ -15,6 +15,9 @@ import SellerLoginPage from "./Page/SellerLogin"
 import AdminDashboardPage from "./Page/AdminDashboard"
 import AdminCategoryManagementPage from "./Page/AdminCategoryManagement"
 import AdminPosterManagementPage from "./Page/AdminPosterManagement"
+import AdminSellerModerationPage from "./Page/AdminSellerModeration"
+import AdminSettingPage from "./Page/AdminSetting"
+import AdminOrderManagementPage from "./Page/AdminOrderManagement"
 import SellerDashboardPage from "./Page/SellerDashboard"
 import SellerProductCreatePage from "./Page/SellerProductCreate"
 import SellerProductEditPage from "./Page/SellerProductEdit"
@@ -142,11 +145,25 @@ export default function View(props: Props): JSX.Element {
           Page={AdminDashboardPage}
         />
       )
+    case "AdminSellerModeration":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminSellerModerationPage}
+        />
+      )
     case "AdminCategoryManagement":
       return (
         <EmptyLayout
           state={state}
           Page={AdminCategoryManagementPage}
+        />
+      )
+    case "AdminSetting":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminSettingPage}
         />
       )
     case "AdminPosterManagement":
@@ -156,6 +173,14 @@ export default function View(props: Props): JSX.Element {
           Page={AdminPosterManagementPage}
         />
       )
+    case "AdminOrderManagement":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminOrderManagementPage}
+        />
+      )
+
     case "SellerDashboard":
       return (
         <EmptyLayout

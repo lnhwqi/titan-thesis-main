@@ -159,6 +159,16 @@ function onSubmitAdminResponse(response: LoginAdminApi.Response): Action {
   }
 }
 
-function normalizeLoginError(_error: unknown): ApiError<LoginApi.ErrorCode> {
-  return "UNAUTHORISED"
+function normalizeLoginError(error: unknown): ApiError<LoginApi.ErrorCode> {
+  switch (error) {
+    case "USER_NOT_FOUND":
+    case "SELLER_NOT_FOUND":
+    case "ADMIN_NOT_FOUND":
+      return "USER_NOT_FOUND"
+    case "INVALID_PASSWORD":
+      return "INVALID_PASSWORD"
+
+    default:
+      return "UNAUTHORISED"
+  }
 }

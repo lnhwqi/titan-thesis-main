@@ -46,6 +46,11 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "AdminSellerModeration"
+      path: "/admin/seller-moderation"
+      params: NoParams
+    }
+  | {
       _t: "AdminCategoryManagement"
       path: "/admin/categories"
       params: NoParams
@@ -122,6 +127,16 @@ export type Route =
   | {
       _t: "AdminReports"
       path: "/admin/reports"
+      params: NoParams
+    }
+  | {
+      _t: "AdminSetting"
+      path: "/admin/setting"
+      params: NoParams
+    }
+  | {
+      _t: "AdminOrderManagement"
+      path: "/admin/orders"
       params: NoParams
     }
   | {
@@ -261,6 +276,30 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("AdminPosterManagement"),
       path: JD.always("/admin/posters"),
+      params: JD.object({}),
+    }),
+  },
+  AdminSetting: {
+    path: "/admin/setting",
+    decoder: JD.object({
+      _t: JD.always("AdminSetting"),
+      path: JD.always("/admin/setting"),
+      params: JD.object({}),
+    }),
+  },
+  AdminOrderManagement: {
+    path: "/admin/orders",
+    decoder: JD.object({
+      _t: JD.always("AdminOrderManagement"),
+      path: JD.always("/admin/orders"),
+      params: JD.object({}),
+    }),
+  },
+  AdminSellerModeration: {
+    path: "/admin/seller-moderation",
+    decoder: JD.object({
+      _t: JD.always("AdminSellerModeration"),
+      path: JD.always("/admin/seller-moderation"),
       params: JD.object({}),
     }),
   },

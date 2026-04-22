@@ -4,6 +4,7 @@ import { State } from "../State"
 import * as AuthToken from "../App/AuthToken"
 import { emit } from "../Runtime/React"
 import * as AdminPosterAction from "../Action/AdminPoster"
+import * as AdminAction from "../Action/Admin"
 import { color, font, theme, bp } from "../View/Theme"
 import * as SDate from "../../../Core/Data/Time/SDate"
 
@@ -68,7 +69,7 @@ export default function AdminPosterManagementPage(props: Props): JSX.Element {
           </button>
           <button
             className={styles.secondaryButton}
-            onClick={() => emit(AdminPosterAction.goToAdminDashboard())}
+            onClick={() => emit(AdminAction.goToAdminDashboard())}
           >
             Back to dashboard
           </button>

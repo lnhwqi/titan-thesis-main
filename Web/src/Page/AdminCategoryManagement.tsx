@@ -6,7 +6,7 @@ import * as AuthToken from "../App/AuthToken"
 import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as LoginAction from "../Action/Login"
-import * as AdminDashboardAction from "../Action/AdminDashboard"
+import * as AdminDashboardAction from "../Action/Admin"
 import InputText from "../View/Form/InputText"
 import { Category } from "../../../Core/App/Category"
 

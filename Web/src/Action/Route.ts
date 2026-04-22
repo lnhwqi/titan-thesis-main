@@ -5,7 +5,7 @@ import { _AuthState, _PublicState, State } from "../State"
 import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
 import * as HomePosterAction from "./HomePoster"
-import * as AdminDashboardAction from "./AdminDashboard"
+import * as AdminDashboardAction from "./Admin"
 import * as AdminPosterAction from "./AdminPoster"
 import * as SellerDashboardAction from "./SellerDashboard"
 import * as VoucherAction from "./Voucher"
@@ -107,6 +107,9 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "NotFound":
       return [state, cmd()]
 
+    case "AdminOrderManagement":
+    case "AdminSetting":
+    case "AdminSellerModeration":
     case "AdminDashboard":
       return AdminDashboardAction.onEnterRoute(state)
 

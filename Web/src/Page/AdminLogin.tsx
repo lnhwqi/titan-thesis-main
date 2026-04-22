@@ -9,7 +9,6 @@ import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
 import { gradient } from "../View/Theme/Keyframe"
 import * as LoginAdminApi from "../Api/Public/LoginAdmin"
-import { toRoute, navigateTo } from "../Route"
 
 export type Props = { state: State }
 
@@ -40,7 +39,7 @@ export default function AdminLoginPage(props: Props): JSX.Element {
               value={email.unwrap()}
               invalid={FieldString.error(email) != null}
               type="email"
-              placeholder="admin@company.com"
+              placeholder="Email"
               onChange={(value) => emit(LoginAction.onChangeEmail(value))}
             />
           </div>
@@ -51,7 +50,7 @@ export default function AdminLoginPage(props: Props): JSX.Element {
               value={password.unwrap()}
               invalid={FieldString.error(password) != null}
               type="password"
-              placeholder="Your admin password"
+              placeholder="Password"
               onChange={(value) => emit(LoginAction.onChangePassword(value))}
             />
           </div>
@@ -59,7 +58,7 @@ export default function AdminLoginPage(props: Props): JSX.Element {
           <Button
             theme_={"Red"}
             size={"M"}
-            label={isSubmitting ? "Signing in..." : "Sign In As Admin"}
+            label={isSubmitting ? "Signing in..." : "Sign In"}
             onClick={() => {
               if (isSubmitting == false && adminParams != null) {
                 emit(LoginAction.onSubmitAdmin(adminParams))
@@ -68,13 +67,6 @@ export default function AdminLoginPage(props: Props): JSX.Element {
             disabled={isSubmitting === true || adminParams == null}
           />
         </form>
-
-        <button
-          className={styles.userLoginButton}
-          onClick={() => emit(navigateTo(toRoute("Login", { redirect: null })))}
-        >
-          Go to user login
-        </button>
       </div>
     </div>
   )
@@ -108,9 +100,7 @@ function responseMessage(
         <div className={styles.responseLoading}>Authenticating admin...</div>
       )
     case "Failure":
-      return (
-        <div className={styles.responseError}>Invalid admin credentials.</div>
-      )
+      return <div className={styles.responseError}>{`${response.error}`}</div>
     case "Success":
       return (
         <div className={styles.responseSuccess}>

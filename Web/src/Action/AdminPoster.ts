@@ -1,12 +1,11 @@
 import * as RD from "../../../Core/Data/RemoteData"
-import { Action, cmd, perform } from "../Action"
+import { Action, cmd } from "../Action"
 import { _AdminPosterState } from "../State/AdminPoster"
 import * as CreatePosterApi from "../Api/Auth/Admin/CreatePoster"
 import * as UpdatePosterApi from "../Api/Auth/Admin/UpdatePoster"
 import * as DeletePosterApi from "../Api/Auth/Admin/DeletePoster"
 import * as ListPosterApi from "../Api/Auth/Admin/ListPoster"
 import * as UploadPosterImageApi from "../Api/Auth/Admin/UploadPosterImage"
-import { navigateTo, toRoute } from "../Route"
 import { posterIDDecoder } from "../../../Core/App/Poster/PosterID"
 import * as SDate from "../../../Core/Data/Time/SDate"
 
@@ -120,13 +119,6 @@ export function onChangePermanent(value: boolean): Action {
 
 export function clearFlashMessage(): Action {
   return (state) => [_AdminPosterState(state, { flashMessage: null }), cmd()]
-}
-
-export function goToAdminDashboard(): Action {
-  return (state) => [
-    state,
-    cmd(perform(navigateTo(toRoute("AdminDashboard", {})))),
-  ]
 }
 
 export function startEditPoster(id: string): Action {

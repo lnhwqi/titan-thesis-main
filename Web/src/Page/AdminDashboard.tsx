@@ -6,7 +6,7 @@ import * as AuthToken from "../App/AuthToken"
 import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as LoginAction from "../Action/Login"
-import * as AdminDashboardAction from "../Action/AdminDashboard"
+import * as AdminDashboardAction from "../Action/Admin"
 
 export type Props = { state: State }
 
@@ -14,12 +14,8 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
   const { state } = _props
   const auth = AuthToken.get()
   const isAdmin = auth != null && auth.role === "ADMIN"
-  const pending = state.adminDashboard.pendingSellersResponse
   const adminHome = state.adminDashboard.adminHomeResponse
-  const orderPayments = state.adminDashboard.orderPaymentsResponse
-  const sellerTierPolicy = state.adminDashboard.sellerTierPolicyResponse
-  const approving = state.adminDashboard.approvingSellerIDs
-  const sendingVerifyEmail = state.adminDashboard.sendingVerifyEmailSellerIDs
+
   const flashMessage = state.adminDashboard.flashMessage
 
   if (!isAdmin) {
@@ -80,12 +76,12 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           </p>
           <button
             className={styles.secondaryButton}
-            onClick={() => emit(AdminDashboardAction.loadPendingSellers())}
+            onClick={() =>
+              emit(navigateTo(toRoute("AdminSellerModeration", {})))
+            }
           >
-            Refresh queue
+            View List Seller Registrations
           </button>
-
-          {renderPendingSellers(pending, approving, sendingVerifyEmail)}
         </article>
 
         <article className={styles.card}>
@@ -96,205 +92,44 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           {renderWallet(adminHome)}
         </article>
 
-        <article className={styles.cardWide}>
-          <h2 className={styles.cardTitle}>Payment Orders Status Tracking</h2>
+        <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Order Management</h2>
           <p className={styles.cardText}>
-            Track paid orders and monitor shipping/payment statuses in one view.
+            Manage application settings and configurations.
           </p>
           <button
             className={styles.secondaryButton}
-            onClick={() => emit(AdminDashboardAction.loadOrderPayments())}
+            onClick={() =>
+              emit(navigateTo(toRoute("AdminOrderManagement", {})))
+            }
           >
-            Refresh order payments
+            Manage Orders
           </button>
-
-          {renderOrderPayments(orderPayments)}
         </article>
 
         <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Report Settings</h2>
+          <h2 className={styles.cardTitle}>Settings</h2>
           <p className={styles.cardText}>
-            Define how many hours users can submit reports after delivery.
+            Manage application settings and configurations.
           </p>
-          <div className={styles.formRow}>
-            <input
-              className={styles.input}
-              value={state.adminDashboard.reportWindowHours}
-              onChange={(e) =>
-                emit(
-                  AdminDashboardAction.onChangeReportWindowHours(
-                    e.currentTarget.value,
-                  ),
-                )
-              }
-              placeholder="72"
-              inputMode="numeric"
-            />
-            <button
-              className={styles.secondaryButton}
-              onClick={() => emit(AdminDashboardAction.saveReportWindowHours())}
-            >
-              Save
-            </button>
-          </div>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(navigateTo(toRoute("AdminSetting", {})))}
+          >
+            Setting Configures
+          </button>
+        </article>
+
+        <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Report Management</h2>
+          <p className={styles.cardText}>
+            Review and manage user-submitted reports on orders and products.
+          </p>
           <button
             className={styles.secondaryButton}
             onClick={() => emit(navigateTo(toRoute("AdminReports", {})))}
           >
-            Open reports queue
-          </button>
-        </article>
-
-        <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Rating Report Limit</h2>
-          <p className={styles.cardText}>
-            Max spam-report submissions a seller can make per day.
-          </p>
-          <div className={styles.formRow}>
-            <input
-              className={styles.input}
-              value={state.adminDashboard.ratingReportMaxPerDay}
-              onChange={(e) =>
-                emit(
-                  AdminDashboardAction.onChangeRatingReportMaxPerDay(
-                    e.currentTarget.value,
-                  ),
-                )
-              }
-              placeholder="5"
-              inputMode="numeric"
-            />
-            <button
-              className={styles.secondaryButton}
-              onClick={() =>
-                emit(AdminDashboardAction.saveRatingReportMaxPerDay())
-              }
-            >
-              Save
-            </button>
-          </div>
-        </article>
-
-        <article className={styles.cardWide}>
-          <h2 className={styles.cardTitle}>Seller Tier And Tax Policy</h2>
-          <p className={styles.cardText}>
-            Set profit thresholds for tier upgrades and tax percentage per tier.
-          </p>
-
-          {renderSellerTierPolicyStatus(sellerTierPolicy)}
-
-          <div className={styles.statsRow}>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Silver Threshold</div>
-              <input
-                className={styles.input}
-                value={state.adminDashboard.silverProfitThresholdInput}
-                onChange={(e) =>
-                  emit(
-                    AdminDashboardAction.onChangeSellerTierPolicyInput(
-                      "silverProfitThresholdInput",
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-                inputMode="numeric"
-              />
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Gold Threshold</div>
-              <input
-                className={styles.input}
-                value={state.adminDashboard.goldProfitThresholdInput}
-                onChange={(e) =>
-                  emit(
-                    AdminDashboardAction.onChangeSellerTierPolicyInput(
-                      "goldProfitThresholdInput",
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-                inputMode="numeric"
-              />
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Bronze Tax (%)</div>
-              <input
-                className={styles.input}
-                value={state.adminDashboard.bronzeTaxInput}
-                onChange={(e) =>
-                  emit(
-                    AdminDashboardAction.onChangeSellerTierPolicyInput(
-                      "bronzeTaxInput",
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-                inputMode="numeric"
-              />
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Silver Tax (%)</div>
-              <input
-                className={styles.input}
-                value={state.adminDashboard.silverTaxInput}
-                onChange={(e) =>
-                  emit(
-                    AdminDashboardAction.onChangeSellerTierPolicyInput(
-                      "silverTaxInput",
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-                inputMode="numeric"
-              />
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Gold Tax (%)</div>
-              <input
-                className={styles.input}
-                value={state.adminDashboard.goldTaxInput}
-                onChange={(e) =>
-                  emit(
-                    AdminDashboardAction.onChangeSellerTierPolicyInput(
-                      "goldTaxInput",
-                      e.currentTarget.value,
-                    ),
-                  )
-                }
-                inputMode="numeric"
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <button
-              className={styles.secondaryButton}
-              onClick={() => emit(AdminDashboardAction.loadSellerTierPolicy())}
-            >
-              Refresh policy
-            </button>
-            <button
-              className={styles.secondaryButton}
-              onClick={() => emit(AdminDashboardAction.saveSellerTierPolicy())}
-              disabled={state.adminDashboard.isSavingSellerTierPolicy}
-            >
-              {state.adminDashboard.isSavingSellerTierPolicy
-                ? "Saving..."
-                : "Save policy"}
-            </button>
-          </div>
-        </article>
-
-        <article className={styles.card}>
-          <h2 className={styles.cardTitle}>Platform Health</h2>
-          <p className={styles.cardText}>
-            Monitor product availability, pricing consistency, and stock alerts.
-          </p>
-          <button
-            className={styles.secondaryButton}
-            onClick={() => emit(navigateTo(toRoute("Search", { name: null })))}
-          >
-            Inspect products
+            View Reports
           </button>
         </article>
 
@@ -327,19 +162,6 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
             }
           >
             Open poster manager
-          </button>
-        </article>
-
-        <article className={styles.card}>
-          <h2 className={styles.cardTitle}>User Support</h2>
-          <p className={styles.cardText}>
-            Resolve account issues and keep marketplace trust high.
-          </p>
-          <button
-            className={styles.secondaryButton}
-            onClick={() => emit(navigateTo(toRoute("Home", {})))}
-          >
-            Review activity
           </button>
         </article>
       </section>
@@ -620,188 +442,5 @@ function renderWallet(
           {home.data.admin.wallet.unwrap().toLocaleString()}đ
         </p>
       )
-  }
-}
-
-function renderOrderPayments(
-  response: State["adminDashboard"]["orderPaymentsResponse"],
-): JSX.Element {
-  switch (response._t) {
-    case "NotAsked":
-      return <div className={styles.sellerMeta}>No order payment data yet.</div>
-    case "Loading":
-      return <div className={styles.sellerMeta}>Loading order payments...</div>
-    case "Failure":
-      return (
-        <div className={styles.sellerMeta}>Unable to load order payments.</div>
-      )
-    case "Success": {
-      const orders = response.data.orders
-      if (orders.length === 0) {
-        return <div className={styles.sellerMeta}>No paid orders found.</div>
-      }
-
-      const statusCount = orders.reduce<Record<string, number>>(
-        (acc, order) => {
-          const key = order.status
-          acc[key] = (acc[key] ?? 0) + 1
-          return acc
-        },
-        {},
-      )
-
-      const recent = orders.slice(0, 8)
-
-      return (
-        <>
-          <div className={styles.statsRow}>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Total Paid</div>
-              <div className={styles.statValue}>{orders.length}</div>
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Packed</div>
-              <div className={styles.statValue}>{statusCount.PACKED ?? 0}</div>
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>In Transit</div>
-              <div className={styles.statValue}>
-                {statusCount.IN_TRANSIT ?? 0}
-              </div>
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Delivered/Received</div>
-              <div className={styles.statValue}>
-                {(statusCount.DELIVERED ?? 0) + (statusCount.RECEIVED ?? 0)}
-              </div>
-            </div>
-            <div className={styles.statCell}>
-              <div className={styles.statLabel}>Reported</div>
-              <div className={styles.statValue}>
-                {statusCount.REPORTED ?? 0}
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.tableWrap}>
-            <table className={styles.orderTable}>
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Buyer</th>
-                  <th>Method</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recent.map((order) => (
-                  <tr key={order.id.unwrap()}>
-                    <td>{order.id.unwrap()}</td>
-                    <td>{order.username.unwrap()}</td>
-                    <td>{order.paymentMethod}</td>
-                    <td>
-                      <span className={styles.statusPill}>{order.status}</span>
-                    </td>
-                    <td>{order.price.unwrap().toLocaleString()}đ</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )
-    }
-  }
-}
-
-function renderPendingSellers(
-  pending: State["adminDashboard"]["pendingSellersResponse"],
-  approving: string[],
-  sendingVerifyEmail: string[],
-): JSX.Element {
-  switch (pending._t) {
-    case "NotAsked":
-      return <div className={styles.sellerMeta}>No data loaded yet.</div>
-    case "Loading":
-      return <div className={styles.sellerMeta}>Loading pending sellers...</div>
-    case "Failure":
-      return (
-        <div className={styles.sellerMeta}>Failed to load pending sellers.</div>
-      )
-    case "Success": {
-      if (pending.data.sellers.length === 0) {
-        return (
-          <div className={styles.sellerMeta}>
-            No sellers waiting for approval.
-          </div>
-        )
-      }
-
-      return (
-        <div className={styles.sellerList}>
-          {pending.data.sellers.map((seller) => {
-            const id = seller.id.unwrap()
-            const isApproving = approving.includes(id)
-            const isSendingVerifyEmail = sendingVerifyEmail.includes(id)
-            return (
-              <div
-                key={id}
-                className={styles.sellerItem}
-              >
-                <strong>{seller.shopName.unwrap()}</strong>
-                <div className={styles.sellerMeta}>
-                  Owner: {seller.name.unwrap()}
-                </div>
-                <div className={styles.sellerMeta}>
-                  Email: {seller.email.unwrap()}
-                </div>
-                <button
-                  className={`${styles.sellerItemAction} ${
-                    isSendingVerifyEmail ? styles.sellerItemActionDisabled : ""
-                  }`}
-                  disabled={isSendingVerifyEmail}
-                  onClick={() =>
-                    emit(AdminDashboardAction.sendVerifyEmail(seller.id))
-                  }
-                >
-                  {isSendingVerifyEmail
-                    ? "Sending verify email..."
-                    : "Send Verify Email"}
-                </button>
-                <button
-                  className={`${styles.sellerItemAction} ${
-                    isApproving ? styles.sellerItemActionDisabled : ""
-                  }`}
-                  disabled={isApproving}
-                  onClick={() =>
-                    emit(AdminDashboardAction.approveSeller(seller.id))
-                  }
-                >
-                  {isApproving ? "Approving..." : "Approve Seller"}
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      )
-    }
-  }
-}
-
-function renderSellerTierPolicyStatus(
-  response: State["adminDashboard"]["sellerTierPolicyResponse"],
-): JSX.Element {
-  switch (response._t) {
-    case "NotAsked":
-      return (
-        <div className={styles.sellerMeta}>Policy data not loaded yet.</div>
-      )
-    case "Loading":
-      return <div className={styles.sellerMeta}>Loading policy...</div>
-    case "Failure":
-      return <div className={styles.sellerMeta}>Unable to load policy.</div>
-    case "Success":
-      return <div className={styles.sellerMeta}>Policy loaded from server.</div>
   }
 }
