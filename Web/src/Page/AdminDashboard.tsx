@@ -7,6 +7,7 @@ import { emit } from "../Runtime/React"
 import { navigateTo, toRoute } from "../Route"
 import * as LoginAction from "../Action/Login"
 import * as AdminDashboardAction from "../Action/Admin"
+import AdminStatsChart from "../View/AdminStatsChart"
 
 export type Props = { state: State }
 
@@ -67,6 +68,8 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           </button>
         </div>
       ) : null}
+
+      <AdminStatsChart statsResponse={state.adminDashboard.statsResponse} />
 
       <section className={styles.grid}>
         <article className={styles.card}>

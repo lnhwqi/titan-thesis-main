@@ -5,6 +5,7 @@ import { Action, cmd, Cmd, perform } from "../Action"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
+import * as StatsApi from "../Api/Auth/Admin/Stats"
 import * as ReportWindowGetApi from "../Api/Auth/Admin/ReportWindowGet"
 import * as ReportWindowUpdateApi from "../Api/Auth/Admin/ReportWindowUpdate"
 import * as ProductRatingReportLimitGetApi from "../Api/Auth/Admin/ProductRatingReportLimitGet"
@@ -75,12 +76,14 @@ export function loadOverview(): Action {
       _AdminDashboardState(nextState, {
         adminHomeResponse: RD.loading(),
         orderPaymentsResponse: RD.loading(),
+        statsResponse: RD.loading(),
         sellerTierPolicyResponse: RD.loading(),
       }),
       cmd(
         ...pendingCmd,
         HomeAdminApi.call().then(onAdminHomeResponse),
         AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
+        StatsApi.call().then(onStatsResponse),
         ReportWindowGetApi.call().then(onReportWindowLoaded),
         ProductRatingReportLimitGetApi.call().then(onRatingReportLimitLoaded),
         SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse),
@@ -350,6 +353,18 @@ function onOrderPaymentsResponse(
   return (state) => [
     _AdminDashboardState(state, {
       orderPaymentsResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+function onStatsResponse(response: StatsApi.Response): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      statsResponse:
         response._t === "Ok"
           ? RD.success(response.value)
           : RD.failure(response.error),

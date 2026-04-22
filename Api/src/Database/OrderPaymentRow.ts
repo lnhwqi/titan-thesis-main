@@ -29,7 +29,7 @@ import {
   OrderPaymentTrackingCode,
   orderPaymentTrackingCodeDecoder,
 } from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
-// import * as MarketConfigRow from "./MarketConfigRow"
+import * as MarketConfigRow from "./MarketConfigRow"
 
 function parseJsonSafe(value: string): unknown {
   try {
@@ -287,12 +287,12 @@ export async function getAllPaid(): Promise<OrderPaymentRow[]> {
 }
 
 export async function autoSettleDueOrders(): Promise<number> {
-  // const config = await MarketConfigRow.getOrCreate()
+  const config = await MarketConfigRow.getOrCreate()
   const now = new Date()
-  // const cutoff = new Date(
-  //   now.getTime() - config.reportWindowHours.unwrap() * 60 * 60 * 1000,
-  // )
-  const cutoff = new Date(now.getTime() - 0)
+  const cutoff = new Date(
+    now.getTime() - config.reportWindowHours.unwrap() * 60 * 60 * 1000,
+  )
+  // const cutoff = new Date(now.getTime() - 0)
 
   return db.transaction().execute(async (trx) => {
     const candidates = await trx

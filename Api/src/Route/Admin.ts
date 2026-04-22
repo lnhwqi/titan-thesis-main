@@ -29,6 +29,7 @@ import * as ProductRatingReportUpdateStatus from "../Api/Auth/Admin/ProductRatin
 import * as ProductRatingReportLimitGet from "../Api/Auth/Admin/ProductRatingReportLimit/Get"
 import * as ProductRatingReportLimitUpdate from "../Api/Auth/Admin/ProductRatingReportLimit/Update"
 import * as ProductRatingDelete from "../Api/Auth/Admin/ProductRating/Delete"
+import * as Stats from "../Api/Auth/Admin/Stats"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -36,6 +37,7 @@ export function adminRoutes(app: Express): void {
   publicApi(app, RefreshToken)
   adminAuthApi(app, Logout)
   adminAuthApi(app, HomeAdmin)
+  adminAuthApi(app, Stats)
   adminAuthApi(app, ListPendingSellers)
   adminAuthApi(app, SendSellerVerifyEmail)
   adminAuthApi(app, ApproveSeller)
