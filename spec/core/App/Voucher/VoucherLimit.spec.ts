@@ -1,7 +1,4 @@
-import {
-  createUsageLimit,
-  createUsageLimitE,
-} from "../../../../Core/App/Voucher/VoucherLimit"
+import { createUsageLimit } from "../../../../Core/App/Voucher/VoucherLimit"
 
 describe("App/Voucher/VoucherLimit", () => {
   it("valid usage limit", () => {

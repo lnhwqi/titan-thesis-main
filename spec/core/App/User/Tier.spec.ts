@@ -3,7 +3,7 @@ import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/User/Tier", () => {
   it("valid tiers", () => {
-    ;(["bronze", "silver", "gold", "diamond"] as const).forEach((t) => {
+    ;["bronze", "silver", "gold", "diamond"].forEach((t) => {
       const result = createTier(t)
       if (result == null) throw new Error(`${t} should be valid`)
       assert.strictEqual(result.unwrap(), t)

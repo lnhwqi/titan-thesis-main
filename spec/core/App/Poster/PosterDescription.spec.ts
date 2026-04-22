@@ -1,7 +1,4 @@
-import {
-  createPosterDescription,
-  createPosterDescriptionE,
-} from "../../../../Core/App/Poster/PosterDescription"
+import { createPosterDescription } from "../../../../Core/App/Poster/PosterDescription"
 
 describe("App/Poster/PosterDescription", () => {
   it("valid description", () => {

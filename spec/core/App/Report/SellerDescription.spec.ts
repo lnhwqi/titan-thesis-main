@@ -1,7 +1,4 @@
-import {
-  createSellerDescription,
-  createSellerDescriptionE,
-} from "../../../../Core/App/Report/SellerDescription"
+import { createSellerDescription } from "../../../../Core/App/Report/SellerDescription"
 
 describe("App/Report/SellerDescription", () => {
   it("valid description", () => {

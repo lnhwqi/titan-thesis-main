@@ -1,7 +1,4 @@
-import {
-  createPosterImageUrl,
-  createPosterImageUrlE,
-} from "../../../../Core/App/Poster/PosterImageUrl"
+import { createPosterImageUrl } from "../../../../Core/App/Poster/PosterImageUrl"
 
 describe("App/Poster/PosterImageUrl", () => {
   it("valid image URL", () => {

@@ -1,7 +1,4 @@
-import {
-  createDistrictName,
-  createDistrictNameE,
-} from "../../../../Core/App/Address/districtName"
+import { createDistrictName } from "../../../../Core/App/Address/districtName"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Address/DistrictName", () => {

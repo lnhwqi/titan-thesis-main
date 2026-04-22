@@ -1,4 +1,4 @@
-import { createVerify, createVerifyE } from "../../../../Core/App/Seller/Verify"
+import { createVerify } from "../../../../Core/App/Seller/Verify"
 
 describe("App/Seller/Verify", () => {
   it("valid verify true", () => {

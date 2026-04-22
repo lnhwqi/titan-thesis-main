@@ -1,7 +1,4 @@
-import {
-  createUserUrlImg,
-  createUserUrlImgE,
-} from "../../../../Core/App/Report/UserUrlImgs"
+import { createUserUrlImg } from "../../../../Core/App/Report/UserUrlImgs"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Report/UserUrlImgs", () => {

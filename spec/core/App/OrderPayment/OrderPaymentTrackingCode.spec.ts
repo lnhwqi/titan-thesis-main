@@ -1,7 +1,4 @@
-import {
-  createOrderPaymentTrackingCode,
-  createOrderPaymentTrackingCodeE,
-} from "../../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
+import { createOrderPaymentTrackingCode } from "../../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/OrderPayment/OrderPaymentTrackingCode", () => {

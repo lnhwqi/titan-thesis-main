@@ -1,7 +1,4 @@
-import {
-  createSummaryGoods,
-  createSummaryGoodsE,
-} from "../../../../Core/App/OrderPayment/SummaryGoods"
+import { createSummaryGoods } from "../../../../Core/App/OrderPayment/SummaryGoods"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/OrderPayment/SummaryGoods", () => {

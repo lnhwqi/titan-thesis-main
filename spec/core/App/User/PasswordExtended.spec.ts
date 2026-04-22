@@ -1,5 +1,4 @@
 import {
-  createPassword,
   createPasswordE,
   passwordErrors,
   passwordErrorString,

@@ -1,7 +1,4 @@
-import {
-  createPosterName,
-  createPosterNameE,
-} from "../../../../Core/App/Poster/PosterName"
+import { createPosterName } from "../../../../Core/App/Poster/PosterName"
 
 describe("App/Poster/PosterName", () => {
   it("valid poster name", () => {

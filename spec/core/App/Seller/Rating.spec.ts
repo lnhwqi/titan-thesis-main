@@ -1,4 +1,4 @@
-import { createRating, createRatingE } from "../../../../Core/App/Seller/Rating"
+import { createRating } from "../../../../Core/App/Seller/Rating"
 
 describe("App/Seller/Rating", () => {
   it("valid rating", () => {

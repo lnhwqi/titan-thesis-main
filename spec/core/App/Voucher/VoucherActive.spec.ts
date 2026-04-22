@@ -1,7 +1,4 @@
-import {
-  createActive,
-  createActiveE,
-} from "../../../../Core/App/Voucher/VoucherActive"
+import { createActive } from "../../../../Core/App/Voucher/VoucherActive"
 
 describe("App/Voucher/VoucherActive", () => {
   it("valid active true", () => {

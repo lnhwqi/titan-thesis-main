@@ -1,7 +1,4 @@
-import {
-  createSellerUrlImg,
-  createSellerUrlImgE,
-} from "../../../../Core/App/Report/SellerUrlImgs"
+import { createSellerUrlImg } from "../../../../Core/App/Report/SellerUrlImgs"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Report/SellerUrlImgs", () => {

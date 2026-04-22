@@ -1,7 +1,4 @@
-import {
-  createExpiredDate,
-  createExpiredDateE,
-} from "../../../../Core/App/Voucher/VoucherExpiredDate"
+import { createExpiredDate } from "../../../../Core/App/Voucher/VoucherExpiredDate"
 
 describe("App/Voucher/VoucherExpiredDate", () => {
   it("valid expired date", () => {

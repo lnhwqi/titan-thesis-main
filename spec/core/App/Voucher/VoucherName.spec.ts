@@ -1,7 +1,4 @@
-import {
-  createVoucherName,
-  createVoucherNameE,
-} from "../../../../Core/App/Voucher/VoucherName"
+import { createVoucherName } from "../../../../Core/App/Voucher/VoucherName"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Voucher/VoucherName", () => {

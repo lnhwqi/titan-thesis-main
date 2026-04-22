@@ -1,4 +1,4 @@
-import { createWallet, createWalletE } from "../../../../Core/App/Seller/Wallet"
+import { createWallet } from "../../../../Core/App/Seller/Wallet"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Seller/Wallet", () => {

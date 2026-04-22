@@ -1,7 +1,4 @@
-import {
-  createResultTextAdmin,
-  createResultTextAdminE,
-} from "../../../../Core/App/Report/ResultTextAdmin"
+import { createResultTextAdmin } from "../../../../Core/App/Report/ResultTextAdmin"
 
 describe("App/Report/ResultTextAdmin", () => {
   it("valid result text", () => {

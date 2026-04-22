@@ -1,7 +1,4 @@
-import {
-  createUsedCount,
-  createUsedCountE,
-} from "../../../../Core/App/Voucher/VoucherUsedCount"
+import { createUsedCount } from "../../../../Core/App/Voucher/VoucherUsedCount"
 
 describe("App/Voucher/VoucherUsedCount", () => {
   it("valid used count", () => {

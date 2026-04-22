@@ -1,7 +1,4 @@
-import {
-  createProductVariantName,
-  createProductVariantNameE,
-} from "../../../../Core/App/ProductVariant/ProductVariantName"
+import { createProductVariantName } from "../../../../Core/App/ProductVariant/ProductVariantName"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/ProductVariant/ProductVariantName", () => {

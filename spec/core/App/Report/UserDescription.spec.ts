@@ -1,7 +1,4 @@
-import {
-  createUserDescription,
-  createUserDescriptionE,
-} from "../../../../Core/App/Report/UserDescription"
+import { createUserDescription } from "../../../../Core/App/Report/UserDescription"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Report/UserDescription", () => {

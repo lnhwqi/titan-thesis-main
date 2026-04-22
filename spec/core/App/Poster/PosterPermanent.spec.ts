@@ -1,7 +1,4 @@
-import {
-  createPosterPermanent,
-  createPosterPermanentE,
-} from "../../../../Core/App/Poster/PosterPermanent"
+import { createPosterPermanent } from "../../../../Core/App/Poster/PosterPermanent"
 
 describe("App/Poster/PosterPermanent", () => {
   it("valid permanent true", () => {

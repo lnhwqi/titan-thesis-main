@@ -1,4 +1,4 @@
-import { createActive, createActiveE } from "../../../../Core/App/User/Active"
+import { createActive } from "../../../../Core/App/User/Active"
 
 describe("App/User/Active", () => {
   it("valid active true", () => {

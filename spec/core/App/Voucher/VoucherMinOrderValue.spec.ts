@@ -1,7 +1,4 @@
-import {
-  createMinOrderValue,
-  createMinOrderValueE,
-} from "../../../../Core/App/Voucher/VoucherMinOrderValue"
+import { createMinOrderValue } from "../../../../Core/App/Voucher/VoucherMinOrderValue"
 
 describe("App/Voucher/VoucherMinOrderValue", () => {
   it("valid min order value", () => {

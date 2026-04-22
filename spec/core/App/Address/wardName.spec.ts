@@ -1,7 +1,4 @@
-import {
-  createWardName,
-  createWardNameE,
-} from "../../../../Core/App/Address/wardName"
+import { createWardName } from "../../../../Core/App/Address/wardName"
 import { _fromErr } from "../../../Fixture/Result"
 
 describe("App/Address/WardName", () => {

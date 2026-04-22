@@ -1,7 +1,4 @@
-import {
-  createVacationMode,
-  createVacationModeE,
-} from "../../../../Core/App/Seller/VacationMode"
+import { createVacationMode } from "../../../../Core/App/Seller/VacationMode"
 
 describe("App/Seller/VacationMode", () => {
   it("valid vacation mode true", () => {
