@@ -5,16 +5,19 @@ import * as AuthToken from "../App/AuthToken"
 import { emit } from "../Runtime/React"
 import { color, font, theme, bp } from "../View/Theme"
 import * as AdminDashboardAction from "../Action/Admin"
+import AdminSellerModerationPanel from "../View/AdminSellerModerationPanel"
 
 type Props = { state: State }
 
-export default function AdminPosterManagementPage(props: Props): JSX.Element {
+export default function AdminSellerModerationPage(props: Props): JSX.Element {
   const { state } = props
   const auth = AuthToken.get()
   const isAdmin = auth != null && auth.role === "ADMIN"
   const pending = state.adminDashboard.pendingSellersResponse
   const approving = state.adminDashboard.approvingSellerIDs
   const sendingVerifyEmail = state.adminDashboard.sendingVerifyEmailSellerIDs
+  const allSellers = state.adminDashboard.allSellersResponse
+  const filter = state.adminDashboard.sellerModerationFilter
 
   if (!isAdmin) {
     return (
@@ -22,7 +25,7 @@ export default function AdminPosterManagementPage(props: Props): JSX.Element {
         <div className={styles.gateCard}>
           <h1 className={styles.gateTitle}>Admin Access Required</h1>
           <p className={styles.gateText}>
-            Please login as admin to manage posters.
+            Please login as admin to manage sellers.
           </p>
         </div>
       </div>
@@ -35,7 +38,8 @@ export default function AdminPosterManagementPage(props: Props): JSX.Element {
         <div>
           <h1 className={styles.title}>Seller Moderation</h1>
           <p className={styles.subtitle}>
-            Track seller verification and review pending approvals.
+            Track seller verification, review pending approvals, and monitor all
+            sellers.
           </p>
         </div>
         <div className={styles.headerActions}>
@@ -58,6 +62,22 @@ export default function AdminPosterManagementPage(props: Props): JSX.Element {
         </button>
 
         {renderPendingSellers(pending, approving, sendingVerifyEmail)}
+      </section>
+
+      <section className={styles.panelWide}>
+        <AdminSellerModerationPanel
+          sellersResponse={allSellers}
+          filterBy={filter}
+          onFilterChange={(newFilter) =>
+            emit(AdminDashboardAction.changeSellerModerationFilter(newFilter))
+          }
+        />
+        <button
+          className={styles.refreshButton}
+          onClick={() => emit(AdminDashboardAction.loadAllSellers())}
+        >
+          Refresh All Sellers
+        </button>
       </section>
     </div>
   )
@@ -99,6 +119,25 @@ const styles = {
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
     marginBottom: theme.s4,
+  }),
+  panelWide: css({
+    background: color.neutral0,
+    borderRadius: theme.s4,
+    border: `1px solid ${color.secondary100}`,
+    padding: theme.s5,
+    boxShadow: theme.elevation.medium,
+    marginBottom: theme.s4,
+  }),
+  refreshButton: css({
+    marginTop: theme.s4,
+    border: `1px solid ${color.secondary300}`,
+    background: color.neutral0,
+    color: color.secondary500,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+    width: "fit-content",
   }),
   sectionTitle: css({
     ...font.boldH5_20,

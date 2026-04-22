@@ -3,6 +3,7 @@ import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, Cmd, perform } from "../Action"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
+import * as ListAllSellersApi from "../Api/Auth/Admin/ListAllSellers"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import * as StatsApi from "../Api/Auth/Admin/Stats"
@@ -76,6 +77,7 @@ export function loadOverview(): Action {
       _AdminDashboardState(nextState, {
         adminHomeResponse: RD.loading(),
         orderPaymentsResponse: RD.loading(),
+        allSellersResponse: RD.loading(),
         statsResponse: RD.loading(),
         sellerTierPolicyResponse: RD.loading(),
       }),
@@ -83,6 +85,7 @@ export function loadOverview(): Action {
         ...pendingCmd,
         HomeAdminApi.call().then(onAdminHomeResponse),
         AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
+        ListAllSellersApi.call().then(onLoadAllSellersResponse),
         StatsApi.call().then(onStatsResponse),
         ReportWindowGetApi.call().then(onReportWindowLoaded),
         ProductRatingReportLimitGetApi.call().then(onRatingReportLimitLoaded),
@@ -330,6 +333,46 @@ function onLoadPendingResponse(
         response._t === "Ok"
           ? RD.success(response.value)
           : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+export function loadAllSellers(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      allSellersResponse: RD.loading(),
+      flashMessage: null,
+    }),
+    cmd(ListAllSellersApi.call().then(onLoadAllSellersResponse)),
+  ]
+}
+
+function onLoadAllSellersResponse(
+  response: ListAllSellersApi.Response,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      allSellersResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+export function changeSellerModerationFilter(
+  filter:
+    | "revenue-high"
+    | "revenue-low"
+    | "profit-high"
+    | "profit-low"
+    | "none",
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      sellerModerationFilter: filter,
     }),
     cmd(),
   ]

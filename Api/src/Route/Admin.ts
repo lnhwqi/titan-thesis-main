@@ -5,6 +5,7 @@ import * as Logout from "../Api/Auth/Admin/Logout"
 import * as RefreshToken from "../Api/Public/RefreshTokenAdmin"
 import * as HomeAdmin from "../Api/Auth/Admin/HomeAdmin"
 import * as ListPendingSellers from "../Api/Auth/Admin/ListPendingSellers"
+import * as ListAllSellers from "../Api/Auth/Admin/ListAllSellers"
 import * as SendSellerVerifyEmail from "../Api/Auth/Admin/SendSellerVerifyEmail"
 import * as ApproveSeller from "../Api/Auth/Admin/ApproveSeller"
 import * as CreateCategory from "../Api/Auth/Admin/CreateCategory"
@@ -39,6 +40,7 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, HomeAdmin)
   adminAuthApi(app, Stats)
   adminAuthApi(app, ListPendingSellers)
+  adminAuthApi(app, ListAllSellers)
   adminAuthApi(app, SendSellerVerifyEmail)
   adminAuthApi(app, ApproveSeller)
   adminAuthApi(app, CreateCategory)

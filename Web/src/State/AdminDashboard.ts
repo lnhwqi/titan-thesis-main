@@ -2,6 +2,7 @@ import * as RD from "../../../Core/Data/RemoteData"
 import type { State } from "../State"
 import { ApiError } from "../Api"
 import * as ListPendingSellersApi from "../Api/Auth/Admin/ListPendingSellers"
+import * as ListAllSellersApi from "../Api/Auth/Admin/ListAllSellers"
 import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
 import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
@@ -15,6 +16,10 @@ export type AdminDashboardState = {
   pendingSellersResponse: RD.RemoteData<
     ApiError<ListPendingSellersApi.ErrorCode>,
     ListPendingSellersApi.Payload
+  >
+  allSellersResponse: RD.RemoteData<
+    ApiError<ListAllSellersApi.ErrorCode>,
+    ListAllSellersApi.Payload
   >
   adminHomeResponse: RD.RemoteData<
     ApiError<HomeAdminApi.ErrorCode>,
@@ -58,12 +63,19 @@ export type AdminDashboardState = {
     ApiError<UpdateCategoryApi.ErrorCode>,
     UpdateCategoryApi.Payload
   >
+  sellerModerationFilter:
+    | "revenue-high"
+    | "revenue-low"
+    | "profit-high"
+    | "profit-low"
+    | "none"
   flashMessage: string | null
 }
 
 export function initAdminDashboardState(): AdminDashboardState {
   return {
     pendingSellersResponse: RD.notAsked(),
+    allSellersResponse: RD.notAsked(),
     adminHomeResponse: RD.notAsked(),
     orderPaymentsResponse: RD.notAsked(),
     statsResponse: RD.notAsked(),
@@ -88,6 +100,7 @@ export function initAdminDashboardState(): AdminDashboardState {
     deletingCategoryIDs: [],
     creatingCategoryResponse: RD.notAsked(),
     updatingCategoryResponse: RD.notAsked(),
+    sellerModerationFilter: "none",
     flashMessage: null,
   }
 }

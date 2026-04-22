@@ -209,6 +209,20 @@ export async function listPendingVerification(): Promise<SellerRow[]> {
     })
 }
 
+export async function listAll(): Promise<SellerRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .orderBy("profit", "desc")
+    .execute()
+    .then((rows) => JD.array(sellerRowDecoder).verify(rows))
+    .catch((e) => {
+      Logger.error(`#${tableName}.listAll error ${e}`)
+      throw e
+    })
+}
+
 export async function searchByShopName(query: string): Promise<SellerRow[]> {
   return db
     .selectFrom(tableName)
