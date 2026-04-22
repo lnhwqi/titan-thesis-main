@@ -210,6 +210,70 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
     })
 }
 
+export async function getFilteredAndSorted(params: {
+  categoryID?: string
+  name?: string
+  page: number
+  limit: number
+  sortBy?: "price-low" | "price-high" | "newest" | "oldest"
+}): Promise<{ rows: ProductRow[]; total: number }> {
+  const { categoryID, name, page, limit, sortBy } = params
+  const offset = (page - 1) * limit
+
+  let query = db.selectFrom(tableName).selectAll()
+
+  if (categoryID) {
+    query = query.where("categoryId", "=", categoryID)
+  }
+
+  if (name) {
+    query = query.where("name", "ilike", `%${name}%`)
+  }
+
+  query = query.where("isDeleted", "=", false)
+
+  // Apply sorting
+  if (sortBy === "price-low") {
+    query = query.orderBy("price", "asc")
+  } else if (sortBy === "price-high") {
+    query = query.orderBy("price", "desc")
+  } else if (sortBy === "newest") {
+    query = query.orderBy("createdAt", "desc")
+  } else if (sortBy === "oldest") {
+    query = query.orderBy("createdAt", "asc")
+  } else {
+    query = query.orderBy("createdAt", "desc") // Default to newest
+  }
+
+  // Get total count before pagination
+  let countQuery = db
+    .selectFrom(tableName)
+    .select([(b) => b.fn.count("id").as("total")])
+
+  if (categoryID) {
+    countQuery = countQuery.where("categoryId", "=", categoryID)
+  }
+
+  if (name) {
+    countQuery = countQuery.where("name", "ilike", `%${name}%`)
+  }
+
+  countQuery = countQuery.where("isDeleted", "=", false)
+
+  const [rows, countResult] = await Promise.all([
+    query
+      .limit(limit)
+      .offset(offset)
+      .execute()
+      .then((data) => JD.array(productRowDecoder).verify(data)),
+    countQuery
+      .executeTakeFirst()
+      .then((r) => natDecoder.verify(Number(r?.total ?? 0)).unwrap()),
+  ])
+
+  return { rows, total: countResult }
+}
+
 export const productRowDecoder: JD.Decoder<ProductRow> = JD.object({
   id: productIDDecoder,
   sellerId: sellerIDDecoder,

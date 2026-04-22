@@ -14,35 +14,43 @@ export const contract = API.contract
 export async function handler(
   params: UrlParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const productRows = await ProductRow.getAll()
+  const categoryID = params.categoryID?.trim()
+  const keyword = params.name?.trim()
+  const page = params.page ?? 1
+  const limit = params.limit ?? 10
+  const sortBy = params.sortBy ?? "newest"
 
-  if (productRows.length === 0) {
-    return ok({ items: [] })
-  }
-
-  const categoryID = params.categoryID?.trim() ?? ""
-  const keyword = params.name?.trim().toLowerCase() ?? ""
-
-  const filteredRows = productRows.filter((row) => {
-    const categoryMatch = categoryID === "" || row.categoryId === categoryID
-    const nameMatch =
-      keyword === "" || row.name.unwrap().toLowerCase().includes(keyword)
-    return categoryMatch && nameMatch
+  const { rows: productRows, total } = await ProductRow.getFilteredAndSorted({
+    categoryID,
+    name: keyword,
+    page,
+    limit,
+    sortBy,
   })
 
-  if (filteredRows.length === 0) {
-    return ok({ items: [] })
+  if (productRows.length === 0) {
+    return ok({
+      items: [],
+      page,
+      limit,
+      totalCount: total,
+    })
   }
 
-  const payload = await getlistPayload(filteredRows)
+  const payload = await getlistPayload(productRows)
   const items = payload.items
 
-  return ok({ items })
+  return ok({
+    items,
+    page,
+    limit,
+    totalCount: total,
+  })
 }
 
 export async function getlistPayload(
   productRows: ProductRow.ProductRow[],
-): Promise<API.Payload> {
+): Promise<{ items: BasicProduct[] }> {
   const productIds = productRows.map((p) => p.id)
   const sellerIDs = productRows.map((p) => p.sellerId)
 

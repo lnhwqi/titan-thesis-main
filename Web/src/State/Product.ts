@@ -9,6 +9,7 @@ import { ApiError } from "../Api"
 import type { State } from "../State"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import { Category } from "../../../Core/App/Category"
+import type { SortByOption } from "../../../Core/Api/Public/Product/ListAll"
 
 export type ProductState = {
   listResponse: RD.RemoteData<
@@ -40,6 +41,12 @@ export type ProductState = {
   currentCategoryId: CategoryID | null
   currentCategoryTree: Category | null
 
+  // Pagination and sorting
+  listPage: number
+  listLimit: number
+  listTotalCount: number
+  listSortBy: SortByOption
+
   currentImageIndex: number
   selectedVariantSize: string | null
   selectedQuantity: number
@@ -59,6 +66,10 @@ export function initProductState(): ProductState {
     searchQuery: "",
     currentCategoryId: null,
     currentCategoryTree: null,
+    listPage: 1,
+    listLimit: 12,
+    listTotalCount: 0,
+    listSortBy: "newest",
     currentImageIndex: 0,
     selectedVariantSize: null,
     selectedQuantity: 1,

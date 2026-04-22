@@ -4,6 +4,21 @@ import { State } from "../../State"
 import { Category } from "../../../../Core/App/Category"
 import { color, font, theme } from "../Theme"
 import { ProductCard } from "./ProductCard"
+import { emit } from "../../Runtime/React"
+import * as ProductAction from "../../Action/Product"
+import type { SortByOption } from "../../../../Core/Api/Public/Product/ListAll"
+
+function toSortByOption(value: string): SortByOption | null {
+  switch (value) {
+    case "price-low":
+    case "price-high":
+    case "newest":
+    case "oldest":
+      return value
+    default:
+      return null
+  }
+}
 
 type Props = {
   state: State
@@ -51,24 +66,102 @@ export default function MainContent(props: Props): JSX.Element {
 
     case "Success":
       const products = listResponse.data.items
+      const totalCount = listResponse.data.totalCount ?? 0
+      const currentPage = props.state.product.listPage
+      const limit = listResponse.data.limit ?? 12
+      const sortBy = props.state.product.listSortBy
+      const totalPages = Math.ceil(totalCount / limit)
 
       return (
         <div className={styles.container}>
           {renderHeader()}
+
+          {/* Filter and Pagination Controls */}
+          <div className={styles.controlsSection}>
+            <div className={styles.sortControl}>
+              <label className={styles.label}>Sort by:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  const sortByOption = toSortByOption(e.target.value)
+                  if (sortByOption !== null) {
+                    emit(ProductAction.changeSortBy(sortByOption))
+                  }
+                }}
+                className={styles.select}
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+            </div>
+
+            <div className={styles.paginationInfo}>
+              Showing {(currentPage - 1) * limit + 1} to{" "}
+              {Math.min(currentPage * limit, totalCount)} of {totalCount} items
+            </div>
+          </div>
+
           {products.length === 0 ? (
             <div className={styles.infoText}>
               No products found in this category.
             </div>
           ) : (
-            <div className={styles.grid}>
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id.unwrap()}
-                  product={product}
-                  state={props.state}
-                />
-              ))}
-            </div>
+            <>
+              <div className={styles.grid}>
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id.unwrap()}
+                    product={product}
+                    state={props.state}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className={styles.paginationControls}>
+                  <button
+                    className={styles.paginationButton}
+                    onClick={() =>
+                      emit(ProductAction.changeListPage(currentPage - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    ← Previous
+                  </button>
+
+                  <div className={styles.pageNumbers}>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          className={`${styles.pageButton} ${
+                            page === currentPage ? styles.pageButtonActive : ""
+                          }`}
+                          onClick={() =>
+                            emit(ProductAction.changeListPage(page))
+                          }
+                        >
+                          {page}
+                        </button>
+                      ),
+                    )}
+                  </div>
+
+                  <button
+                    className={styles.paginationButton}
+                    onClick={() =>
+                      emit(ProductAction.changeListPage(currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )
@@ -196,5 +289,107 @@ const styles = {
     "@keyframes spin": {
       to: { transform: "rotate(360deg)" },
     },
+  }),
+
+  controlsSection: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.s4,
+    padding: theme.s3,
+    backgroundColor: color.neutral50,
+    borderRadius: theme.br2,
+    gap: theme.s3,
+  }),
+
+  sortControl: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s2,
+  }),
+
+  label: css({
+    ...font.bold12,
+    color: color.neutral800,
+    whiteSpace: "nowrap",
+  }),
+
+  select: css({
+    padding: `${theme.s1} ${theme.s2}`,
+    border: `1px solid ${color.neutral300}`,
+    borderRadius: theme.br1,
+    backgroundColor: color.neutral0,
+    color: color.neutral800,
+    fontSize: "14px",
+    cursor: "pointer",
+    "&:hover": {
+      borderColor: color.secondary500,
+    },
+  }),
+
+  paginationInfo: css({
+    ...font.regular12,
+    color: color.neutral600,
+    whiteSpace: "nowrap",
+  }),
+
+  paginationControls: css({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: theme.s2,
+    marginTop: theme.s6,
+    paddingTop: theme.s4,
+    borderTop: `1px solid ${color.neutral200}`,
+  }),
+
+  paginationButton: css({
+    padding: `${theme.s2} ${theme.s3}`,
+    border: `1px solid ${color.secondary500}`,
+    borderRadius: theme.br1,
+    backgroundColor: color.neutral0,
+    color: color.secondary500,
+    fontSize: "14px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    "&:hover:not(:disabled)": {
+      backgroundColor: color.secondary500,
+      color: color.neutral0,
+    },
+    "&:disabled": {
+      borderColor: color.neutral300,
+      color: color.neutral400,
+      cursor: "not-allowed",
+      opacity: 0.5,
+    },
+  }),
+
+  pageNumbers: css({
+    display: "flex",
+    gap: theme.s1,
+  }),
+
+  pageButton: css({
+    width: "36px",
+    height: "36px",
+    border: `1px solid ${color.neutral300}`,
+    borderRadius: theme.br1,
+    backgroundColor: color.neutral0,
+    color: color.neutral800,
+    fontSize: "12px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      borderColor: color.secondary500,
+      color: color.secondary500,
+    },
+  }),
+
+  pageButtonActive: css({
+    backgroundColor: color.secondary500,
+    borderColor: color.secondary500,
+    color: color.neutral0,
   }),
 }

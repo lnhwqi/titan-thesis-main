@@ -29,9 +29,17 @@ export function initCmd(): Cmd {
 
 function initPublicCmd(): Cmd {
   return cmd(
-    Promise.all([ProductApi.call({}), CategoryApi.call()]).then(
-      ([productRes, categoryRes]) =>
-        publicInitResponse(productRes, categoryRes),
+    Promise.all([
+      ProductApi.call({
+        categoryID: "",
+        name: "",
+        page: 1,
+        limit: 12,
+        sortBy: "newest",
+      }),
+      CategoryApi.call(),
+    ]).then(([productRes, categoryRes]) =>
+      publicInitResponse(productRes, categoryRes),
     ),
   )
 }
@@ -64,7 +72,13 @@ function initAuthCmd(): Cmd {
     Promise.all([
       ProfileApi.call(),
       CategoryApi.call(),
-      ProductApi.call({}),
+      ProductApi.call({
+        categoryID: "",
+        name: "",
+        page: 1,
+        limit: 12,
+        sortBy: "newest",
+      }),
     ]).then(([profileRes, categoryRes, productRes]) =>
       authInitResponse(profileRes, categoryRes, productRes),
     ),
@@ -73,9 +87,17 @@ function initAuthCmd(): Cmd {
 
 function initRoleBootstrapCmd(): Cmd {
   return cmd(
-    Promise.all([CategoryApi.call(), ProductApi.call({})]).then(
-      ([categoryRes, productRes]) =>
-        roleBootstrapResponse(categoryRes, productRes),
+    Promise.all([
+      CategoryApi.call(),
+      ProductApi.call({
+        categoryID: "",
+        name: "",
+        page: 1,
+        limit: 12,
+        sortBy: "newest",
+      }),
+    ]).then(([categoryRes, productRes]) =>
+      roleBootstrapResponse(categoryRes, productRes),
     ),
   )
 }

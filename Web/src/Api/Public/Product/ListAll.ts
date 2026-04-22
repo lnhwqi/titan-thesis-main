@@ -16,7 +16,15 @@ export type Response = ApiResponse<ErrorCode, Payload>
 
 export const paramsDecoder = contract.urlDecoder
 
-export async function call(params: UrlParams = {}): Promise<Response> {
+export async function call(
+  params: UrlParams = {
+    categoryID: "",
+    name: "",
+    page: 1,
+    limit: 12,
+    sortBy: "newest",
+  },
+): Promise<Response> {
   return publicApi(contract, params, {})
 }
 

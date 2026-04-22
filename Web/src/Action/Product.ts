@@ -1,5 +1,6 @@
 import { Action, cmd, perform } from "../Action"
 import * as ListAllApi from "../Api/Public/Product/ListAll"
+import type { SortByOption } from "../../../Core/Api/Public/Product/ListAll"
 import * as SearchApi from "../Api/Public/Product/Search"
 import * as GetOneApi from "../Api/Public/Product/GetOne"
 import * as ListRatingsApi from "../Api/Public/Product/ListRatings"
@@ -18,13 +19,37 @@ import * as AuthToken from "../App/AuthToken"
 import { sleep } from "../../../Core/Data/Time/Timer"
 import { Category } from "../../../Core/App/Category"
 
-export function loadList(params: ListAllApi.UrlParams = {}): Action {
+export function loadList(
+  params: ListAllApi.UrlParams = {
+    categoryID: "",
+    name: "",
+    page: 1,
+    limit: 12,
+    sortBy: "newest",
+  },
+): Action {
   return (state) => {
     const expected = params.name || params.categoryID || ""
+    const limit = params.limit ?? state.product.listLimit
+    const page = params.page ?? 1
+    const sortBy = params.sortBy ?? state.product.listSortBy
+
     return [
-      _ProductState(state, { listResponse: RD.loading(), searchQuery: "" }),
+      _ProductState(state, {
+        listResponse: RD.loading(),
+        searchQuery: "",
+        listPage: page,
+        listLimit: limit,
+        listSortBy: sortBy,
+      }),
       cmd(
-        ListAllApi.call(params).then((res) => gotListResponse(res, expected)),
+        ListAllApi.call({
+          categoryID: params.categoryID ?? "",
+          name: params.name ?? "",
+          limit,
+          page,
+          sortBy,
+        }).then((res) => gotListResponse(res, expected)),
       ),
     ]
   }
@@ -47,12 +72,22 @@ function selectCategoryWithNavigation(
       currentCategoryId: categoryId,
       listResponse: RD.loading(),
       searchQuery: "",
+      listPage: 1, // Reset to first page when changing category
+      listSortBy: "newest", // Reset to default sort
     })
 
     if (categoryId === null) {
       return [
         nextState,
-        cmd(ListAllApi.call({}).then((res) => gotListResponse(res, ""))),
+        cmd(
+          ListAllApi.call({
+            categoryID: "",
+            name: "",
+            page: 1,
+            limit: state.product.listLimit,
+            sortBy: "newest",
+          }).then((res) => gotListResponse(res, "")),
+        ),
       ]
     }
 
@@ -64,9 +99,13 @@ function selectCategoryWithNavigation(
 
     // 1. Gọi API lấy Sản phẩm ngay lập tức, không cần đợi chờ ai cả!
     const loadProductsCmd = cmd(
-      ListAllApi.call({ categoryID: expectedId }).then((res) =>
-        gotListResponse(res, expectedId),
-      ),
+      ListAllApi.call({
+        categoryID: expectedId,
+        name: "",
+        page: 1,
+        limit: state.product.listLimit,
+        sortBy: "newest",
+      }).then((res) => gotListResponse(res, expectedId)),
     )
 
     // 2. Cập nhật currentCategoryTree (chỉ để phục vụ việc khác của UI nếu cần, không ảnh hưởng tới việc lọc sản phẩm nữa)
@@ -129,7 +168,14 @@ function gotListResponse(
     if (selectedCategoryID === null) {
       return [
         _ProductState(state, {
-          listResponse: RD.success({ items: response.value.items }),
+          listResponse: RD.success({
+            items: response.value.items,
+            page: response.value.page ?? 1,
+            limit: response.value.limit ?? 12,
+            totalCount: response.value.totalCount ?? 0,
+          }),
+          listPage: response.value.page ?? 1,
+          listTotalCount: response.value.totalCount ?? 0,
         }),
         cmd(),
       ]
@@ -175,7 +221,14 @@ function gotListResponse(
 
     return [
       _ProductState(state, {
-        listResponse: RD.success({ items }),
+        listResponse: RD.success({
+          items,
+          page: response.value.page ?? 1,
+          limit: response.value.limit ?? 12,
+          totalCount: response.value.totalCount ?? 0,
+        }),
+        listPage: response.value.page ?? 1,
+        listTotalCount: response.value.totalCount ?? 0,
       }),
       cmd(),
     ]
@@ -191,11 +244,16 @@ export function search(query: string): Action {
     _ProductState(state, {
       listResponse: RD.loading(),
       searchQuery: query,
+      listPage: 1,
+      listSortBy: "newest",
     }),
     cmd(
-      SearchApi.call({ name: query }).then((res) =>
-        gotListResponse(res, query),
-      ),
+      SearchApi.call({
+        name: query,
+        page: 1,
+        limit: state.product.listLimit,
+        sortBy: "newest",
+      }).then((res) => gotListResponse(res, query)),
     ),
   ]
 }
@@ -207,12 +265,17 @@ export function submitSearch(query: string): Action {
     const nextState = _ProductState(state, {
       listResponse: RD.loading(),
       searchQuery: query,
+      listPage: 1,
+      listSortBy: "newest",
     })
 
     const apiCallCmd = cmd(
-      SearchApi.call({ name: query }).then((res) =>
-        gotListResponse(res, query),
-      ),
+      SearchApi.call({
+        name: query,
+        page: 1,
+        limit: state.product.listLimit,
+        sortBy: "newest",
+      }).then((res) => gotListResponse(res, query)),
     )
 
     const navigateCmd = cmd(
@@ -220,6 +283,55 @@ export function submitSearch(query: string): Action {
     )
 
     return [nextState, [...apiCallCmd, ...navigateCmd]]
+  }
+}
+
+export function changeSortBy(sortBy: SortByOption): Action {
+  return (state) => {
+    const nextState = _ProductState(state, {
+      listSortBy: sortBy,
+      listPage: 1, // Reset to first page when changing sort
+      listResponse: RD.loading(),
+    })
+
+    const categoryID = state.product.currentCategoryId?.unwrap()
+    const searchQuery = state.product.searchQuery
+
+    const apiCallCmd = cmd(
+      ListAllApi.call({
+        categoryID: categoryID ?? "",
+        name: "",
+        page: 1,
+        limit: state.product.listLimit,
+        sortBy,
+      }).then((res) => gotListResponse(res, searchQuery || categoryID || "")),
+    )
+
+    return [nextState, apiCallCmd]
+  }
+}
+
+export function changeListPage(page: number): Action {
+  return (state) => {
+    const nextState = _ProductState(state, {
+      listPage: page,
+      listResponse: RD.loading(),
+    })
+
+    const categoryID = state.product.currentCategoryId?.unwrap()
+    const searchQuery = state.product.searchQuery
+
+    const apiCallCmd = cmd(
+      ListAllApi.call({
+        categoryID: categoryID ?? "",
+        name: searchQuery || "",
+        page,
+        limit: state.product.listLimit,
+        sortBy: state.product.listSortBy,
+      }).then((res) => gotListResponse(res, searchQuery || categoryID || "")),
+    )
+
+    return [nextState, apiCallCmd]
   }
 }
 
@@ -312,9 +424,13 @@ export function loadDetail(id: ProductID): Action {
             ListRatingsApi.call({ productID: id }).then(gotRatingsResponse),
           ),
           ...cmd(
-            ListAllApi.call({ page: 1, limit: 200 }).then((res) =>
-              gotListResponse(res, ""),
-            ),
+            ListAllApi.call({
+              categoryID: "",
+              name: "",
+              page: 1,
+              limit: 200,
+              sortBy: "newest",
+            }).then((res) => gotListResponse(res, "")),
           ),
           ...wishlistCmd,
         ]
@@ -339,7 +455,13 @@ export function loadSellerProfile(sellerID: SellerID): Action {
           ),
         ),
         ...cmd(
-          ListAllApi.call({}).then((response) =>
+          ListAllApi.call({
+            categoryID: "",
+            name: "",
+            page: 1,
+            limit: 12,
+            sortBy: "newest",
+          }).then((response) =>
             gotSellerProductsResponse(response, sellerIdString),
           ),
         ),
@@ -384,7 +506,12 @@ function gotSellerProductsResponse(
     return [
       _ProductState(state, {
         listResponse: RD.success(response.value),
-        sellerProductsResponse: RD.success({ items }),
+        sellerProductsResponse: RD.success({
+          items,
+          page: response.value.page ?? 1,
+          limit: response.value.limit ?? 10,
+          totalCount: response.value.totalCount ?? 0,
+        }),
       }),
       cmd(),
     ]

@@ -45,7 +45,13 @@ export function onEnterRoute(): Action {
       [
         ...categoryCmd,
         SellerProfileApi.call().then(onLoadSellerProfileResponse),
-        ProductListApi.call({}).then(onLoadProductListResponse),
+        ProductListApi.call({
+          categoryID: "",
+          name: "",
+          page: 1,
+          limit: 12,
+          sortBy: "newest",
+        }).then(onLoadProductListResponse),
         SellerOrderPaymentListApi.call().then(onLoadSellerOrdersStatsResponse),
       ],
     ]
@@ -415,7 +421,15 @@ function onEditPageUpdateResponse(response: UpdateProductApi.Response): Action {
         updateProductResponse: RD.success(response.value),
         flashMessage: "Product updated successfully.",
       }),
-      cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
+      cmd(
+        ProductListApi.call({
+          categoryID: "",
+          name: "",
+          page: 1,
+          limit: 12,
+          sortBy: "newest",
+        }).then(onLoadProductListResponse),
+      ),
     ]
   }
 }
@@ -932,7 +946,15 @@ function onDeleteProductResponse(response: DeleteProductApi.Response): Action {
       _SellerDashboardState(state, {
         flashMessage: "Product deleted successfully.",
       }),
-      cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
+      cmd(
+        ProductListApi.call({
+          categoryID: "",
+          name: "",
+          page: 1,
+          limit: 12,
+          sortBy: "newest",
+        }).then(onLoadProductListResponse),
+      ),
     ]
   }
 }
@@ -1237,7 +1259,15 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
         isUploadingImages: false,
         createTouched: initCreateProductTouched(),
       }),
-      cmd(ProductListApi.call({}).then(onLoadProductListResponse)),
+      cmd(
+        ProductListApi.call({
+          categoryID: "",
+          name: "",
+          page: 1,
+          limit: 12,
+          sortBy: "newest",
+        }).then(onLoadProductListResponse),
+      ),
     ]
   }
 }

@@ -17,25 +17,48 @@ export async function handler(
   params: API.UrlParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   const searchName = params.name?.trim() ?? ""
+  const page = params.page ?? 1
+  const limit = params.limit ?? 10
+  const sortBy = params.sortBy ?? "newest"
 
   if (searchName.length === 0) {
-    return ok({ items: [] })
+    return ok({
+      items: [],
+      page,
+      limit,
+      totalCount: 0,
+    })
   }
 
-  const productRows = await ProductRow.searchByName(searchName)
+  const { rows: productRows, total } = await ProductRow.getFilteredAndSorted({
+    name: searchName,
+    page,
+    limit,
+    sortBy,
+  })
 
   if (productRows.length === 0) {
-    return ok({ items: [] })
+    return ok({
+      items: [],
+      page,
+      limit,
+      totalCount: total,
+    })
   }
 
   const payload = await getlistPayload(productRows)
 
-  return ok(payload)
+  return ok({
+    items: payload.items,
+    page,
+    limit,
+    totalCount: total,
+  })
 }
 
 export async function getlistPayload(
   productRows: ProductRow.ProductRow[],
-): Promise<API.Payload> {
+): Promise<{ items: BasicProduct[] }> {
   const productIds = productRows.map((p) => p.id)
   const sellerIDs = productRows.map((p) => p.sellerId)
 
