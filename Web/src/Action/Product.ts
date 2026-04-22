@@ -2,6 +2,7 @@ import { Action, cmd, perform } from "../Action"
 import * as ListAllApi from "../Api/Public/Product/ListAll"
 import * as SearchApi from "../Api/Public/Product/Search"
 import * as GetOneApi from "../Api/Public/Product/GetOne"
+import * as ListRatingsApi from "../Api/Public/Product/ListRatings"
 import * as GetSellerProfileApi from "../Api/Public/Seller/GetProfile"
 import * as CategoryGetOneApi from "../Api/Public/Category/GetOne"
 import * as WishlistListApi from "../Api/Auth/User/Wishlist/List"
@@ -234,6 +235,18 @@ function gotDetailResponse(response: GetOneApi.Response): Action {
   ]
 }
 
+function gotRatingsResponse(response: ListRatingsApi.Response): Action {
+  return (state) => [
+    _ProductState(state, {
+      ratingsResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
 function gotWishlistListResponse(response: WishlistListApi.Response): Action {
   return (state) => {
     if (response._t === "Err") {
@@ -277,6 +290,7 @@ export function loadDetail(id: ProductID): Action {
     return [
       _ProductState(state, {
         detailResponse: RD.loading(),
+        ratingsResponse: RD.loading(),
         currentImageIndex: 0,
         selectedVariantSize: null,
         selectedQuantity: 1,
@@ -294,6 +308,9 @@ export function loadDetail(id: ProductID): Action {
 
         return [
           ...cmd(GetOneApi.call({ id }).then(gotDetailResponse)),
+          ...cmd(
+            ListRatingsApi.call({ productID: id }).then(gotRatingsResponse),
+          ),
           ...cmd(
             ListAllApi.call({ page: 1, limit: 200 }).then((res) =>
               gotListResponse(res, ""),

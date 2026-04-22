@@ -254,6 +254,38 @@ export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
     )
 }
 
+export async function getByUserIDPaginated(
+  userId: UserID,
+  limit: number,
+  offset: number,
+): Promise<{ rows: OrderPaymentRow[]; totalCount: number }> {
+  const countResult = await db
+    .selectFrom(tableName)
+    .select((eb) => eb.fn.count<number>("id").as("count"))
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+
+  const totalCount = Number(countResult?.count ?? 0)
+
+  const rows = await db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .offset(offset)
+    .execute()
+    .then((rows) =>
+      rows.map((row) =>
+        orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+      ),
+    )
+
+  return { rows, totalCount }
+}
+
 export async function getBySellerID(
   sellerId: SellerID,
 ): Promise<OrderPaymentRow[]> {

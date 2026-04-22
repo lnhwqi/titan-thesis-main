@@ -2,9 +2,12 @@ import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, perform } from "../Action"
 import { _OrderPaymentState } from "../State/OrderPayment"
 import * as UserListApi from "../Api/Auth/User/OrderPayment/ListMine"
+import * as UserListRatingApi from "../Api/Auth/User/ProductRating/ListMine"
 import * as UserConfirmDeliveryApi from "../Api/Auth/User/OrderPayment/ConfirmDelivery"
 import * as SellerListApi from "../Api/Auth/Seller/OrderPayment/ListMine"
 import * as SellerUpdateApi from "../Api/Auth/Seller/OrderPayment/UpdateTracking"
+import * as ProductRatingAction from "./ProductRating"
+import { onLoadUserRatingsResponse } from "./ProductRating"
 import { parseOrderPaymentID } from "../../../Core/App/OrderPayment/OrderPaymentID"
 import { navigateTo, toRoute } from "../Route"
 import { createOrderPaymentTrackingCode } from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
@@ -17,8 +20,15 @@ export function onEnterUserOrdersRoute(): Action {
     _OrderPaymentState(state, {
       userOrdersResponse: RD.loading(),
       flashMessage: null,
+      userOrdersPage: 1,
     }),
-    cmd(UserListApi.call().then(onUserListResponse)),
+    cmd(
+      UserListApi.call({
+        page: 1,
+        limit: state.orderPayment.userOrdersLimit,
+      }).then(onUserListResponse),
+      UserListRatingApi.call().then(onLoadUserRatingsResponse),
+    ),
   ]
 }
 
@@ -155,6 +165,8 @@ function onUserListResponse(response: UserListApi.Response): Action {
       _OrderPaymentState(state, {
         userOrders: response.value.orders,
         userOrdersResponse: RD.success(response.value),
+        userOrdersPage: response.value.page,
+        userOrdersTotalCount: response.value.totalCount,
       }),
       cmd(),
     ]
@@ -243,7 +255,12 @@ function onConfirmDeliveryResponse(
             ? "Thanks. Delivery confirmed as received."
             : "Issue reported. Our team will follow up.",
       }),
-      cmd(UserListApi.call().then(onUserListResponse)),
+      cmd(
+        UserListApi.call({
+          page: state.orderPayment.userOrdersPage,
+          limit: state.orderPayment.userOrdersLimit,
+        }).then(onUserListResponse),
+      ),
     ]
   }
 }
@@ -252,5 +269,20 @@ export function goToSellerOrdersPage(): Action {
   return (state) => [
     state,
     cmd(perform(navigateTo(toRoute("SellerOrders", {})))),
+  ]
+}
+
+export function changeUserOrdersPage(page: number): Action {
+  return (state) => [
+    _OrderPaymentState(state, {
+      userOrdersResponse: RD.loading(),
+      userOrdersPage: page,
+    }),
+    cmd(
+      UserListApi.call({
+        page,
+        limit: state.orderPayment.userOrdersLimit,
+      }).then(onUserListResponse),
+    ),
   ]
 }

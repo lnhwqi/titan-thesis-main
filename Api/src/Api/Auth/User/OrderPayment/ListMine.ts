@@ -12,11 +12,20 @@ export const contract = API.contract
 
 export async function handler(
   user: AuthUser,
-  _params: API.NoUrlParams & API.NoBodyParams,
+  params: API.UrlParams & API.NoBodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   await OrderPaymentRow.autoSettleDueOrders()
 
-  const rows = await OrderPaymentRow.getByUserID(user.id)
+  const page = Math.max(1, Math.floor(params.page))
+  const limit = Math.max(1, Math.min(100, Math.floor(params.limit)))
+  const offset = (page - 1) * limit
+
+  const { rows, totalCount } = await OrderPaymentRow.getByUserIDPaginated(
+    user.id,
+    limit,
+    offset,
+  )
+
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentIDs(
     rows.map((row) => row.id),
   )
@@ -42,5 +51,8 @@ export async function handler(
         (itemsByOrderID.get(row.id.unwrap()) ?? []).map(toOrderPaymentItem),
       ),
     ),
+    totalCount,
+    page,
+    limit,
   })
 }

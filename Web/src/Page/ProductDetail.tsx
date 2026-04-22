@@ -12,6 +12,7 @@ import {
   IoIosHeartEmpty,
 } from "react-icons/io"
 import { ProductCard } from "../View/Part/ProductCard"
+import { ProductRatingsSection } from "../View/Part/ProductRatingsSection"
 import * as AuthToken from "../App/AuthToken"
 import Link from "../View/Link"
 import { toRoute } from "../Route"
@@ -437,6 +438,10 @@ export default function ProductDetailPage(
           <div className={styles.descriptionTitle}>Product description:</div>
           <p className={styles.description}>{product.description.unwrap()}</p>
         </div>
+
+        <ProductRatingsSection
+          ratingsResponse={state.product.ratingsResponse}
+        />
 
         <div className={styles.otherSection}>
           <h2 className={styles.otherTitle}>Others Product of this shop</h2>

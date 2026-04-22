@@ -118,3 +118,27 @@ export async function softDeleteByOrderProduct(
     .executeTakeFirst()
     .then((row) => (row == null ? null : productRatingRowDecoder.verify(row)))
 }
+
+export async function getByProductId(
+  productId: ProductID,
+): Promise<ProductRatingRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("productId", "=", productId.unwrap())
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => JD.array(productRatingRowDecoder).verify(rows))
+}
+
+export async function getByUserID(userId: UserID): Promise<ProductRatingRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => JD.array(productRatingRowDecoder).verify(rows))
+}

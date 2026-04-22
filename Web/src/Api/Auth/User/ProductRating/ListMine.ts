@@ -8,18 +8,17 @@ import {
   contract,
   ErrorCode,
   Payload,
-  UrlParams,
-} from "../../../../../../Core/Api/Auth/User/OrderPayment/ListMine"
+} from "../../../../../../Core/Api/Auth/User/ProductRating/ListMine"
 
-export type { ErrorCode, Payload, UrlParams }
+export type { ErrorCode, Payload }
 export type Response = ApiResponse<ErrorCode, Payload>
 
-export async function call(params: UrlParams): Promise<Response> {
-  return authApi(contract, params, {})
+export async function call(): Promise<Response> {
+  return authApi(contract, {}, {})
 }
 
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (_errorCode) => {
-    return "Unable to load your orders."
+    return "Unable to load your ratings."
   })
 }

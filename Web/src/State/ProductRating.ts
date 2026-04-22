@@ -2,6 +2,7 @@ import * as RD from "../../../Core/Data/RemoteData"
 import type { State } from "../State"
 import { ApiError } from "../Api"
 import * as UserCreateRatingApi from "../Api/Auth/User/ProductRating/Create"
+import { ProductRating } from "../../../Core/App/ProductRating"
 
 export type ProductRatingState = {
   createResponse: RD.RemoteData<
@@ -11,6 +12,7 @@ export type ProductRatingState = {
   ratingKey: string | null
   scoreDraftByKey: Record<string, string>
   feedbackDraftByKey: Record<string, string>
+  userRatings: Record<string, ProductRating>
   flashMessage: string | null
 }
 
@@ -20,6 +22,7 @@ export function initProductRatingState(): ProductRatingState {
     ratingKey: null,
     scoreDraftByKey: {},
     feedbackDraftByKey: {},
+    userRatings: {},
     flashMessage: null,
   }
 }

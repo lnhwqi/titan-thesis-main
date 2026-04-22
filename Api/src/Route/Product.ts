@@ -4,6 +4,7 @@ import { sellerAuthApi } from "../Api/AuthApi"
 import * as GetList from "../Api/Public/Product/ListAll"
 import * as GetByID from "../Api/Public/Product/GetOne"
 import * as Search from "../Api/Public/Product/Search"
+import * as ListRatings from "../Api/Public/Product/ListRatings"
 import * as CreateProduct from "../Api/Auth/Product/create"
 import * as UploadImages from "../Api/Auth/Product/uploadImages"
 import * as UpdateProduct from "../Api/Auth/Product/update"
@@ -12,6 +13,7 @@ export function productRoutes(app: Express): void {
   publicApi(app, GetList)
   publicApi(app, Search)
   publicApi(app, GetByID)
+  publicApi(app, ListRatings)
 
   sellerAuthApi(app, CreateProduct)
   sellerAuthApi(app, UploadImages)

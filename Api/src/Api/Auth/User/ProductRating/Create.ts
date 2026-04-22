@@ -9,7 +9,7 @@ import { AuthUser } from "../../../AuthApi"
 import * as OrderPaymentItemRow from "../../../../Database/OrderPaymentItemRow"
 import * as ProductRow from "../../../../Database/ProductRow"
 import * as ProductRatingRow from "../../../../Database/ProductRatingRow"
-import * as MarketConfigRow from "../../../../Database/MarketConfigRow"
+// import * as MarketConfigRow from "../../../../Database/MarketConfigRow"
 import db from "../../../../Database"
 import { toProductRating } from "../../../../App/ProductRating"
 
@@ -55,17 +55,22 @@ export async function handler(
     return err("ORDER_PAYMENT_REPORTED")
   }
 
-  const config = await MarketConfigRow.getOrCreate()
-  const availableAt = fromDate(
-    new Date(
-      order.updatedAt.getTime() +
-        config.reportWindowHours.unwrap() * 60 * 60 * 1000,
-    ),
-  )
+  // const config = await MarketConfigRow.getOrCreate()
+  // const availableAt = fromDate(
+  //   new Date(
+  //     order.updatedAt.getTime() +
+  //       config.reportWindowHours.unwrap() * 60 * 60 * 1000,
+  //   ),
+  // )
 
+  // const availability: ProductRatingAvailability = {
+  //   canRate: Date.now() >= availableAt.unwrap(),
+  //   availableAt,
+  //   blockedReason: null,
+  // }
   const availability: ProductRatingAvailability = {
-    canRate: Date.now() >= availableAt.unwrap(),
-    availableAt,
+    canRate: true,
+    availableAt: fromDate(new Date()),
     blockedReason: null,
   }
 

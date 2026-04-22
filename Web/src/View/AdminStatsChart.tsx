@@ -97,7 +97,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>New Users (30d)</div>
+          <div className={styles.statLabel}>New Users (7d)</div>
           <div className={styles.statValue}>
             {stats.newUsers.unwrap().toLocaleString()}
           </div>
@@ -111,7 +111,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>New Sellers (30d)</div>
+          <div className={styles.statLabel}>New Sellers (7d)</div>
           <div className={styles.statValue}>
             {stats.newSellers.unwrap().toLocaleString()}
           </div>

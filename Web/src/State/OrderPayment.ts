@@ -27,6 +27,9 @@ export type OrderPaymentState = {
     ApiError<UserConfirmDeliveryApi.ErrorCode>,
     UserConfirmDeliveryApi.Payload
   >
+  userOrdersPage: number
+  userOrdersLimit: number
+  userOrdersTotalCount: number
   statusDraftByOrderID: Record<string, OrderPaymentStatus>
   trackingDraftByOrderID: Record<string, string>
   flashMessage: string | null
@@ -40,6 +43,9 @@ export function initOrderPaymentState(): OrderPaymentState {
     sellerOrdersResponse: RD.notAsked(),
     updateTrackingResponse: RD.notAsked(),
     confirmDeliveryResponse: RD.notAsked(),
+    userOrdersPage: 1,
+    userOrdersLimit: 5,
+    userOrdersTotalCount: 0,
     statusDraftByOrderID: {},
     trackingDraftByOrderID: {},
     flashMessage: null,
