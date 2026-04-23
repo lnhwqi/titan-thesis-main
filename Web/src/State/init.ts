@@ -18,6 +18,7 @@ import { initOrderPaymentState } from "./OrderPayment"
 import { initReportState } from "./Report"
 import { initProductRatingReportState } from "./ProductRatingReport"
 import { initProductRatingState } from "./ProductRating"
+import { initMessageState } from "./Message"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -39,6 +40,7 @@ export function initState(route: Route): State {
     product: initProductState(),
     category: initCategoryState(),
     cart: initCartState(),
+    message: initMessageState(),
   }
 }
 

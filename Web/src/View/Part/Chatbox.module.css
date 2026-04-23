@@ -1,0 +1,383 @@
+.chatboxContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  z-index: 9999;
+}
+
+.chatboxToggle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.chatboxToggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.chatboxToggle:active {
+  transform: scale(0.95);
+}
+
+.chatboxWindow {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 400px;
+  height: 600px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.conversationList {
+  width: 140px;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.conversationList h4 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.conversations {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.conversationItem {
+  padding: 8px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+
+.conversationItem:hover {
+  background: #e5e7eb;
+}
+
+.conversationItem.active {
+  background: #dbeafe;
+  border-color: #667eea;
+}
+
+.conversationInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.participantName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.onlineIndicator {
+  color: #10b981;
+  font-size: 10px;
+}
+
+.unreadBadge {
+  background: #ef4444;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.lastMessage {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.messagesContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.messagesList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noMessages {
+  text-align: center;
+  color: #9ca3af;
+  padding: 32px 16px;
+  font-size: 14px;
+}
+
+.loading,
+.error {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.error {
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 6px;
+}
+
+.messageItem {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  word-wrap: break-word;
+}
+
+.messageItem.user {
+  background: #dbeafe;
+  align-self: flex-end;
+  color: #1e40af;
+}
+
+.messageItem.other {
+  background: #f0f0f0;
+  align-self: flex-start;
+  color: #1f2937;
+}
+
+.messageItem.system {
+  background: #fef3c7;
+  align-self: center;
+  color: #92400e;
+  font-size: 13px;
+  max-width: 90%;
+  text-align: center;
+}
+
+.messageMeta {
+  font-size: 11px;
+  opacity: 0.7;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.senderName {
+  font-weight: 600;
+}
+
+.timestamp {
+  color: #6b7280;
+}
+
+.readReceipt {
+  color: #667eea;
+  font-weight: bold;
+}
+
+.messageText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.typingIndicator {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.dots {
+  display: flex;
+  gap: 2px;
+}
+
+.dots span {
+  animation: bounce 1.4s infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    opacity: 0.5;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.inputArea {
+  padding: 12px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.sendBtn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: transform 0.2s;
+  white-space: nowrap;
+}
+
+.sendBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.sendBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.sendBtn.disabled,
+.sendBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .chatboxWindow {
+    width: 100%;
+    height: 100%;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+  }
+
+  .conversationList {
+    width: 100px;
+  }
+
+  .messageItem {
+    max-width: 90%;
+  }
+}

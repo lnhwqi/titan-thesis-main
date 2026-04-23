@@ -17,6 +17,7 @@ import { OrderPaymentState } from "./State/OrderPayment"
 import { ReportState } from "./State/Report"
 import { ProductRatingReportState } from "./State/ProductRatingReport"
 import { ProductRatingState } from "./State/ProductRating"
+import { MessageState } from "./State/Message"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
@@ -36,6 +37,7 @@ export type PublicState = {
   product: ProductState
   category: CategoryState
   cart: CartState
+  message: MessageState
 }
 
 type BaseAuthState = Omit<PublicState, "_t"> & {
@@ -99,4 +101,11 @@ export function _SellerState(
   fn: (sellerState: AuthSellerState) => [State, Cmd],
 ): Action {
   return (state: State) => (state._t === "AuthSeller" ? fn(state) : [state, []])
+}
+
+export function _MessageState(
+  state: State,
+  message: Partial<MessageState>,
+): State {
+  return { ...state, message: { ...state.message, ...message } }
 }

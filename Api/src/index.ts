@@ -1,10 +1,12 @@
 import express from "express"
 import { json, static as serveStatic, type Express, urlencoded } from "express"
 import cors from "cors"
+import { createServer } from "http"
 import { routes } from "./Route"
 import ENV from "./Env"
 import { HttpLogger } from "./Logger"
 import { ensureUploadsDir, uploadsRoot } from "./Uploads"
+import { initializeSocketIO } from "./Socket"
 
 const app: Express = express()
 const { APP_PORT, NODE_ENV } = ENV
@@ -36,6 +38,10 @@ app.use(urlencoded({ extended: false }))
 // All API routes are defined in this function
 routes(app)
 
-app.listen(APP_PORT, () => {
+// Create HTTP server and initialize Socket.IO
+const server = createServer(app)
+initializeSocketIO(server)
+
+server.listen(APP_PORT, () => {
   console.info(`⚡️[server]: Server is running at http://localhost:${APP_PORT}`)
 })

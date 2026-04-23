@@ -90,21 +90,21 @@ export default function View(props: Props): JSX.Element {
       )
     case "UserOrders":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={UserOrdersPage}
         />
       )
     case "UserReports":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={UserReportsPage}
         />
       )
     case "UserReportCreate":
       return (
-        <HomeLayout
+        <SubHome
           state={state}
           Page={UserReportCreatePage}
         />
