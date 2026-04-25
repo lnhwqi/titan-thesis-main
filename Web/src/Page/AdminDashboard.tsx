@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -177,8 +177,8 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background:
-      `radial-gradient(circle at 15% 20%, ${color.secondary100} 0%, transparent 35%),` +
-      `radial-gradient(circle at 80% 10%, ${color.secondary200} 0%, transparent 32%),` +
+      `radial-gradient(circle at 15% 20%, ${color.genz.purple100} 0%, transparent 35%),` +
+      `radial-gradient(circle at 80% 10%, ${color.genz.purple200} 0%, transparent 32%),` +
       `${color.neutral50}`,
     ...bp.md({
       padding: `${theme.s10} ${theme.s12}`,
@@ -195,7 +195,7 @@ const styles = {
     ...font.bold12,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: color.secondary500,
+    color: color.genz.purple,
     marginBottom: theme.s1,
   }),
   title: css({
@@ -218,7 +218,7 @@ const styles = {
   }),
   cardWide: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
@@ -231,7 +231,7 @@ const styles = {
   }),
   card: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
@@ -251,7 +251,7 @@ const styles = {
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -259,9 +259,9 @@ const styles = {
     cursor: "pointer",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -274,7 +274,7 @@ const styles = {
     alignItems: "center",
   }),
   input: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -287,9 +287,9 @@ const styles = {
     gap: theme.s2,
   }),
   sellerItem: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
-    background: color.secondary50,
+    background: color.genz.purpleDim,
     padding: theme.s3,
     display: "flex",
     flexDirection: "column",
@@ -301,7 +301,7 @@ const styles = {
   }),
   walletValue: css({
     ...font.boldH3_29,
-    color: color.secondary500,
+    color: color.genz.purple,
     margin: 0,
   }),
   statsRow: css({
@@ -313,10 +313,10 @@ const styles = {
     }),
   }),
   statCell: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: theme.s2,
-    background: color.secondary50,
+    background: color.genz.purpleDim,
     display: "flex",
     flexDirection: "column",
     gap: theme.s1,
@@ -327,7 +327,7 @@ const styles = {
   }),
   statValue: css({
     ...font.bold17,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   tableWrap: css({
     width: "100%",
@@ -340,13 +340,13 @@ const styles = {
       textAlign: "left",
       ...font.bold12,
       color: color.neutral700,
-      borderBottom: `1px solid ${color.secondary200}`,
+      borderBottom: `1px solid ${color.genz.purple200}`,
       padding: `${theme.s2} ${theme.s1}`,
     },
     "& td": {
       ...font.regular12,
       color: color.neutral800,
-      borderBottom: `1px solid ${color.secondary100}`,
+      borderBottom: `1px solid ${color.genz.purple100}`,
       padding: `${theme.s2} ${theme.s1}`,
       verticalAlign: "top",
     },
@@ -357,14 +357,14 @@ const styles = {
     borderRadius: theme.s2,
     padding: `2px ${theme.s2}`,
     ...font.bold12,
-    background: color.secondary100,
-    color: color.secondary500,
+    background: color.genz.purple100,
+    color: color.genz.purple,
   }),
   sellerItemAction: css({
     marginTop: theme.s1,
     border: "none",
     borderRadius: theme.s2,
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     ...font.medium12,
     padding: `${theme.s1} ${theme.s3}`,
@@ -378,8 +378,8 @@ const styles = {
   flashCard: css({
     marginBottom: theme.s4,
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary300}`,
-    background: color.secondary50,
+    border: `1px solid ${color.genz.purple300}`,
+    background: color.genz.purpleDim,
     padding: `${theme.s2} ${theme.s3}`,
     display: "flex",
     justifyContent: "space-between",
@@ -391,7 +391,7 @@ const styles = {
     border: "none",
     background: "none",
     textDecoration: "underline",
-    color: color.secondary500,
+    color: color.genz.purple,
     ...font.medium12,
     cursor: "pointer",
   }),
@@ -407,7 +407,7 @@ const styles = {
     width: "100%",
     maxWidth: "520px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s6,
     boxShadow: theme.elevation.large,

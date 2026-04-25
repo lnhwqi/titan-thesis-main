@@ -1,4 +1,4 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { color, font, theme } from "../Theme"
 import { localImage } from "../ImageLocalSrc"
 import { JSX } from "react"
@@ -34,6 +34,6 @@ const styles = {
   }),
   loadingText: css({
     ...font.regularH4_24,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
 }

@@ -1,4 +1,4 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { State } from "../../State"
 import { JSX } from "react"
 import { color, font } from "../Theme"
@@ -76,7 +76,10 @@ const styles = {
     flexDirection: "column",
     position: "relative",
     zIndex: 1,
-    backgroundColor: color.neutral0,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
   }),
 
   body: css({
@@ -93,7 +96,7 @@ const styles = {
     alignSelf: "start",
     opacity: 1,
     visibility: "visible",
-    borderRight: `1px solid ${color.secondary100}`,
+    borderRight: `1px solid ${color.genz.purple100}`,
     backgroundColor: color.neutral0,
     overflow: "hidden",
     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
@@ -135,7 +138,7 @@ const styles = {
     width: "260px",
     opacity: 1,
     visibility: "visible",
-    borderRight: `1px solid ${color.secondary100}`,
+    borderRight: `1px solid ${color.genz.purple100}`,
     backgroundColor: color.neutral0,
     overflow: "auto",
     scrollbarWidth: "none",

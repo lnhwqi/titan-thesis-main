@@ -1,4 +1,4 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { JSX } from "react"
 import { State } from "../../State"
 import { color, font, theme } from "../Theme"
@@ -175,7 +175,7 @@ const styles = {
     boxShadow:
       "0 22px 48px rgba(12, 20, 34, 0.24), 0 8px 20px rgba(12, 20, 34, 0.14)",
     borderRadius: theme.br2,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     overflow: "hidden",
   }),
   openSidebar: css({
@@ -189,17 +189,17 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    borderBottom: `1px solid ${color.secondary100}`,
+    borderBottom: `1px solid ${color.genz.purple100}`,
     background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
   }),
-  title: css({ ...font.bold17, color: color.secondary500 }),
+  title: css({ ...font.bold17, color: color.genz.purple }),
   closeBtn: css({
     width: "32px",
     height: "32px",
     borderRadius: "50%",
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     cursor: "pointer",
     fontSize: "16px",
     display: "inline-flex",
@@ -207,7 +207,7 @@ const styles = {
     justifyContent: "center",
     transition: "all 0.2s ease",
     "&:hover": {
-      background: color.secondary50,
+      background: color.genz.purpleDim,
       transform: "scale(1.05)",
     },
   }),
@@ -222,7 +222,7 @@ const styles = {
     marginBottom: theme.s3,
     padding: theme.s3,
     borderRadius: theme.br1,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     background: color.neutral0,
   }),
   itemImg: css({
@@ -230,17 +230,17 @@ const styles = {
     height: "60px",
     objectFit: "cover",
     borderRadius: theme.br1,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
   }),
   itemInfo: css({ flex: 1 }),
   itemName: css({
     ...font.medium14,
     marginBottom: "4px",
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   itemVariant: css({
     ...font.regular12,
-    color: color.secondary500,
+    color: color.genz.purple,
     marginBottom: "4px",
   }),
   itemPrice: css({ ...font.regular12, color: color.neutral500 }),
@@ -253,20 +253,20 @@ const styles = {
       width: "28px",
       height: "28px",
       borderRadius: "50%",
-      border: `1px solid ${color.secondary200}`,
+      border: `1px solid ${color.genz.purple200}`,
       background: color.neutral0,
-      color: color.secondary500,
+      color: color.genz.purple,
       cursor: "pointer",
       transition: "all 0.2s ease",
     },
     "& button:hover": {
-      background: color.secondary50,
+      background: color.genz.purpleDim,
       transform: "translateY(-1px)",
     },
   }),
   footer: css({
     padding: theme.s4,
-    borderTop: `1px solid ${color.secondary100}`,
+    borderTop: `1px solid ${color.genz.purple100}`,
     background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
   }),
   totalRow: css({
@@ -275,11 +275,11 @@ const styles = {
     marginBottom: theme.s4,
     ...font.bold17,
   }),
-  totalPrice: css({ color: color.primary500 }),
+  totalPrice: css({ color: color.genz.pink }),
   checkoutBtn: css({
     width: "100%",
     padding: theme.s3,
-    backgroundColor: color.primary500,
+    backgroundColor: color.genz.pink,
     color: color.neutral0,
     border: "none",
     borderRadius: theme.br2,
@@ -288,7 +288,7 @@ const styles = {
     boxShadow: "0 10px 20px rgba(14, 125, 112, 0.24)",
     transition: "all 0.2s ease",
     "&:hover": {
-      backgroundColor: color.secondary500,
+      backgroundColor: color.genz.purple,
       transform: "translateY(-1px)",
       boxShadow: "0 12px 24px rgba(10, 95, 86, 0.28)",
     },

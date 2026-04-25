@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
@@ -59,7 +59,10 @@ const styles = {
   page: css({
     minHeight: "100dvh",
     padding: theme.s6,
-    background: color.neutral50,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
     }),
@@ -68,7 +71,7 @@ const styles = {
     maxWidth: "560px",
     margin: "0 auto",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s5,
     display: "grid",
@@ -77,7 +80,7 @@ const styles = {
   title: css({
     ...font.boldH4_24,
     margin: 0,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   subtitle: css({
     ...font.regular14,
@@ -94,9 +97,9 @@ const styles = {
   }),
   statusPill: css({
     ...font.bold14,
-    color: color.primary500,
+    color: color.genz.pink,
     padding: `${theme.s1} ${theme.s2}`,
-    background: color.secondary50,
+    background: color.genz.purpleDim,
     borderRadius: theme.s1,
     width: "fit-content",
   }),
@@ -106,9 +109,9 @@ const styles = {
     flexWrap: "wrap",
   }),
   secondaryBtn: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,

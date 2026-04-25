@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { color, font, theme, bp } from "./Theme"
 import * as RD from "../../../Core/Data/RemoteData"
@@ -64,14 +64,14 @@ export default function AdminSellerModerationPanel(props: Props): JSX.Element {
 
   const tierColors: Record<string, string> = {
     bronze: color.semantics.warning.orange500,
-    silver: color.secondary400,
+    silver: color.genz.purpleLight,
     gold: color.semantics.warning.yellow500,
   }
 
   const pieData = Object.entries(tierCounts).map(([tier, count]) => ({
     name: tier.charAt(0).toUpperCase() + tier.slice(1),
     value: count,
-    fill: tierColors[tier] || color.primary500,
+    fill: tierColors[tier] || color.genz.pink,
   }))
 
   return (
@@ -145,7 +145,7 @@ export default function AdminSellerModerationPanel(props: Props): JSX.Element {
                           style={{
                             backgroundColor:
                               tierColors[seller.tier.unwrap()] ||
-                              color.primary500,
+                              color.genz.pink,
                           }}
                         >
                           {seller.tier.unwrap().toUpperCase()}
@@ -191,7 +191,7 @@ export default function AdminSellerModerationPanel(props: Props): JSX.Element {
                   <Tooltip
                     contentStyle={{
                       backgroundColor: color.neutral0,
-                      border: `1px solid ${color.secondary200}`,
+                      border: `1px solid ${color.genz.purple200}`,
                       borderRadius: theme.s2,
                       ...font.regular14,
                       boxShadow: theme.elevation.medium,
@@ -221,7 +221,7 @@ export default function AdminSellerModerationPanel(props: Props): JSX.Element {
 const styles = {
   container: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
@@ -249,7 +249,7 @@ const styles = {
     background: color.neutral50,
     padding: `${theme.s2} ${theme.s3}`,
     borderRadius: theme.s2,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
   }),
   filterLabel: css({
     ...font.medium14,
@@ -257,7 +257,7 @@ const styles = {
   }),
   filterSelect: css({
     padding: `${theme.s2} ${theme.s4} ${theme.s2} ${theme.s2}`,
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     ...font.regular14,
     backgroundColor: color.neutral0,
@@ -266,10 +266,10 @@ const styles = {
     outline: "none",
     transition: "border-color 0.2s",
     "&:hover": {
-      borderColor: color.secondary500,
+      borderColor: color.genz.purple,
     },
     "&:focus": {
-      borderColor: color.primary500,
+      borderColor: color.genz.pink,
     },
   }),
   content: css({
@@ -301,7 +301,7 @@ const styles = {
   tableWrapper: css({
     width: "100%",
     overflowX: "auto",
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s3,
     background: color.neutral0,
   }),
@@ -311,7 +311,7 @@ const styles = {
     textAlign: "left",
     "th, td": {
       padding: `${theme.s3} ${theme.s4}`,
-      borderBottom: `1px solid ${color.secondary100}`,
+      borderBottom: `1px solid ${color.genz.purple100}`,
       whiteSpace: "nowrap",
     },
     th: {
@@ -320,7 +320,7 @@ const styles = {
       letterSpacing: "0.5px",
       color: color.neutral600,
       background: color.neutral50,
-      borderBottom: `2px solid ${color.secondary200}`,
+      borderBottom: `2px solid ${color.genz.purple200}`,
     },
     "tr:last-child td": {
       borderBottom: "none",
@@ -360,7 +360,7 @@ const styles = {
   }),
   chartWrapper: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     display: "flex",
@@ -374,7 +374,7 @@ const styles = {
     textAlign: "center",
     background: color.neutral50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px dashed ${color.genz.purple200}`,
   }),
   infoMetaError: css({
     ...font.regular14,
@@ -383,6 +383,6 @@ const styles = {
     textAlign: "center",
     background: color.semantics.error.red50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.primary400}`,
+    border: `1px dashed ${color.genz.pinkLight}`,
   }),
 }

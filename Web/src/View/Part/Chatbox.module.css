@@ -7,28 +7,108 @@
   z-index: 9999;
 }
 
+.chatboxToggleWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.chatboxBubble {
+  position: relative;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(124, 58, 237, 0.22);
+  border-radius: 14px;
+  padding: 6px 12px;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.14);
+  white-space: nowrap;
+  animation: floatY 4s ease-in-out infinite;
+}
+
+.chatboxBubbleText {
+  font-size: 12px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #7c3aed, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.chatboxBubbleTail {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-left: 1.5px solid rgba(124, 58, 237, 0.22);
+  border-right: 1.5px solid rgba(124, 58, 237, 0.22);
+}
+
 .chatboxToggle {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 3px;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: floatY 3.5s ease-in-out infinite;
+  position: relative;
 }
 
-.chatboxToggle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+.chatboxToggle::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(236, 72, 153, 0.2));
+  filter: blur(8px);
+  z-index: -1;
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+.chatboxAvatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  background: white;
+}
+
+.chatboxToggleOpen {
+  animation: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.4), 0 4px 20px rgba(124, 58, 237, 0.3);
+  transform: scale(0.95);
+}
+
+.chatboxToggle:hover:not(.chatboxToggleOpen) {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.45);
 }
 
 .chatboxToggle:active {
   transform: scale(0.95);
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.08); }
 }
 
 .chatboxWindow {
@@ -59,7 +139,7 @@
 
 .header {
   padding: 16px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -134,8 +214,8 @@
 }
 
 .conversationItem.active {
-  background: #dbeafe;
-  border-color: #667eea;
+  background: rgba(124, 58, 237, 0.1);
+  border-color: #7c3aed;
 }
 
 .conversationInfo {
@@ -222,9 +302,10 @@
 }
 
 .messageItem.user {
-  background: #dbeafe;
+  background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(236,72,153,0.1));
   align-self: flex-end;
-  color: #1e40af;
+  color: #5b21b6;
+  border: 1px solid rgba(124,58,237,0.15);
 }
 
 .messageItem.other {
@@ -260,7 +341,7 @@
 }
 
 .readReceipt {
-  color: #667eea;
+  color: #7c3aed;
   font-weight: bold;
 }
 
@@ -327,8 +408,8 @@
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
 .input:disabled {
@@ -338,7 +419,7 @@
 
 .sendBtn {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
   color: white;
   border: none;
   border-radius: 6px;

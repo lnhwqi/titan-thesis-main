@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css, keyframes } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -285,7 +285,7 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                                         color:
                                           i <= userRating.score.unwrap()
                                             ? color.semantics.warning.yellow500
-                                            : color.secondary300,
+                                            : color.genz.purple300,
                                       }}
                                     >
                                       ★
@@ -509,8 +509,8 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background:
-      `radial-gradient(circle at 10% 18%, ${color.secondary100} 0%, transparent 34%),` +
-      `radial-gradient(circle at 85% 12%, ${color.secondary200} 0%, transparent 30%),` +
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%),` +
+      `radial-gradient(circle at 85% 12%, ${color.genz.purple200} 0%, transparent 30%),` +
       `${color.neutral50}`,
     ...bp.md({
       padding: `${theme.s10} ${theme.s12}`,
@@ -565,10 +565,10 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     padding: `${theme.s3} ${theme.s4}`,
-    backgroundColor: color.secondary50,
-    border: `1px solid ${color.secondary200}`,
+    backgroundColor: color.genz.purpleDim,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s2,
-    color: color.secondary500,
+    color: color.genz.purple,
     ...font.medium14,
     boxShadow: theme.elevation.small,
     animation: `${slideDown} 0.3s ease-out`,
@@ -593,7 +593,7 @@ const styles = {
     textAlign: "center",
     background: color.neutral0,
     borderRadius: theme.s3,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px dashed ${color.genz.purple200}`,
   }),
   list: css({
     display: "grid",
@@ -601,7 +601,7 @@ const styles = {
   }),
   card: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s4,
     overflow: "hidden",
     boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
@@ -616,7 +616,7 @@ const styles = {
     alignItems: "center",
     padding: `${theme.s3} ${theme.s5}`,
     backgroundColor: color.neutral50,
-    borderBottom: `1px solid ${color.secondary100}`,
+    borderBottom: `1px solid ${color.genz.purple100}`,
     flexWrap: "wrap",
     gap: theme.s2,
   }),
@@ -636,8 +636,8 @@ const styles = {
   statusPill: css({
     display: "inline-block",
     padding: `${theme.s1} ${theme.s3}`,
-    background: color.secondary100,
-    color: color.secondary500,
+    background: color.genz.purple100,
+    color: color.genz.purple,
     borderRadius: "16px",
     ...font.boldH5_20,
     letterSpacing: "0.5px",
@@ -680,14 +680,14 @@ const styles = {
   }),
   detailValuePrice: css({
     ...font.boldH5_20,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   itemsSection: css({
     display: "flex",
     flexDirection: "column",
     gap: theme.s2,
     paddingTop: theme.s4,
-    borderTop: `1px dashed ${color.secondary100}`,
+    borderTop: `1px dashed ${color.genz.purple100}`,
   }),
   goodsList: css({
     margin: 0,
@@ -705,11 +705,11 @@ const styles = {
     gap: theme.s2,
     flexWrap: "wrap",
     paddingTop: theme.s4,
-    borderTop: `1px solid ${color.secondary100}`,
+    borderTop: `1px solid ${color.genz.purple100}`,
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -717,7 +717,7 @@ const styles = {
     cursor: "pointer",
     transition: "background 0.2s, opacity 0.2s",
     "&:hover:not(:disabled)": {
-      background: color.secondary500,
+      background: color.genz.purple,
     },
     "&:disabled": {
       opacity: 0.6,
@@ -725,9 +725,9 @@ const styles = {
     },
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -738,7 +738,7 @@ const styles = {
     },
   }),
   secondaryActionButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
     color: color.neutral700,
     borderRadius: theme.s2,
@@ -760,7 +760,7 @@ const styles = {
     gap: theme.s3,
     marginTop: theme.s2,
     padding: theme.s4,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s3,
     background: color.neutral50,
   }),
@@ -790,18 +790,18 @@ const styles = {
     alignItems: "center",
   }),
   select: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
     backgroundColor: color.neutral0,
     outline: "none",
     "&:focus": {
-      borderColor: color.secondary500,
+      borderColor: color.genz.purple,
     },
   }),
   input: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -809,7 +809,7 @@ const styles = {
     minWidth: "200px",
     outline: "none",
     "&:focus": {
-      borderColor: color.secondary500,
+      borderColor: color.genz.purple,
     },
   }),
   gate: css({
@@ -824,7 +824,7 @@ const styles = {
     width: "100%",
     maxWidth: "480px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.medium,
     padding: theme.s6,
@@ -849,17 +849,17 @@ const styles = {
     padding: theme.s4,
   }),
   paginationButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.medium14,
     cursor: "pointer",
     transition: "all 0.2s",
     "&:hover:not(:disabled)": {
-      background: color.secondary100,
-      borderColor: color.secondary400,
+      background: color.genz.purple100,
+      borderColor: color.genz.purpleLight,
     },
     "&:disabled": {
       opacity: 0.5,

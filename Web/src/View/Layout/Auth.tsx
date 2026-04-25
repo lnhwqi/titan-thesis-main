@@ -1,8 +1,8 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { AuthState } from "../../State"
 import { JSX } from "react"
 import Header from "./Header"
-import { theme, layoutSize } from "../Theme"
+import { color, theme, layoutSize } from "../Theme"
 
 type Props = { authState: AuthState; Page: React.FC<{ authState: AuthState }> }
 export function AuthLayout(props: Props): JSX.Element {
@@ -48,7 +48,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     overflowY: "auto",
-    backgroundColor: theme.color.secondary20,
+    backgroundColor: color.genz.purple20,
   }),
   bodyWrap: css({
     width: "100%",

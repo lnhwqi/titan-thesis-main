@@ -7,6 +7,7 @@ import { ProductCard } from "./ProductCard"
 import { emit } from "../../Runtime/React"
 import * as ProductAction from "../../Action/Product"
 import type { SortByOption } from "../../../../Core/Api/Public/Product/ListAll"
+import { fadeSlideUp } from "../Theme/Keyframe"
 
 function toSortByOption(value: string): SortByOption | null {
   switch (value) {
@@ -46,9 +47,33 @@ export default function MainContent(props: Props): JSX.Element {
       return (
         <div className={styles.container}>
           {renderHeader()}
-          <div className={styles.centerBox}>
-            <div className={styles.spinner} />
-            <p className={styles.infoText}>Fetching products...</p>
+          <div className={styles.skeletonGrid}>
+            {Array.from({ length: 8 }, (_, i) => (
+              <div
+                key={i}
+                className={styles.skeletonCard}
+              >
+                <div className={styles.skeletonImage} />
+                <div className={styles.skeletonBody}>
+                  <div
+                    className={styles.skeletonLine}
+                    style={{ width: "40%", height: "10px" }}
+                  />
+                  <div
+                    className={styles.skeletonLine}
+                    style={{ width: "85%", height: "14px" }}
+                  />
+                  <div
+                    className={styles.skeletonLine}
+                    style={{ width: "55%", height: "14px" }}
+                  />
+                  <div
+                    className={styles.skeletonLine}
+                    style={{ width: "50%", height: "16px" }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )
@@ -224,29 +249,50 @@ const styles = {
     padding: theme.s6,
     height: "100%",
     overflowY: "auto",
+    animation: `${fadeSlideUp} 0.35s ease both`,
   }),
 
   header: css({
     marginBottom: theme.s6,
+    position: "relative",
   }),
 
   title: css({
-    ...font.bold17,
-    color: color.secondary500,
-    marginBottom: theme.s2,
+    ...font.boldH3_29,
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    marginBottom: theme.s3,
+    letterSpacing: "-0.5px",
+    display: "inline-block",
   }),
 
   divider: css({
-    width: "40px",
-    height: "3px",
-    backgroundColor: color.secondary500,
-    borderRadius: theme.br1,
+    width: "64px",
+    height: "4px",
+    background: color.genz.gradientPurplePink,
+    borderRadius: theme.brFull,
+    position: "relative",
+    overflow: "hidden",
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background:
+        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
+      backgroundSize: "200% 100%",
+      animation: "shimmerDiv 2s linear infinite",
+    },
+    "@keyframes shimmerDiv": {
+      from: { backgroundPosition: "200% center" },
+      to: { backgroundPosition: "-200% center" },
+    },
   }),
 
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 220px))",
-    justifyContent: "start",
+    gridTemplateColumns: "repeat(auto-fill, minmax(185px, 1fr))",
     gap: theme.s4,
     paddingBottom: theme.s10,
   }),
@@ -265,6 +311,10 @@ const styles = {
     color: color.neutral500,
     textAlign: "center",
     marginTop: theme.s10,
+    padding: `${theme.s10} ${theme.s6}`,
+    background: "rgba(124,58,237,0.03)",
+    borderRadius: theme.br3,
+    border: `1px dashed rgba(124,58,237,0.15)`,
   }),
 
   errorBox: css({
@@ -272,9 +322,10 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     padding: theme.s10,
-    backgroundColor: color.secondary100,
-    borderRadius: theme.br2,
-    color: color.primary500,
+    background: "rgba(124, 58, 237, 0.05)",
+    border: `1px solid rgba(124, 58, 237, 0.15)`,
+    borderRadius: theme.br3,
+    color: color.genz.purple,
     gap: theme.s2,
     ...font.medium14,
   }),
@@ -282,8 +333,8 @@ const styles = {
   spinner: css({
     width: "32px",
     height: "32px",
-    border: `3px solid ${color.neutral200}`,
-    borderTopColor: color.secondary500,
+    border: `3px solid rgba(124, 58, 237, 0.15)`,
+    borderTopColor: color.genz.purple,
     borderRadius: "50%",
     animation: "spin 0.8s linear infinite",
     "@keyframes spin": {
@@ -291,14 +342,56 @@ const styles = {
     },
   }),
 
+  skeletonGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(185px, 1fr))",
+    gap: theme.s4,
+    paddingBottom: theme.s10,
+  }),
+
+  skeletonCard: css({
+    borderRadius: theme.br3,
+    overflow: "hidden",
+    border: `1.5px solid rgba(124, 58, 237, 0.08)`,
+    backgroundColor: color.neutral0,
+  }),
+
+  skeletonImage: css({
+    width: "100%",
+    paddingTop: "100%",
+    background: `linear-gradient(90deg, rgba(124,58,237,0.06) 25%, rgba(236,72,153,0.04) 50%, rgba(124,58,237,0.06) 75%)`,
+    backgroundSize: "200% 100%",
+    animation: "shimmer 1.4s infinite linear",
+    "@keyframes shimmer": {
+      to: { backgroundPosition: "-200% 0" },
+    },
+  }),
+
+  skeletonBody: css({
+    padding: theme.s3,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s2,
+  }),
+
+  skeletonLine: css({
+    borderRadius: "4px",
+    background: `linear-gradient(90deg, rgba(124,58,237,0.07) 25%, rgba(236,72,153,0.04) 50%, rgba(124,58,237,0.07) 75%)`,
+    backgroundSize: "200% 100%",
+    animation: "shimmer 1.4s infinite linear",
+  }),
+
   controlsSection: css({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: theme.s4,
-    padding: theme.s3,
-    backgroundColor: color.neutral50,
-    borderRadius: theme.br2,
+    marginBottom: theme.s5,
+    padding: `${theme.s3} ${theme.s4}`,
+    background: "rgba(255,255,255,0.8)",
+    backdropFilter: "blur(12px)",
+    borderRadius: theme.br3,
+    border: `1px solid rgba(124, 58, 237, 0.12)`,
+    boxShadow: "0 2px 12px rgba(124,58,237,0.06)",
     gap: theme.s3,
   }),
 
@@ -310,27 +403,40 @@ const styles = {
 
   label: css({
     ...font.bold12,
-    color: color.neutral800,
+    color: color.genz.purple,
     whiteSpace: "nowrap",
+    letterSpacing: "0.04em",
   }),
 
   select: css({
-    padding: `${theme.s1} ${theme.s2}`,
-    border: `1px solid ${color.neutral300}`,
-    borderRadius: theme.br1,
+    padding: `${theme.s1} ${theme.s3}`,
+    border: `1.5px solid rgba(124, 58, 237, 0.25)`,
+    borderRadius: "20px",
     backgroundColor: color.neutral0,
-    color: color.neutral800,
-    fontSize: "14px",
+    color: color.genz.purple,
+    fontSize: "13px",
+    fontWeight: "600",
     cursor: "pointer",
+    outline: "none",
+    transition: "border-color 0.18s ease, box-shadow 0.18s ease",
     "&:hover": {
-      borderColor: color.secondary500,
+      borderColor: color.genz.purple,
+      boxShadow: "0 0 0 3px rgba(124, 58, 237, 0.1)",
+    },
+    "&:focus": {
+      borderColor: color.genz.pink,
+      boxShadow: "0 0 0 3px rgba(236, 72, 153, 0.12)",
     },
   }),
 
   paginationInfo: css({
     ...font.regular12,
-    color: color.neutral600,
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
     whiteSpace: "nowrap",
+    fontWeight: 600,
   }),
 
   paginationControls: css({
@@ -340,26 +446,29 @@ const styles = {
     gap: theme.s2,
     marginTop: theme.s6,
     paddingTop: theme.s4,
-    borderTop: `1px solid ${color.neutral200}`,
+    borderTop: `1px solid rgba(124, 58, 237, 0.08)`,
   }),
 
   paginationButton: css({
-    padding: `${theme.s2} ${theme.s3}`,
-    border: `1px solid ${color.secondary500}`,
-    borderRadius: theme.br1,
+    padding: `${theme.s2} ${theme.s5}`,
+    border: `1.5px solid rgba(124, 58, 237, 0.3)`,
+    borderRadius: "20px",
     backgroundColor: color.neutral0,
-    color: color.secondary500,
-    fontSize: "14px",
-    fontWeight: "500",
+    color: color.genz.purple,
+    fontSize: "13px",
+    fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover:not(:disabled)": {
-      backgroundColor: color.secondary500,
+      background: color.genz.gradientPurplePink,
       color: color.neutral0,
+      borderColor: "transparent",
+      transform: "translateY(-1px)",
+      boxShadow: "0 4px 14px rgba(124, 58, 237, 0.35)",
     },
     "&:disabled": {
-      borderColor: color.neutral300,
-      color: color.neutral400,
+      borderColor: color.neutral200,
+      color: color.neutral300,
       cursor: "not-allowed",
       opacity: 0.5,
     },
@@ -371,25 +480,34 @@ const styles = {
   }),
 
   pageButton: css({
-    width: "36px",
-    height: "36px",
-    border: `1px solid ${color.neutral300}`,
-    borderRadius: theme.br1,
+    width: "34px",
+    height: "34px",
+    border: `1px solid rgba(124, 58, 237, 0.15)`,
+    borderRadius: "50%",
     backgroundColor: color.neutral0,
-    color: color.neutral800,
+    color: color.genz.purple,
     fontSize: "12px",
-    fontWeight: "500",
+    fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      borderColor: color.secondary500,
-      color: color.secondary500,
+      borderColor: color.genz.purple,
+      background: "rgba(124, 58, 237, 0.07)",
+      transform: "scale(1.1)",
     },
   }),
 
   pageButtonActive: css({
-    backgroundColor: color.secondary500,
-    borderColor: color.secondary500,
+    background: color.genz.gradientPurplePink,
+    borderColor: "transparent",
     color: color.neutral0,
+    boxShadow: "0 2px 10px rgba(124, 58, 237, 0.4)",
+    "&:hover": {
+      background: color.genz.gradientPurplePink,
+      borderColor: "transparent",
+      color: color.neutral0,
+      transform: "scale(1.1)",
+    },
   }),
 }
+

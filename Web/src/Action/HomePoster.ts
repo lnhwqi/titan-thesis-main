@@ -88,3 +88,13 @@ export function stopAutoPlay(): void {
     autoPlayCtx.clearFn = null
   }
 }
+
+export function goToPoster(index: number): Action {
+  return (state) => {
+    const { posters } = state.homePoster
+    if (index < 0 || index >= posters.length) {
+      return [state, cmd()]
+    }
+    return [_HomePosterState(state, { currentIndex: index }), cmd()]
+  }
+}

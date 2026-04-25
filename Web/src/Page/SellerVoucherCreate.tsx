@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -358,7 +358,10 @@ const styles = {
   page: css({
     minHeight: "100dvh",
     padding: theme.s6,
-    background: color.neutral50,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
     position: "relative",
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
@@ -378,7 +381,7 @@ const styles = {
     width: "100%",
     maxWidth: "420px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.large,
     padding: theme.s5,
@@ -390,7 +393,7 @@ const styles = {
   modalTitle: css({
     ...font.boldH4_24,
     margin: 0,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   modalText: css({
     ...font.regular14,
@@ -400,7 +403,7 @@ const styles = {
   }),
   modalButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -429,7 +432,7 @@ const styles = {
   }),
   panel: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
     marginBottom: theme.s4,
@@ -437,7 +440,7 @@ const styles = {
   sectionTitle: css({
     ...font.bold17,
     margin: `0 0 ${theme.s3} 0`,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   grid: css({
     display: "grid",
@@ -466,7 +469,7 @@ const styles = {
     gap: theme.s3,
   }),
   voucherCard: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s3,
     display: "grid",
@@ -481,7 +484,7 @@ const styles = {
   }),
   voucherName: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   voucherCode: css({
     ...font.medium12,
@@ -491,11 +494,11 @@ const styles = {
     ...font.medium12,
     borderRadius: theme.s6,
     padding: `${theme.s1} ${theme.s2}`,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
   }),
   badgeActive: css({
-    background: color.secondary50,
-    color: color.secondary500,
+    background: color.genz.purpleDim,
+    color: color.genz.purple,
   }),
   badgeInactive: css({
     background: color.neutral100,
@@ -515,7 +518,7 @@ const styles = {
     display: "grid",
     gap: theme.s2,
     padding: theme.s2,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     background: color.neutral50,
   }),
@@ -532,9 +535,9 @@ const styles = {
     color: color.neutral700,
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -553,7 +556,7 @@ const styles = {
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,

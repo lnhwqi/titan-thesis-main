@@ -1,4 +1,4 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { JSX } from "react"
 import { State } from "../../State"
 import { color, font, theme } from "../Theme"
@@ -16,7 +16,13 @@ export default function HomePoster(props: Props): JSX.Element {
     return (
       <section className={styles.posterList}>
         <article className={styles.posterPlaceholder}>
-          Loading posters...
+          <div className={styles.skeletonPoster}>
+            <div className={styles.skeletonOverlay}>
+              <div className={styles.skeletonBadge} />
+              <div className={styles.skeletonTitle} />
+              <div className={styles.skeletonSubtitle} />
+            </div>
+          </div>
         </article>
       </section>
     )
@@ -93,24 +99,26 @@ const styles = {
   }),
   poster: css({
     position: "relative",
-    width: "calc(360px * 16/9)",
+    width: "100%",
     height: "360px",
     borderRadius: theme.s3,
     overflow: "hidden",
     background: color.neutral100,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
   }),
   posterPlaceholder: css({
-    width: "calc(360px * 16/9)",
+    width: "100%",
     height: "360px",
     borderRadius: theme.s3,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple100}`,
     background: color.neutral50,
     color: color.neutral700,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     ...font.regular17,
+    position: "relative",
+    overflow: "hidden",
   }),
   posterImage: css({
     width: "100%",
@@ -151,5 +159,46 @@ const styles = {
     color: color.neutral0,
     margin: 0,
     maxWidth: "680px",
+  }),
+
+  skeletonPoster: css({
+    width: "100%",
+    height: "100%",
+    background: `linear-gradient(110deg, ${color.neutral100} 25%, ${color.neutral50} 50%, ${color.neutral100} 75%)`,
+    backgroundSize: "200% 100%",
+    animation: "shimmer 1.6s infinite linear",
+    "@keyframes shimmer": {
+      to: { backgroundPosition: "-200% 0" },
+    },
+  }),
+
+  skeletonOverlay: css({
+    position: "absolute",
+    bottom: "24px",
+    left: "24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  }),
+
+  skeletonBadge: css({
+    width: "120px",
+    height: "22px",
+    borderRadius: "4px",
+    background: "rgba(255,255,255,0.25)",
+  }),
+
+  skeletonTitle: css({
+    width: "280px",
+    height: "40px",
+    borderRadius: "6px",
+    background: "rgba(255,255,255,0.2)",
+  }),
+
+  skeletonSubtitle: css({
+    width: "200px",
+    height: "18px",
+    borderRadius: "4px",
+    background: "rgba(255,255,255,0.15)",
   }),
 }

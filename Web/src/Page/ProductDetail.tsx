@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { AuthState, PublicState } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
@@ -543,7 +543,7 @@ const styles = {
     width: "80px",
     height: "80px",
     borderRadius: theme.br1,
-    border: `2px solid ${color.secondary100}`,
+    border: `2px solid ${color.genz.purple100}`,
     cursor: "pointer",
     overflow: "hidden",
     flexShrink: 0,
@@ -552,7 +552,7 @@ const styles = {
     width: "80px",
     height: "80px",
     borderRadius: theme.br1,
-    border: `2px solid ${color.primary500}`,
+    border: `2px solid ${color.genz.pink}`,
     cursor: "pointer",
     overflow: "hidden",
     flexShrink: 0,
@@ -576,9 +576,9 @@ const styles = {
     width: "42px",
     height: "42px",
     borderRadius: "10%",
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -602,12 +602,12 @@ const styles = {
   productName: css({
     ...font.boldH1_42,
     fontSize: "32px",
-    color: color.secondary500,
+    color: color.genz.purple,
     lineHeight: 1.2,
   }),
   priceTag: css({
     ...font.bold17,
-    color: color.primary500,
+    color: color.genz.pink,
     fontSize: "24px",
     display: "inline-flex",
     alignItems: "center",
@@ -617,7 +617,7 @@ const styles = {
     width: "30px",
     height: "30px",
     borderRadius: "50%",
-    backgroundColor: color.primary500,
+    backgroundColor: color.genz.pink,
     color: color.semantics.warning.yellow500,
     display: "inline-flex",
     alignItems: "center",
@@ -634,13 +634,13 @@ const styles = {
   }),
   descriptionTitle: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
     marginBottom: theme.s2,
   }),
   descriptionSection: css({
     marginTop: theme.s8,
     paddingTop: theme.s6,
-    borderTop: `1px solid ${color.secondary100}`,
+    borderTop: `1px solid ${color.genz.purple100}`,
     display: "flex",
     flexDirection: "column",
     gap: theme.s2,
@@ -655,7 +655,7 @@ const styles = {
   }),
   quantityLabel: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   qtyControls: css({
     display: "flex",
@@ -666,9 +666,9 @@ const styles = {
     width: "30px",
     height: "30px",
     borderRadius: "50%",
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     cursor: "pointer",
     ...font.bold14,
     "&:disabled": {
@@ -679,7 +679,7 @@ const styles = {
   qtyInput: css({
     width: "64px",
     textAlign: "center",
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s1,
     padding: `${theme.s1}`,
     ...font.regular12,
@@ -691,7 +691,7 @@ const styles = {
   }),
   variantLabel: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   variantList: css({
     display: "flex",
@@ -702,17 +702,17 @@ const styles = {
     minWidth: "48px",
     height: "34px",
     borderRadius: theme.br1,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     backgroundColor: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     ...font.medium14,
     cursor: "pointer",
     transition: "all 0.2s ease",
   }),
   variantChipSelected: css({
-    borderColor: color.primary500,
-    backgroundColor: color.secondary100,
-    color: color.primary500,
+    borderColor: color.genz.pink,
+    backgroundColor: color.genz.purple100,
+    color: color.genz.pink,
   }),
   variantChipOut: css({
     borderColor: color.neutral300,
@@ -722,7 +722,7 @@ const styles = {
   }),
   addToCartBtn: css({
     padding: `${theme.s3} ${theme.s6}`,
-    backgroundColor: color.primary500,
+    backgroundColor: color.genz.pink,
     color: color.neutral0,
     border: "none",
     borderRadius: theme.br2,
@@ -730,7 +730,7 @@ const styles = {
     ...font.bold17,
     transition: "all 0.2s ease",
     "&:hover": {
-      backgroundColor: color.secondary500,
+      backgroundColor: color.genz.purple,
       transform: "translateY(-2px)",
     },
     "&:active": {
@@ -756,7 +756,7 @@ const styles = {
   variantReminderCard: css({
     width: "100%",
     maxWidth: "360px",
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     backgroundColor: color.neutral0,
     borderRadius: theme.br2,
     padding: theme.s4,
@@ -767,7 +767,7 @@ const styles = {
   }),
   variantReminderTitle: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   variantReminderBody: css({
     ...font.regular13,
@@ -775,15 +775,15 @@ const styles = {
   }),
   variantReminderClose: css({
     alignSelf: "center",
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.br1,
     ...font.medium12,
     padding: `${theme.s2} ${theme.s4}`,
     cursor: "pointer",
     "&:hover": {
-      background: color.secondary50,
+      background: color.genz.purpleDim,
     },
   }),
   sellerProfileLink: css({
@@ -809,8 +809,8 @@ const styles = {
     justifyContent: "center",
     ...font.bold17,
     color: color.neutral0,
-    backgroundColor: color.secondary500,
-    border: `2px solid ${color.secondary200}`,
+    backgroundColor: color.genz.purple,
+    border: `2px solid ${color.genz.purple200}`,
   }),
   sellerProvidedBy: css({
     ...font.regular12,
@@ -822,7 +822,7 @@ const styles = {
   }),
   sellerName: css({
     ...font.medium14,
-    color: color.secondary500,
+    color: color.genz.purple,
     maxWidth: "100%",
     wordBreak: "break-word",
     textAlign: "center",
@@ -830,11 +830,11 @@ const styles = {
   otherSection: css({
     marginTop: theme.s10,
     paddingTop: theme.s6,
-    borderTop: `1px solid ${color.secondary100}`,
+    borderTop: `1px solid ${color.genz.purple100}`,
   }),
   otherTitle: css({
     ...font.bold17,
-    color: color.secondary500,
+    color: color.genz.purple,
     marginBottom: theme.s4,
   }),
   relatedGrid: css({
@@ -868,17 +868,17 @@ const styles = {
     maxWidth: "420px",
     background: color.neutral0,
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     padding: theme.s4,
     textAlign: "center",
     display: "grid",
     gap: theme.s2,
   }),
-  modalTitle: css({ ...font.bold17, margin: 0, color: color.secondary500 }),
+  modalTitle: css({ ...font.bold17, margin: 0, color: color.genz.purple }),
   modalText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
   modalBtn: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,

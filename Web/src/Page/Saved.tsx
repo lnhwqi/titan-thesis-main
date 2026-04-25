@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
@@ -98,13 +98,13 @@ const styles = {
   }),
   title: css({
     ...font.bold17,
-    color: color.secondary500,
+    color: color.genz.purple,
     margin: 0,
   }),
   divider: css({
     width: "40px",
     height: "3px",
-    backgroundColor: color.secondary500,
+    backgroundColor: color.genz.purple,
     borderRadius: theme.br1,
     marginTop: theme.s2,
   }),
@@ -149,13 +149,13 @@ const styles = {
   }),
   noticeCard: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.br2,
     padding: theme.s6,
   }),
   noticeTitle: css({
     ...font.bold17,
-    color: color.secondary500,
+    color: color.genz.purple,
     margin: 0,
     marginBottom: theme.s2,
   }),

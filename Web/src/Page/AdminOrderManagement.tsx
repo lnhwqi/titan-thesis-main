@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import * as AuthToken from "../App/AuthToken"
@@ -165,8 +165,8 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background:
-      `radial-gradient(circle at 10% 18%, ${color.secondary100} 0%, transparent 34%),` +
-      `radial-gradient(circle at 85% 12%, ${color.secondary200} 0%, transparent 30%),` +
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%),` +
+      `radial-gradient(circle at 85% 12%, ${color.genz.purple200} 0%, transparent 30%),` +
       `${color.neutral50}`,
     ...bp.md({
       padding: `${theme.s10} ${theme.s12}`,
@@ -191,7 +191,7 @@ const styles = {
   panel: css({
     background: color.neutral0,
     borderRadius: theme.s4,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
     marginBottom: theme.s4,
@@ -210,9 +210,9 @@ const styles = {
     color: color.neutral900,
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -239,7 +239,7 @@ const styles = {
     width: "100%",
     maxWidth: "480px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.medium,
     padding: theme.s6,
@@ -264,7 +264,7 @@ const styles = {
     textAlign: "center",
     background: color.neutral50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px dashed ${color.genz.purple200}`,
   }),
   infoMetaError: css({
     ...font.regular14,
@@ -273,7 +273,7 @@ const styles = {
     textAlign: "center",
     background: color.semantics.error.red50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.primary500}`,
+    border: `1px dashed ${color.genz.pink}`,
   }),
   statsRow: css({
     display: "grid",
@@ -289,7 +289,7 @@ const styles = {
   }),
   statCell: css({
     background: color.neutral50,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     display: "flex",
@@ -308,7 +308,7 @@ const styles = {
   tableWrap: css({
     width: "100%",
     overflowX: "auto",
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s3,
     background: color.neutral0,
   }),
@@ -318,7 +318,7 @@ const styles = {
     textAlign: "left",
     "th, td": {
       padding: `${theme.s3} ${theme.s4}`,
-      borderBottom: `1px solid ${color.secondary100}`,
+      borderBottom: `1px solid ${color.genz.purple100}`,
       ...font.regular14,
       color: color.neutral800,
       whiteSpace: "nowrap",
@@ -327,7 +327,7 @@ const styles = {
       ...font.medium14,
       color: color.neutral700,
       background: color.neutral50,
-      borderBottom: `2px solid ${color.secondary200}`,
+      borderBottom: `2px solid ${color.genz.purple200}`,
     },
     "tr:last-child td": {
       borderBottom: "none",
@@ -343,8 +343,8 @@ const styles = {
   statusPill: css({
     display: "inline-block",
     padding: `${theme.s1} ${theme.s2}`,
-    background: color.secondary100,
-    color: color.secondary500,
+    background: color.genz.purple100,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     ...font.bold12,
     letterSpacing: "0.5px",

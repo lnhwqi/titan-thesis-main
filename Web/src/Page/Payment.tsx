@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -463,7 +463,10 @@ const styles = {
   page: css({
     minHeight: "100dvh",
     padding: theme.s6,
-    background: color.neutral50,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
     }),
@@ -483,27 +486,27 @@ const styles = {
   }),
   panel: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     marginBottom: theme.s3,
   }),
-  sectionTitle: css({ ...font.bold17, color: color.secondary500, margin: 0 }),
+  sectionTitle: css({ ...font.bold17, color: color.genz.purple, margin: 0 }),
   panelList: css({ display: "grid", gap: theme.s3, marginTop: theme.s3 }),
   shopPanel: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: theme.s3,
     display: "grid",
     gap: theme.s2,
   }),
-  shopName: css({ ...font.bold14, color: color.secondary500 }),
+  shopName: css({ ...font.bold14, color: color.genz.purple }),
   itemList: css({
     display: "grid",
     gap: theme.s1,
     padding: `${theme.s2} 0`,
-    borderTop: `1px dashed ${color.secondary100}`,
-    borderBottom: `1px dashed ${color.secondary100}`,
+    borderTop: `1px dashed ${color.genz.purple100}`,
+    borderBottom: `1px dashed ${color.genz.purple100}`,
   }),
   itemRow: css({
     ...font.regular13,
@@ -525,15 +528,15 @@ const styles = {
     width: "26px",
     height: "26px",
     borderRadius: "50%",
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     cursor: "pointer",
   }),
   qtyInput: css({
     width: "56px",
     textAlign: "center",
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s1,
     padding: `${theme.s1}`,
     ...font.regular12,
@@ -551,17 +554,17 @@ const styles = {
   field: css({ display: "grid", gap: theme.s1 }),
   label: css({ ...font.medium14, color: color.neutral700 }),
   select: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
   }),
   paymentMethodTag: css({
     width: "fit-content",
-    border: `1px solid ${color.primary500}`,
+    border: `1px solid ${color.genz.pink}`,
     borderRadius: theme.s2,
-    background: color.primary50,
-    color: color.primary500,
+    background: color.genz.pinkDim,
+    color: color.genz.pink,
     padding: `${theme.s1} ${theme.s3}`,
     ...font.medium14,
   }),
@@ -574,7 +577,7 @@ const styles = {
   linkButton: css({
     border: "none",
     background: "transparent",
-    color: color.primary500,
+    color: color.genz.pink,
     textDecoration: "underline",
     cursor: "pointer",
     ...font.medium14,
@@ -583,7 +586,7 @@ const styles = {
   total: css({
     ...font.bold17,
     marginBottom: theme.s3,
-    color: color.primary500,
+    color: color.genz.pink,
   }),
   notice: css({
     ...font.regular14,
@@ -591,9 +594,9 @@ const styles = {
     textAlign: "center",
   }),
   secondaryBtn: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -613,17 +616,17 @@ const styles = {
     maxWidth: "420px",
     background: color.neutral0,
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     padding: theme.s4,
     textAlign: "center",
     display: "grid",
     gap: theme.s2,
   }),
-  modalTitle: css({ ...font.bold17, margin: 0, color: color.secondary500 }),
+  modalTitle: css({ ...font.bold17, margin: 0, color: color.genz.purple }),
   modalText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
   modalBtn: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,

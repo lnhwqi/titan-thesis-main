@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import * as AuthToken from "../App/AuthToken"
@@ -386,8 +386,8 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background:
-      `radial-gradient(circle at 10% 18%, ${color.secondary100} 0%, transparent 34%),` +
-      `radial-gradient(circle at 85% 12%, ${color.secondary200} 0%, transparent 30%),` +
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%),` +
+      `radial-gradient(circle at 85% 12%, ${color.genz.purple200} 0%, transparent 30%),` +
       `${color.neutral50}`,
     ...bp.md({
       padding: `${theme.s10} ${theme.s12}`,
@@ -412,7 +412,7 @@ const styles = {
   panel: css({
     background: color.neutral0,
     borderRadius: theme.s4,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
     marginBottom: theme.s4,
@@ -440,13 +440,13 @@ const styles = {
     color: color.neutral700,
   }),
   input: css({
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
   }),
   textarea: css({
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -468,7 +468,7 @@ const styles = {
   }),
   previewPanel: css({
     marginTop: theme.s4,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     background: color.neutral50,
@@ -492,7 +492,7 @@ const styles = {
     maxWidth: "640px",
     aspectRatio: "16 / 9",
     borderRadius: theme.s2,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     background: color.neutral100,
     overflow: "hidden",
     position: "relative",
@@ -518,7 +518,7 @@ const styles = {
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -526,9 +526,9 @@ const styles = {
     cursor: "pointer",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -548,7 +548,7 @@ const styles = {
     }),
   }),
   posterCard: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     background: color.neutral0,
     overflow: "hidden",
@@ -613,7 +613,7 @@ const styles = {
     width: "100%",
     maxWidth: "480px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.medium,
     padding: theme.s6,
@@ -643,7 +643,7 @@ const styles = {
     maxWidth: "460px",
     background: color.neutral0,
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     padding: theme.s4,
     boxShadow: theme.elevation.large,
   }),
@@ -659,7 +659,7 @@ const styles = {
   }),
   modalButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,

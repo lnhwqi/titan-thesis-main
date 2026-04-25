@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -370,8 +370,8 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background:
-      `radial-gradient(circle at 15% 20%, ${color.secondary100} 0%, transparent 35%),` +
-      `radial-gradient(circle at 80% 10%, ${color.secondary200} 0%, transparent 32%),` +
+      `radial-gradient(circle at 15% 20%, ${color.genz.purple100} 0%, transparent 35%),` +
+      `radial-gradient(circle at 80% 10%, ${color.genz.purple200} 0%, transparent 32%),` +
       `${color.neutral50}`,
     ...bp.md({
       padding: `${theme.s10} ${theme.s12}`,
@@ -405,7 +405,7 @@ const styles = {
     ...font.bold12,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: color.secondary500,
+    color: color.genz.purple,
     marginBottom: theme.s1,
   }),
   title: css({
@@ -428,7 +428,7 @@ const styles = {
   }),
   card: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s4,
     boxShadow: theme.elevation.medium,
@@ -438,7 +438,7 @@ const styles = {
   }),
   treePanel: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s4,
     boxShadow: theme.elevation.medium,
@@ -468,7 +468,7 @@ const styles = {
     color: color.neutral700,
   }),
   selectInput: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
     color: color.neutral900,
     borderRadius: theme.s2,
@@ -484,8 +484,8 @@ const styles = {
     gap: theme.s1,
   }),
   nodeLine: css({
-    border: `1px solid ${color.secondary100}`,
-    background: color.secondary50,
+    border: `1px solid ${color.genz.purple100}`,
+    background: color.genz.purpleDim,
     borderRadius: theme.s2,
     padding: `${theme.s1} ${theme.s2}`,
     display: "flex",
@@ -496,7 +496,7 @@ const styles = {
   }),
   childrenWrap: css({
     marginLeft: theme.s4,
-    borderLeft: `2px dashed ${color.secondary200}`,
+    borderLeft: `2px dashed ${color.genz.purple200}`,
     paddingLeft: theme.s2,
     display: "grid",
     gap: theme.s1,
@@ -510,9 +510,9 @@ const styles = {
     gap: theme.s1,
   }),
   nodeActionButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s1} ${theme.s2}`,
     ...font.medium12,
@@ -536,7 +536,7 @@ const styles = {
     width: "100%",
     maxWidth: "520px",
     borderRadius: theme.s4,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     background: color.neutral0,
     boxShadow: theme.elevation.large,
     padding: theme.s5,
@@ -573,7 +573,7 @@ const styles = {
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -581,9 +581,9 @@ const styles = {
     cursor: "pointer",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -593,15 +593,15 @@ const styles = {
   ghostButton: css({
     border: "none",
     background: "transparent",
-    color: color.secondary500,
+    color: color.genz.purple,
     textDecoration: "underline",
     ...font.medium12,
     cursor: "pointer",
   }),
   flashCard: css({
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary300}`,
-    background: color.secondary50,
+    border: `1px solid ${color.genz.purple300}`,
+    background: color.genz.purpleDim,
     padding: `${theme.s2} ${theme.s3}`,
     display: "flex",
     justifyContent: "space-between",
@@ -613,7 +613,7 @@ const styles = {
     border: "none",
     background: "none",
     textDecoration: "underline",
-    color: color.secondary500,
+    color: color.genz.purple,
     ...font.medium12,
     cursor: "pointer",
   }),
@@ -629,7 +629,7 @@ const styles = {
     width: "100%",
     maxWidth: "520px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s6,
     boxShadow: theme.elevation.large,

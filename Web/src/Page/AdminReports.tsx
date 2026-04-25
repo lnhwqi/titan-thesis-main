@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -411,8 +411,8 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     background:
-      `radial-gradient(circle at 10% 18%, ${color.secondary100} 0%, transparent 34%),` +
-      `radial-gradient(circle at 85% 12%, ${color.secondary200} 0%, transparent 30%),` +
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%),` +
+      `radial-gradient(circle at 85% 12%, ${color.genz.purple200} 0%, transparent 30%),` +
       `${color.neutral50}`,
     ...bp.md({
       padding: `${theme.s10} ${theme.s12}`,
@@ -437,7 +437,7 @@ const styles = {
   panel: css({
     background: color.neutral0,
     borderRadius: theme.s4,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
     marginBottom: theme.s4,
@@ -451,7 +451,7 @@ const styles = {
     marginBottom: theme.s4,
   }),
   card: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: theme.s4,
     display: "grid",
@@ -460,13 +460,13 @@ const styles = {
     ...font.regular14,
   }),
   input: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
   }),
   textarea: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: theme.s3,
     minHeight: "80px",
@@ -475,7 +475,7 @@ const styles = {
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -485,9 +485,9 @@ const styles = {
     "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -510,7 +510,7 @@ const styles = {
     maxWidth: "520px",
     background: color.neutral0,
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     boxShadow: theme.elevation.large,
     padding: theme.s5,
     display: "grid",
@@ -518,7 +518,7 @@ const styles = {
   }),
   confirmTitle: css({ ...font.boldH5_20, margin: 0, color: color.neutral900 }),
   confirmText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
-  confirmMeta: css({ ...font.regular13, margin: 0, color: color.secondary500 }),
+  confirmMeta: css({ ...font.regular13, margin: 0, color: color.genz.purple }),
   confirmActions: css({
     display: "flex",
     justifyContent: "flex-end",
@@ -528,7 +528,7 @@ const styles = {
   notice: css({
     ...font.regular14,
     color: color.neutral0,
-    background: color.secondary500,
+    background: color.genz.purple,
     padding: `${theme.s2} ${theme.s4}`,
     borderRadius: theme.s2,
     marginBottom: theme.s4,
@@ -541,7 +541,7 @@ const styles = {
     textAlign: "center",
     background: color.neutral50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px dashed ${color.genz.purple200}`,
   }),
   gate: css({
     minHeight: "100dvh",
@@ -555,7 +555,7 @@ const styles = {
     width: "100%",
     maxWidth: "480px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.medium,
     padding: theme.s6,

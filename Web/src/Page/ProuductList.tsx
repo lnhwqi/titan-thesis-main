@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { AuthState, PublicState } from "../State"
 import { bp, color, font, theme } from "../View/Theme"
@@ -62,7 +62,7 @@ const styles = {
   }),
   pageTitle: css({
     ...font.boldH1_42,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   pageContent: css({
     ...font.regular14,
@@ -83,7 +83,7 @@ const styles = {
     maxWidth: "440px",
     padding: theme.s4,
     borderRadius: theme.s3,
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
     boxShadow: theme.elevation.large,
     display: "flex",
@@ -92,7 +92,7 @@ const styles = {
   }),
   announcementTitle: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   announcementBody: css({
     ...font.regular14,
@@ -105,19 +105,19 @@ const styles = {
   }),
   announcementClose: css({
     width: "fit-content",
-    border: `1px solid ${color.secondary400}`,
+    border: `1px solid ${color.genz.purpleLight}`,
     borderRadius: theme.s2,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     ...font.medium12,
     padding: `${theme.s1} ${theme.s3}`,
     cursor: "pointer",
   }),
   announcementLogin: css({
     width: "fit-content",
-    border: `1px solid ${color.secondary500}`,
+    border: `1px solid ${color.genz.purple}`,
     borderRadius: theme.s2,
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     ...font.medium12,
     padding: `${theme.s1} ${theme.s3}`,

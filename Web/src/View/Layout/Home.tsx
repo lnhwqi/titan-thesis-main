@@ -1,9 +1,10 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { State } from "../../State"
 import { JSX } from "react"
 import { color, font } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as CategoryAction from "../../Action/Category"
+import * as HomePosterAction from "../../Action/HomePoster"
 import Header from "./Header"
 import SubHeader from "./SubHeader"
 import CategorySidebar from "../Part/Category"
@@ -64,6 +65,22 @@ export function HomeLayout(props: Props): JSX.Element {
             <div className={styles.sliderWrapper(currentIndex)}>
               <HomePoster state={state} />
             </div>
+            {state.homePoster.posters.length > 1 && (
+              <div className={styles.sliderDots}>
+                {state.homePoster.posters.map((_poster, i) => (
+                  <button
+                    key={i}
+                    className={
+                      i === currentIndex
+                        ? styles.sliderDotActive
+                        : styles.sliderDot
+                    }
+                    onClick={() => emit(HomePosterAction.goToPoster(i))}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <Page state={state} />
@@ -84,7 +101,7 @@ const styles = {
     flexDirection: "column",
     position: "relative",
     zIndex: 1,
-    backgroundColor: color.neutral0,
+    background: `linear-gradient(160deg, rgba(124,58,237,0.025) 0%, ${color.neutral0} 30%, ${color.neutral0} 70%, rgba(236,72,153,0.02) 100%)`,
   }),
 
   body: css({
@@ -101,7 +118,7 @@ const styles = {
     alignSelf: "start",
     opacity: 1,
     visibility: "visible",
-    borderRight: `1px solid ${color.secondary100}`,
+    borderRight: `1px solid ${color.genz.purple100}`,
     backgroundColor: color.neutral0,
     overflow: "hidden",
     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
@@ -143,7 +160,7 @@ const styles = {
     width: "260px",
     opacity: 1,
     visibility: "visible",
-    borderRight: `1px solid ${color.secondary100}`,
+    borderRight: `1px solid ${color.genz.purple100}`,
     backgroundColor: color.neutral0,
     overflow: "auto",
     scrollbarWidth: "none",
@@ -220,12 +237,49 @@ const styles = {
     height: "auto",
     padding: "0 10px",
     position: "relative",
+    background: `linear-gradient(180deg, rgba(124,58,237,0.02) 0%, transparent 120px)`,
   }),
   mainPoster: css({
     display: "flex",
-    justifyContent: "center",
+    flexDirection: "column",
     alignItems: "center",
     marginBottom: "20px",
+  }),
+
+  sliderDots: css({
+    display: "flex",
+    gap: "8px",
+    marginTop: "10px",
+    justifyContent: "center",
+    alignItems: "center",
+  }),
+
+  sliderDot: css({
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    border: "none",
+    backgroundColor: color.genz.purple200,
+    padding: 0,
+    cursor: "pointer",
+    transition: "all 0.25s ease",
+    flexShrink: 0,
+    "&:hover": {
+      backgroundColor: color.genz.purpleLight,
+      transform: "scale(1.2)",
+    },
+  }),
+
+  sliderDotActive: css({
+    width: "24px",
+    height: "8px",
+    borderRadius: "4px",
+    border: "none",
+    backgroundColor: color.genz.pink,
+    padding: 0,
+    cursor: "pointer",
+    transition: "all 0.25s ease",
+    flexShrink: 0,
   }),
 
   sliderWrapper: (index: number) =>

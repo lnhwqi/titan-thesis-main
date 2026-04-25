@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -233,7 +233,7 @@ const styles = {
     alignItems: "center",
     padding: theme.s6,
     overflowX: "hidden",
-    background: `linear-gradient(120deg, ${color.secondary100}, ${color.neutral0}, ${color.secondary200})`,
+    background: `linear-gradient(120deg, ${color.genz.purple100}, ${color.neutral0}, ${color.genz.purple200})`,
   }),
   card: css({
     width: "100%",
@@ -242,7 +242,7 @@ const styles = {
     flexDirection: "column",
     gap: theme.s4,
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.large,
     padding: `${theme.s7} ${theme.s6}`,
@@ -266,17 +266,17 @@ const styles = {
   }),
   roleButton: css({
     ...font.medium14,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
   }),
   roleButtonActive: css({
     ...font.medium14,
-    border: `1px solid ${color.secondary500}`,
-    background: color.secondary500,
+    border: `1px solid ${color.genz.purple}`,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
@@ -312,7 +312,7 @@ const styles = {
     background: "none",
     cursor: "pointer",
     ...font.medium14,
-    color: color.secondary500,
+    color: color.genz.purple,
     textDecoration: "underline",
     textAlign: "left",
     padding: 0,

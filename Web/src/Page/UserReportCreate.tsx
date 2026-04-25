@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -171,22 +171,27 @@ function parseReportCategory(value: string): ReportCategory | null {
 
 const styles = {
   page: css({
+    minHeight: "100dvh",
     padding: theme.s6,
     display: "grid",
     gap: theme.s2,
     maxWidth: "760px",
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
   }),
   title: css({ ...font.boldH4_24, margin: 0 }),
   meta: css({ ...font.regular14, color: color.neutral700 }),
-  label: css({ ...font.medium14, color: color.secondary500 }),
+  label: css({ ...font.medium14, color: color.genz.purple }),
   input: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: theme.s2,
     "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
   textarea: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: theme.s2,
     minHeight: "100px",
@@ -195,22 +200,22 @@ const styles = {
   actions: css({ display: "flex", gap: theme.s2 }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
   }),
   info: css({ ...font.regular14, color: color.neutral700 }),
-  notice: css({ ...font.regular14, color: color.secondary500 }),
+  notice: css({ ...font.regular14, color: color.genz.purple }),
   confirmOverlay: css({
     position: "fixed",
     inset: 0,
@@ -226,7 +231,7 @@ const styles = {
     maxWidth: "520px",
     background: color.neutral0,
     borderRadius: theme.s2,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     boxShadow: theme.elevation.medium,
     padding: theme.s4,
     display: "grid",

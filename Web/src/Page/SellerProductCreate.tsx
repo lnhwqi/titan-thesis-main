@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -352,7 +352,10 @@ const styles = {
   page: css({
     minHeight: "100dvh",
     padding: theme.s6,
-    background: color.neutral50,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
     position: "relative",
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
@@ -372,7 +375,7 @@ const styles = {
     width: "100%",
     maxWidth: "420px",
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     boxShadow: theme.elevation.large,
     padding: theme.s5,
@@ -384,7 +387,7 @@ const styles = {
   modalTitle: css({
     ...font.boldH4_24,
     margin: 0,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   modalText: css({
     ...font.regular14,
@@ -394,7 +397,7 @@ const styles = {
   }),
   modalButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
@@ -419,7 +422,7 @@ const styles = {
   }),
   panel: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
   }),
@@ -449,7 +452,7 @@ const styles = {
     color: color.neutral700,
   }),
   select: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -466,17 +469,17 @@ const styles = {
     marginBottom: theme.s2,
   }),
   variantModeButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s1} ${theme.s3}`,
     ...font.medium12,
     cursor: "pointer",
   }),
   variantModeButtonActive: css({
-    border: `1px solid ${color.secondary500}`,
-    background: color.secondary500,
+    border: `1px solid ${color.genz.purple}`,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s1} ${theme.s3}`,
@@ -484,7 +487,7 @@ const styles = {
     cursor: "pointer",
   }),
   variantCard: css({
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s2,
     padding: theme.s2,
     background: color.neutral50,
@@ -494,10 +497,10 @@ const styles = {
   }),
   variantLabel: css({
     ...font.medium12,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   singleVariantCard: css({
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s2,
     padding: theme.s2,
     background: color.neutral50,
@@ -529,7 +532,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: `${theme.s1} ${theme.s2}`,
   }),
@@ -544,9 +547,9 @@ const styles = {
     justifyContent: "flex-end",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,

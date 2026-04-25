@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
@@ -134,7 +134,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: `linear-gradient(140deg, ${color.secondary300}, ${color.secondary100}, ${color.neutral0})`,
+    background: `linear-gradient(140deg, ${color.genz.purple300}, ${color.genz.purple100}, ${color.neutral0})`,
     backgroundSize: "220% 220%",
     animation: `${gradient} 9s ease infinite`,
     padding: theme.s6,
@@ -159,7 +159,7 @@ const styles = {
     ...font.bold12,
     letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   pageTitle: css({
     ...font.boldH1_42,
@@ -204,7 +204,7 @@ const styles = {
     background: "none",
     cursor: "pointer",
     ...font.medium14,
-    color: color.secondary500,
+    color: color.genz.purple,
     textDecoration: "underline",
   }),
 }

@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { color, font, theme } from "../Theme"
 
@@ -55,7 +55,7 @@ function containerColor(theme_: Props["theme_"], disabled: boolean) {
 
   switch (theme_) {
     case "Blue":
-      return { backgroundColor: color.secondary500 }
+      return { backgroundColor: color.genz.purple }
     case "Red":
       return { backgroundColor: color.semantics.error.red500 }
     case "Green":

@@ -1,4 +1,4 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { JSX } from "react"
 import { BasicProduct } from "../../../../Core/App/ProductBasic"
 import Link from "../Link"
@@ -11,6 +11,7 @@ import * as ProductAction from "../../Action/Product"
 import * as AuthToken from "../../App/AuthToken"
 import { _RegisterState } from "../../State/Register"
 import { IoIosHeart, IoIosHeartEmpty } from "react-icons/io"
+import { fadeSlideUp } from "../Theme/Keyframe"
 
 type Props = {
   product: BasicProduct
@@ -252,21 +253,24 @@ const wishlistButtonClass = css({
   height: "36px",
   borderRadius: "50%",
   backgroundColor: "rgba(255, 255, 255, 0.92)",
-  color: color.secondary500,
+  backdropFilter: "blur(6px)",
+  color: color.genz.purple,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   padding: 0,
-  border: `1px solid ${color.secondary200}`,
+  border: `1px solid rgba(124, 58, 237, 0.25)`,
   position: "absolute",
   top: theme.s2,
   right: theme.s2,
-  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  transition: "all 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
   cursor: "pointer",
   zIndex: 3,
   "&:hover": {
-    transform: "scale(1.1)",
+    transform: "scale(1.15)",
     backgroundColor: color.neutral0,
+    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.25)",
+    borderColor: color.genz.purple,
   },
   "&:active": {
     transform: "scale(0.95)",
@@ -283,26 +287,28 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     backgroundColor: color.neutral0,
-    borderRadius: theme.br2,
+    borderRadius: theme.br3,
     overflow: "hidden",
-    border: `1px solid ${color.secondary100}`,
+    border: `1.5px solid rgba(124, 58, 237, 0.1)`,
     textDecoration: "none",
-    transition: "all 0.3s ease",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     cursor: "pointer",
     height: "100%",
     position: "relative",
+    animation: `${fadeSlideUp} 0.4s ease both`,
     "&:hover": {
-      transform: "translateY(-6px)",
-      boxShadow: "0 10px 20px rgba(0, 0, 0, 0.08)",
-      borderColor: color.primary200,
-      [`& .${nameClass}`]: { color: color.primary500 },
+      transform: "translateY(-8px)",
+      boxShadow:
+        "6px 6px 0 rgba(124, 58, 237, 0.2), 0 16px 32px rgba(124, 58, 237, 0.12)",
+      borderColor: color.genz.purple,
+      [`& .${nameClass}`]: { color: color.genz.purple },
     },
   }),
   cardSoldOut: css({
     "&:hover": {
       transform: "none",
       boxShadow: "none",
-      borderColor: color.secondary100,
+      borderColor: "rgba(124, 58, 237, 0.1)",
     },
     "&:hover img": {
       transform: "none",
@@ -312,8 +318,9 @@ const styles = {
   wishlistButton: wishlistButtonClass,
   wishlistButtonActive: css({
     backgroundColor: color.neutral0,
-    color: color.semantics.error.red500,
-    border: `1px solid ${color.semantics.error.red500}`,
+    color: color.genz.pink,
+    border: `1px solid ${color.genz.pink}`,
+    boxShadow: `0 0 8px rgba(236, 72, 153, 0.3)`,
   }),
   imageContainer: css({
     width: "100%",
@@ -330,15 +337,15 @@ const styles = {
     height: "100%",
     objectFit: "cover",
     objectPosition: "center",
-    transition: "transform 0.5s ease",
+    transition: "transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)",
     ".card:hover &": {
-      transform: "scale(1.05)",
+      transform: "scale(1.07)",
     },
   }),
   soldOutCardLayer: css({
     position: "absolute",
     inset: 0,
-    background: "rgba(18,24,38,0.42)",
+    background: "rgba(15, 15, 26, 0.55)",
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
@@ -355,7 +362,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     transform: "rotate(-59deg)",
-    background: "rgba(26, 34, 51, 0.82)",
+    background: "rgba(124, 58, 237, 0.85)",
     padding: `${theme.s3} 0`,
   }),
   soldOutText: css({
@@ -378,23 +385,20 @@ const styles = {
   }),
   shopItem: css({
     padding: `${theme.s1} ${theme.s1}`,
-    // backgroundColor: color.secondary50,
-    color: color.secondary500,
+    color: color.genz.purple,
     ...font.regular10,
     textTransform: "uppercase",
     cursor: "pointer",
     transition: "all 0.2s ease",
     userSelect: "none",
     borderBottom: `1px solid transparent`,
-
+    letterSpacing: "0.05em",
     "&:hover": {
-      // backgroundColor: color.secondary100,
-      // borderColor: color.secondary200,
-      borderBottom: `1px solid ${color.secondary500}`,
+      color: color.genz.pink,
+      borderBottom: `1px solid ${color.genz.pink}`,
     },
     "&:focus": {
       outline: "none",
-      borderColor: color.primary200,
     },
   }),
   variantRow: css({
@@ -403,12 +407,13 @@ const styles = {
     gap: theme.s1,
   }),
   variantItem: css({
-    border: `1px solid ${color.secondary200}`,
-    color: color.secondary500,
-    background: color.neutral0,
+    border: `1px solid rgba(124, 58, 237, 0.2)`,
+    color: color.genz.purple,
+    background: "rgba(124, 58, 237, 0.04)",
     borderRadius: theme.br1,
     padding: `2px ${theme.s2}`,
     ...font.medium12,
+    transition: "all 0.15s ease",
   }),
   variantItemOut: css({
     background: color.neutral200,
@@ -417,7 +422,10 @@ const styles = {
   }),
   price: css({
     ...font.bold17,
-    color: color.primary500,
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
     display: "inline-flex",
     alignItems: "center",
     marginLeft: "auto",
@@ -427,12 +435,203 @@ const styles = {
     width: "16px",
     height: "16px",
     borderRadius: "50%",
-    backgroundColor: color.primary500,
-    color: color.semantics.warning.yellow500,
+    background: color.genz.gradientPurplePink,
+    color: color.neutral0,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     ...font.bold10,
     lineHeight: 1,
+    WebkitTextFillColor: color.neutral0,
   }),
 }
+
+// const wishlistButtonClass = css({
+//   width: "36px",
+//   height: "36px",
+//   borderRadius: "50%",
+//   backgroundColor: "rgba(255, 255, 255, 0.92)",
+//   color: color.genz.purple,
+//   display: "flex",
+//   alignItems: "center",
+//   justifyContent: "center",
+//   padding: 0,
+//   border: `1px solid ${color.genz.purple200}`,
+//   position: "absolute",
+//   top: theme.s2,
+//   right: theme.s2,
+//   transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+//   cursor: "pointer",
+//   zIndex: 3,
+//   "&:hover": {
+//     transform: "scale(1.1)",
+//     backgroundColor: color.neutral0,
+//   },
+//   "&:active": {
+//     transform: "scale(0.95)",
+//   },
+//   "&:disabled": {
+//     cursor: "not-allowed",
+//     opacity: 0.6,
+//     transform: "none",
+//   },
+// })
+
+// const styles = {
+//   card: css({
+//     display: "flex",
+//     flexDirection: "column",
+//     backgroundColor: color.neutral0,
+//     borderRadius: theme.br2,
+//     overflow: "hidden",
+//     border: `1px solid ${color.genz.purple100}`,
+//     textDecoration: "none",
+//     transition: "all 0.3s ease",
+//     cursor: "pointer",
+//     height: "100%",
+//     position: "relative",
+//     "&:hover": {
+//       transform: "translateY(-6px)",
+//       boxShadow: "0 10px 20px rgba(0, 0, 0, 0.08)",
+//       borderColor: color.genz.pink200,
+//       [`& .${nameClass}`]: { color: color.genz.pink },
+//     },
+//   }),
+//   cardSoldOut: css({
+//     "&:hover": {
+//       transform: "none",
+//       boxShadow: "none",
+//       borderColor: color.genz.purple100,
+//     },
+//     "&:hover img": {
+//       transform: "none",
+//     },
+//   }),
+//   name: nameClass,
+//   wishlistButton: wishlistButtonClass,
+//   wishlistButtonActive: css({
+//     backgroundColor: color.neutral0,
+//     color: color.semantics.error.red500,
+//     border: `1px solid ${color.semantics.error.red500}`,
+//   }),
+//   imageContainer: css({
+//     width: "100%",
+//     paddingTop: "100%",
+//     position: "relative",
+//     backgroundColor: color.neutral50,
+//     overflow: "hidden",
+//   }),
+//   image: css({
+//     position: "absolute",
+//     top: 0,
+//     left: 0,
+//     width: "100%",
+//     height: "100%",
+//     objectFit: "cover",
+//     objectPosition: "center",
+//     transition: "transform 0.5s ease",
+//     ".card:hover &": {
+//       transform: "scale(1.05)",
+//     },
+//   }),
+//   soldOutCardLayer: css({
+//     position: "absolute",
+//     inset: 0,
+//     background: "rgba(18,24,38,0.42)",
+//     overflow: "hidden",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     zIndex: 4,
+//     pointerEvents: "none",
+//   }),
+//   soldOutDiagonalStripe: css({
+//     position: "absolute",
+//     left: "-54%",
+//     top: "40%",
+//     width: "220%",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     transform: "rotate(-59deg)",
+//     background: "rgba(26, 34, 51, 0.82)",
+//     padding: `${theme.s3} 0`,
+//   }),
+//   soldOutText: css({
+//     ...font.bold14,
+//     letterSpacing: "4px",
+//     color: color.neutral0,
+//     textShadow: "0 1px 2px rgba(0,0,0,0.28)",
+//   }),
+//   content: css({
+//     padding: theme.s4,
+//     display: "flex",
+//     flexDirection: "column",
+//     flex: 1,
+//     gap: theme.s2,
+//   }),
+//   metaContainer: css({
+//     display: "flex",
+//     justifyContent: "space-between",
+//     marginBottom: theme.s0,
+//   }),
+//   shopItem: css({
+//     padding: `${theme.s1} ${theme.s1}`,
+//     // backgroundColor: color.genz.purpleDim,
+//     color: color.genz.purple,
+//     ...font.regular10,
+//     textTransform: "uppercase",
+//     cursor: "pointer",
+//     transition: "all 0.2s ease",
+//     userSelect: "none",
+//     borderBottom: `1px solid transparent`,
+
+//     "&:hover": {
+//       // backgroundColor: color.genz.purple100,
+//       // borderColor: color.genz.purple200,
+//       borderBottom: `1px solid ${color.genz.purple}`,
+//     },
+//     "&:focus": {
+//       outline: "none",
+//       borderColor: color.genz.pink200,
+//     },
+//   }),
+//   variantRow: css({
+//     display: "flex",
+//     flexWrap: "wrap",
+//     gap: theme.s1,
+//   }),
+//   variantItem: css({
+//     border: `1px solid ${color.genz.purple200}`,
+//     color: color.genz.purple,
+//     background: color.neutral0,
+//     borderRadius: theme.br1,
+//     padding: `2px ${theme.s2}`,
+//     ...font.medium12,
+//   }),
+//   variantItemOut: css({
+//     background: color.neutral200,
+//     borderColor: color.neutral300,
+//     color: color.neutral600,
+//   }),
+//   price: css({
+//     ...font.bold17,
+//     color: color.genz.pink,
+//     display: "inline-flex",
+//     alignItems: "center",
+//     marginLeft: "auto",
+//     gap: theme.s1,
+//   }),
+//   coinBadge: css({
+//     width: "16px",
+//     height: "16px",
+//     borderRadius: "50%",
+//     backgroundColor: color.genz.pink,
+//     color: color.semantics.warning.yellow500,
+//     display: "inline-flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     ...font.bold10,
+//     lineHeight: 1,
+//   }),
+// }

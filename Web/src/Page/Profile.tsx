@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { AuthState } from "../State"
 import { RemoteData } from "../../../Core/Data/RemoteData"
@@ -183,7 +183,7 @@ const styles = {
   }),
   pageTitle: css({
     ...font.boldH1_42,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   responseError: css({
     ...font.medium14,
@@ -220,7 +220,7 @@ const styles = {
     gap: theme.s4,
     padding: theme.s6,
     borderRadius: theme.br2,
-    backgroundColor: color.secondary100,
+    backgroundColor: color.genz.purple100,
     ...bp.md({
       width: "100%",
     }),
@@ -231,7 +231,7 @@ const styles = {
     gap: theme.s1,
     padding: theme.s6,
     borderRadius: theme.br2,
-    backgroundColor: color.secondary100,
+    backgroundColor: color.genz.purple100,
   }),
   field: css({
     width: "100%",

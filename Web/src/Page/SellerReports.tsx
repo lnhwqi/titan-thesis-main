@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -187,7 +187,16 @@ function sellerHint(status: ReportStatus): string {
 }
 
 const styles = {
-  page: css({ padding: theme.s6, display: "grid", gap: theme.s2 }),
+  page: css({
+    minHeight: "100dvh",
+    padding: theme.s6,
+    display: "grid",
+    gap: theme.s2,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
+  }),
   title: css({ ...font.boldH4_24, margin: 0 }),
   headerRow: css({
     display: "flex",
@@ -198,7 +207,7 @@ const styles = {
   headerActions: css({ display: "flex", gap: theme.s2 }),
   list: css({ display: "grid", gap: theme.s2 }),
   card: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: theme.s3,
     display: "grid",
@@ -214,16 +223,16 @@ const styles = {
   actions: css({ display: "flex", gap: theme.s2 }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
@@ -246,7 +255,7 @@ const styles = {
     maxWidth: "520px",
     background: color.neutral0,
     borderRadius: theme.s2,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     boxShadow: theme.elevation.medium,
     padding: theme.s4,
     display: "grid",
@@ -254,12 +263,12 @@ const styles = {
   }),
   confirmTitle: css({ ...font.boldH5_20, margin: 0, color: color.neutral900 }),
   confirmText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
-  confirmMeta: css({ ...font.regular13, margin: 0, color: color.secondary500 }),
+  confirmMeta: css({ ...font.regular13, margin: 0, color: color.genz.purple }),
   confirmActions: css({
     display: "flex",
     justifyContent: "flex-end",
     gap: theme.s2,
   }),
-  notice: css({ ...font.regular14, color: color.secondary500 }),
+  notice: css({ ...font.regular14, color: color.genz.purple }),
   info: css({ ...font.regular14, color: color.neutral700 }),
 }

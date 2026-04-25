@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -96,7 +96,14 @@ function formatT(value: number): string {
 }
 
 const styles = {
-  page: css({ padding: theme.s6 }),
+  page: css({
+    minHeight: "100dvh",
+    padding: theme.s6,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
+  }),
   title: css({ ...font.boldH4_24, margin: 0 }),
   headerRow: css({
     display: "flex",
@@ -109,14 +116,14 @@ const styles = {
   card: css({
     display: "grid",
     gap: theme.s3,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     background: color.neutral0,
     padding: theme.s4,
     maxWidth: "520px",
   }),
   field: css({ display: "grid", gap: theme.s1 }),
-  label: css({ ...font.medium14, color: color.secondary500 }),
+  label: css({ ...font.medium14, color: color.genz.purple }),
   row: css({ ...font.regular14, color: color.neutral700 }),
   info: css({
     ...font.regular14,
@@ -124,9 +131,9 @@ const styles = {
     textAlign: "center",
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,

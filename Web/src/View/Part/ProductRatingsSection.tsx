@@ -1,4 +1,4 @@
-import { css } from "@emotion/css"
+﻿import { css } from "@emotion/css"
 import { JSX } from "react"
 import { color, font, theme } from "../Theme"
 import * as RD from "../../../../Core/Data/RemoteData"
@@ -71,7 +71,7 @@ export function ProductRatingsSection(props: Props): JSX.Element {
                     color:
                       i <= Math.round(averageScore)
                         ? color.semantics.warning.yellow500
-                        : color.secondary300,
+                        : color.genz.purple300,
                   }}
                 />
               ))}
@@ -103,7 +103,7 @@ export function ProductRatingsSection(props: Props): JSX.Element {
                       color:
                         i <= rating.score.unwrap()
                           ? color.semantics.warning.yellow500
-                          : color.secondary300,
+                          : color.genz.purple300,
                     }}
                   />
                 ))}
@@ -132,7 +132,7 @@ const styles = {
   section: css({
     marginTop: theme.s8,
     paddingTop: theme.s6,
-    borderTop: `1px solid ${color.secondary100}`,
+    borderTop: `1px solid ${color.genz.purple100}`,
   }),
 
   header: css({
@@ -146,7 +146,7 @@ const styles = {
 
   title: css({
     ...font.bold17,
-    color: color.secondary500,
+    color: color.genz.purple,
     margin: 0,
   }),
 
@@ -163,12 +163,12 @@ const styles = {
     padding: `${theme.s3} ${theme.s4}`,
     backgroundColor: color.neutral50,
     borderRadius: theme.br2,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
   }),
 
   scoreValue: css({
     ...font.boldH4_24,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
 
   stars: css({
@@ -193,7 +193,7 @@ const styles = {
 
   ratingItem: css({
     padding: theme.s4,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.br1,
     backgroundColor: color.neutral0,
   }),
@@ -213,7 +213,7 @@ const styles = {
 
   ratingScore: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
 
   ratingDate: css({

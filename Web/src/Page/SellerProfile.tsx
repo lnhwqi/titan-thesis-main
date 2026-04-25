@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { AuthState, PublicState } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -106,8 +106,8 @@ const styles = {
     gap: theme.s6,
   }),
   hero: css({
-    background: color.secondary50,
-    border: `1px solid ${color.secondary200}`,
+    background: color.genz.purpleDim,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.br2,
     padding: theme.s6,
     display: "flex",
@@ -116,13 +116,13 @@ const styles = {
   }),
   shopTitle: css({
     ...font.bold14,
-    color: color.secondary500,
+    color: color.genz.purple,
     textTransform: "uppercase",
     letterSpacing: "0.4px",
   }),
   shopName: css({
     ...font.boldH2_35,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   shopDescription: css({
     ...font.regular17,

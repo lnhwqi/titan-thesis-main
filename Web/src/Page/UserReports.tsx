@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -92,7 +92,14 @@ export default function UserReportsPage(props: Props): JSX.Element {
 }
 
 const styles = {
-  page: css({ padding: theme.s6 }),
+  page: css({
+    minHeight: "100dvh",
+    padding: theme.s6,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
+  }),
   title: css({ ...font.boldH4_24, margin: 0 }),
   headerRow: css({
     display: "flex",
@@ -104,7 +111,7 @@ const styles = {
   actions: css({ display: "flex", gap: theme.s2 }),
   list: css({ display: "grid", gap: theme.s2 }),
   card: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: theme.s3,
     display: "grid",
@@ -113,11 +120,11 @@ const styles = {
     ...font.regular14,
   }),
   info: css({ ...font.regular14, color: color.neutral700 }),
-  notice: css({ ...font.regular14, color: color.secondary500 }),
+  notice: css({ ...font.regular14, color: color.genz.purple }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.medium14,

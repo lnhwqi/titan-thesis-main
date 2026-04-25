@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -422,7 +422,12 @@ function humanizeReportStatus(status: ReportStatus): string {
 
 const styles = {
   page: css({
+    minHeight: "100dvh",
     padding: theme.s6,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
     "@media (max-width: 768px)": {
       padding: theme.s4,
     },
@@ -438,7 +443,7 @@ const styles = {
   }),
   list: css({ display: "grid", gap: theme.s3 }),
   card: css({
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s2,
     padding: theme.s3,
     display: "grid",
@@ -454,8 +459,8 @@ const styles = {
   }),
   orderCode: css({
     ...font.bold14,
-    color: color.primary500,
-    background: color.primary50,
+    color: color.genz.pink,
+    background: color.genz.pinkDim,
     borderRadius: theme.s1,
     padding: `${theme.s1} ${theme.s2}`,
   }),
@@ -463,13 +468,13 @@ const styles = {
     ...font.medium14,
     borderRadius: theme.s1,
     padding: `${theme.s1} ${theme.s2}`,
-    border: `1px solid ${color.secondary200}`,
-    color: color.secondary500,
-    background: color.secondary50,
+    border: `1px solid ${color.genz.purple200}`,
+    color: color.genz.purple,
+    background: color.genz.purpleDim,
     '&[data-tone="blue"]': {
-      color: color.primary500,
-      borderColor: color.primary200,
-      background: color.primary50,
+      color: color.genz.pink,
+      borderColor: color.genz.pink200,
+      background: color.genz.pinkDim,
     },
     '&[data-tone="green"]': {
       color: color.semantics.success.green500,
@@ -487,10 +492,10 @@ const styles = {
     gap: theme.s1,
     padding: `${theme.s1} ${theme.s2}`,
     borderRadius: theme.s1,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     background: color.neutral100,
   }),
-  metaLabel: css({ ...font.medium14, color: color.secondary500 }),
+  metaLabel: css({ ...font.medium14, color: color.genz.purple }),
   metaValue: css({
     ...font.regular14,
     color: color.neutral800,
@@ -499,7 +504,7 @@ const styles = {
   section: css({ display: "grid", gap: theme.s1 }),
   sectionTitle: css({ ...font.bold14, color: color.neutral800 }),
   row: css({ ...font.regular14, color: color.neutral700 }),
-  rowMuted: css({ ...font.regular14, color: color.secondary500 }),
+  rowMuted: css({ ...font.regular14, color: color.genz.purple }),
   rowGoods: css({
     ...font.regular14,
     color: color.neutral700,
@@ -522,14 +527,14 @@ const styles = {
     flexWrap: "wrap",
   }),
   rowField: css({ display: "grid", gap: theme.s1 }),
-  label: css({ ...font.medium14, color: color.secondary500 }),
+  label: css({ ...font.medium14, color: color.genz.purple }),
   select: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
   }),
   input: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -541,7 +546,7 @@ const styles = {
   }),
   notice: css({
     ...font.regular14,
-    color: color.secondary500,
+    color: color.genz.purple,
     marginBottom: theme.s2,
     textAlign: "center",
     display: "flex",
@@ -554,7 +559,7 @@ const styles = {
     background: "transparent",
     cursor: "pointer",
     ...font.medium14,
-    color: color.secondary500,
+    color: color.genz.purple,
     padding: 0,
   }),
   ratingReportRow: css({
@@ -564,16 +569,16 @@ const styles = {
   }),
   noticeBox: css({
     ...font.regular14,
-    color: color.secondary500,
-    border: `1px dashed ${color.secondary300}`,
+    color: color.genz.purple,
+    border: `1px dashed ${color.genz.purple300}`,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     background: color.neutral100,
   }),
   secondaryButton: css({
-    border: `1px solid ${color.secondary300}`,
+    border: `1px solid ${color.genz.purple300}`,
     background: color.neutral0,
-    color: color.secondary500,
+    color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
@@ -581,7 +586,7 @@ const styles = {
   }),
   primaryButton: css({
     border: "none",
-    background: color.secondary500,
+    background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s4}`,

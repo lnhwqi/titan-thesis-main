@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import {
   BarChart,
@@ -145,7 +145,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
                 cursor={{ fill: color.neutral50 }}
                 contentStyle={{
                   backgroundColor: color.neutral0,
-                  border: `1px solid ${color.secondary200}`,
+                  border: `1px solid ${color.genz.purple200}`,
                   borderRadius: theme.s2,
                   ...font.regular14,
                   boxShadow: theme.elevation.medium,
@@ -153,7 +153,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
               />
               <Bar
                 dataKey="count"
-                fill={color.primary400}
+                fill={color.genz.pinkLight}
                 radius={[4, 4, 0, 0]}
                 barSize={48}
               />
@@ -187,7 +187,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
                 cursor={{ fill: color.neutral50 }}
                 contentStyle={{
                   backgroundColor: color.neutral0,
-                  border: `1px solid ${color.secondary200}`,
+                  border: `1px solid ${color.genz.purple200}`,
                   borderRadius: theme.s2,
                   ...font.regular14,
                   boxShadow: theme.elevation.medium,
@@ -195,7 +195,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
               />
               <Bar
                 dataKey="count"
-                fill={color.secondary400}
+                fill={color.genz.purpleLight}
                 radius={[4, 4, 0, 0]}
                 barSize={48}
               />
@@ -230,10 +230,10 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
             />
             <YAxis {...axisProps} />
             <Tooltip
-              cursor={{ stroke: color.secondary300, strokeWidth: 2 }}
+              cursor={{ stroke: color.genz.purple300, strokeWidth: 2 }}
               contentStyle={{
                 backgroundColor: color.neutral0,
-                border: `1px solid ${color.secondary200}`,
+                border: `1px solid ${color.genz.purple200}`,
                 borderRadius: theme.s2,
                 ...font.regular14,
                 boxShadow: theme.elevation.medium,
@@ -248,7 +248,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
             <Line
               type="monotone"
               dataKey="deposited"
-              stroke={color.primary500}
+              stroke={color.genz.pink}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6 }}
@@ -257,7 +257,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
             <Line
               type="monotone"
               dataKey="used"
-              stroke={color.secondary500}
+              stroke={color.genz.purple}
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6 }}
@@ -282,7 +282,7 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
 const styles = {
   container: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
     boxShadow: theme.elevation.medium,
@@ -307,7 +307,7 @@ const styles = {
   }),
   statCard: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary200}`,
+    border: `1px solid ${color.genz.purple200}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     display: "flex",
@@ -336,7 +336,7 @@ const styles = {
   }),
   chartCard: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
@@ -358,7 +358,7 @@ const styles = {
     textAlign: "center",
     background: color.neutral50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px dashed ${color.genz.purple200}`,
   }),
   infoMetaError: css({
     ...font.regular14,
@@ -367,11 +367,11 @@ const styles = {
     textAlign: "center",
     background: color.semantics.error.red50,
     borderRadius: theme.s2,
-    border: `1px dashed ${color.secondary200}`,
+    border: `1px dashed ${color.genz.purple200}`,
   }),
   financialChartCard: css({
     background: color.neutral0,
-    border: `1px solid ${color.secondary100}`,
+    border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s3,
     padding: theme.s4,
     boxShadow: "0 1px 3px rgba(0,0,0,0.02)",

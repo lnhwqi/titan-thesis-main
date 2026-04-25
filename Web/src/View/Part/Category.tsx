@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css, cx } from "@emotion/css"
 import { State } from "../../State"
 import { color, font, theme } from "../Theme"
@@ -112,12 +112,12 @@ const styles = {
     padding: `${theme.s4} ${theme.s3}`,
     ...font.bold14,
     borderBottom: `1px solid ${color.neutral200}`,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
   loading: css({
     padding: theme.s4,
     ...font.regular14,
-    color: color.secondary500,
+    color: color.genz.purple,
     textAlign: "center",
   }),
   error: css({
@@ -141,15 +141,15 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      backgroundColor: color.secondary300,
+      backgroundColor: color.genz.purple300,
       color: color.neutral0,
     },
   }),
   itemActive: css({
-    backgroundColor: color.secondary300,
+    backgroundColor: color.genz.purple300,
     color: color.neutral0,
     fontWeight: 600,
-    borderRight: `3px solid ${color.secondary500}`,
+    borderRight: `3px solid ${color.genz.purple}`,
   }),
   childrenContainer: css({
     display: "flex",

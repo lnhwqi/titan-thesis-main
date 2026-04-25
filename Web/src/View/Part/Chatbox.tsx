@@ -48,21 +48,19 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
   return (
     <div className={`${styles.chatboxContainer} ${isOpen ? styles.open : ""}`}>
       {/* Chatbox Toggle Button */}
-      <button
-        className={styles.chatboxToggle}
-        onClick={handleToggle}
-        aria-label="Toggle chatbox"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
+      <div className={styles.chatboxToggleWrap}>
+        <button
+          className={`${styles.chatboxToggle} ${isOpen ? styles.chatboxToggleOpen : ""}`}
+          onClick={handleToggle}
+          aria-label="Toggle chatbox"
         >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      </button>
+          <img
+            src="/assets/images/titan_ava.png"
+            alt="Titan"
+            className={styles.chatboxAvatarImg}
+          />
+        </button>
+      </div>
 
       {/* Chatbox Window */}
       {isOpen && (

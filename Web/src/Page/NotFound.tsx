@@ -1,4 +1,4 @@
-import { JSX } from "react"
+﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
@@ -29,6 +29,6 @@ const styles = {
   }),
   loadingText: css({
     ...font.regular17,
-    color: color.secondary500,
+    color: color.genz.purple,
   }),
 }
