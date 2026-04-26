@@ -90,7 +90,9 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                     <li
                       key={conv.id.unwrap()}
                       className={`${styles.conversationItem} ${
-                        currentConversationID?.unwrap() === conv.id.unwrap() ? styles.active : ""
+                        currentConversationID?.unwrap() === conv.id.unwrap()
+                          ? styles.active
+                          : ""
                       }`}
                       onClick={() => handleOpenConversation(conv.id)}
                     >
@@ -111,7 +113,9 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                         <p className={styles.lastMessage}>
                           {conv.lastMessage.senderName}:{" "}
                           {conv.lastMessage.text.unwrap().substring(0, 30)}
-                          {conv.lastMessage.text.unwrap().length > 30 ? "…" : ""}
+                          {conv.lastMessage.text.unwrap().length > 30
+                            ? "…"
+                            : ""}
                         </p>
                       )}
                     </li>

@@ -4,10 +4,7 @@ import type {
   Conversation,
   ConversationID,
 } from "../../../Core/App/Message"
-import {
-  conversationDecoder,
-  messageDecoder,
-} from "../../../Core/App/Message"
+import { conversationDecoder, messageDecoder } from "../../../Core/App/Message"
 import * as JD from "decoders"
 import * as Logger from "../Logger"
 import Env from "../Env"
@@ -230,9 +227,15 @@ export function emitGetConversations(): Promise<{
     socket.emit(
       "conversation:list",
       {},
-      (raw: { success: boolean; conversations?: unknown[]; error?: string }) => {
+      (raw: {
+        success: boolean
+        conversations?: unknown[]
+        error?: string
+      }) => {
         if (raw.success && raw.conversations != null) {
-          const decoded = JD.array(conversationDecoder).decode(raw.conversations)
+          const decoded = JD.array(conversationDecoder).decode(
+            raw.conversations,
+          )
           resolve(
             decoded.ok
               ? { success: true, conversations: decoded.value }
@@ -280,7 +283,12 @@ export function emitGetMessages(
           const decoded = JD.array(messageDecoder).decode(raw.messages)
           resolve(
             decoded.ok
-              ? { success: true, messages: decoded.value, page: raw.page, totalCount: raw.totalCount }
+              ? {
+                  success: true,
+                  messages: decoded.value,
+                  page: raw.page,
+                  totalCount: raw.totalCount,
+                }
               : { success: false, error: "Invalid messages response" },
           )
         } else {

@@ -45,7 +45,12 @@ async function resolveAuthUser(token: string): Promise<AuthUser | null> {
         .where("id", "=", p.sellerID)
         .executeTakeFirst()
       if (!row || row.isDeleted) return null
-      return { id: row.id, role: "SELLER", email: row.email, name: row.shopName }
+      return {
+        id: row.id,
+        role: "SELLER",
+        email: row.email,
+        name: row.shopName,
+      }
     }
 
     if (typeof p.adminID === "string") {
@@ -70,7 +75,10 @@ type MessageSendData = { conversationID: string; text: string }
 type MessageReadData = { messageID: string; conversationID: string }
 type TypingData = { conversationID: string }
 type MessageListData = { conversationID: string; page?: number; limit?: number }
-type ConversationStartData = { participantID: string; participantType: "USER" | "SELLER" }
+type ConversationStartData = {
+  participantID: string
+  participantType: "USER" | "SELLER"
+}
 
 type SocketCallback<T> = (response: T) => void
 type SuccessResponse<T> = { success: true } & T
@@ -156,10 +164,16 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           const { conversationID, text } = data
 
           if (!text || typeof text !== "string" || text.trim().length === 0) {
-            return callback({ success: false, error: "Message text is required" })
+            return callback({
+              success: false,
+              error: "Message text is required",
+            })
           }
           if (text.length > 1000) {
-            return callback({ success: false, error: "Message is too long (max 1000 characters)" })
+            return callback({
+              success: false,
+              error: "Message is too long (max 1000 characters)",
+            })
           }
 
           // Verify sender is a participant
@@ -195,7 +209,9 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
             createdAt: message.createdAt,
           }
 
-          io.to(`conversation:${conversationID}`).emit("message:received", { message: payload })
+          io.to(`conversation:${conversationID}`).emit("message:received", {
+            message: payload,
+          })
           callback({ success: true, message: payload })
         } catch (error) {
           Logger.error(error)
@@ -246,7 +262,10 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
               const isUser1 = conv.user1Id === user.id
               const otherPartyId = isUser1 ? conv.user2Id : conv.user1Id
               const otherPartyType = isUser1 ? conv.user2Type : conv.user1Type
-              const participantName = await resolveName(otherPartyId, otherPartyType)
+              const participantName = await resolveName(
+                otherPartyId,
+                otherPartyType,
+              )
               const lastMessage = await MessageRow.getLatest(conv.id)
               const unreadCount = await MessageRow.countUnread(conv.id, user.id)
               return {
@@ -351,10 +370,16 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           const { participantID, participantType } = data
 
           if (!participantID || !participantType) {
-            return callback({ success: false, error: "participantID and participantType are required" })
+            return callback({
+              success: false,
+              error: "participantID and participantType are required",
+            })
           }
           if (participantID === user.id) {
-            return callback({ success: false, error: "Cannot start a conversation with yourself" })
+            return callback({
+              success: false,
+              error: "Cannot start a conversation with yourself",
+            })
           }
 
           if (user.role === "SELLER" && participantType === "USER") {
@@ -365,12 +390,16 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
             if (!hasPaidOrder) {
               return callback({
                 success: false,
-                error: "You can only message users who purchased from your shop",
+                error:
+                  "You can only message users who purchased from your shop",
               })
             }
           }
 
-          let conversation = await ConversationRow.findBetween(user.id, participantID)
+          let conversation = await ConversationRow.findBetween(
+            user.id,
+            participantID,
+          )
           const myType = user.role === "SELLER" ? "SELLER" : "USER"
           if (conversation == null) {
             conversation = await ConversationRow.create(
@@ -381,7 +410,10 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
             )
           }
 
-          const participantName = await resolveName(participantID, participantType)
+          const participantName = await resolveName(
+            participantID,
+            participantType,
+          )
 
           const result = {
             id: conversation.id,
@@ -426,14 +458,25 @@ export function getSocketIO(): SocketIOServer | null {
 /**
  * Resolve display name for a participant
  */
-async function resolveName(id: string, type: "USER" | "SELLER"): Promise<string> {
+async function resolveName(
+  id: string,
+  type: "USER" | "SELLER",
+): Promise<string> {
   if (id.startsWith("guest_")) return "Guest"
   try {
     if (type === "USER") {
-      const row = await db.selectFrom("user").select("name").where("id", "=", id).executeTakeFirst()
+      const row = await db
+        .selectFrom("user")
+        .select("name")
+        .where("id", "=", id)
+        .executeTakeFirst()
       return row?.name ?? "Unknown User"
     } else {
-      const row = await db.selectFrom("seller").select("shopName").where("id", "=", id).executeTakeFirst()
+      const row = await db
+        .selectFrom("seller")
+        .select("shopName")
+        .where("id", "=", id)
+        .executeTakeFirst()
       return row?.shopName ?? "Unknown Seller"
     }
   } catch {
@@ -455,7 +498,10 @@ async function ensurePaidOrderConversations(user: AuthUser): Promise<void> {
   )
 
   for (const pair of pairs) {
-    const existing = await ConversationRow.findBetween(pair.userId, pair.sellerId)
+    const existing = await ConversationRow.findBetween(
+      pair.userId,
+      pair.sellerId,
+    )
     if (existing == null) {
       try {
         await ConversationRow.create(

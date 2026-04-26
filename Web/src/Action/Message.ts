@@ -50,7 +50,9 @@ async function loadConversationsCmd(): Promise<Action | null> {
     if (response.success && response.conversations) {
       return setConversations(response.conversations)
     }
-    return setConversationsError(response.error ?? "Failed to load conversations")
+    return setConversationsError(
+      response.error ?? "Failed to load conversations",
+    )
   } catch (err) {
     Logger.error(err)
     return setConversationsError("Failed to load conversations")
@@ -295,7 +297,10 @@ export function setIsLoading(isLoading: boolean): Action {
 
 export function updateNewChatInput(text: string): Action {
   return (state: State) => {
-    return [_MessageState(state, { newChatInput: text, newChatError: null }), cmd()]
+    return [
+      _MessageState(state, { newChatInput: text, newChatError: null }),
+      cmd(),
+    ]
   }
 }
 
@@ -310,7 +315,12 @@ export function startConversation(): Action {
     const { newChatInput } = state.message
     const input = newChatInput.trim()
     if (!input) {
-      return [_MessageState(state, { newChatError: "Please enter a user or seller ID" }), cmd()]
+      return [
+        _MessageState(state, {
+          newChatError: "Please enter a user or seller ID",
+        }),
+        cmd(),
+      ]
     }
 
     async function startConversationCmd(): Promise<Action | null> {
@@ -410,7 +420,10 @@ function openConversationWithParticipant(
           return setError("Connection timeout. Please try again.")
         }
 
-        const response = await emitStartConversation(participantID, participantType)
+        const response = await emitStartConversation(
+          participantID,
+          participantType,
+        )
         if (response.success && response.conversation) {
           const conversation = response.conversation
           const messagesResponse = await emitGetMessages(

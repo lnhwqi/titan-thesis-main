@@ -98,7 +98,9 @@ export const messageDecoder: JD.Decoder<Message> = JD.object({
   senderType: senderTypeDecoder,
   senderName: JD.string,
   text: messageTextDecoder,
-  readAt: JD.optional(JD.nullable(jsDateDecoder)).transform((date) => date ?? null),
+  readAt: JD.optional(JD.nullable(jsDateDecoder)).transform(
+    (date) => date ?? null,
+  ),
   createdAt: jsDateDecoder,
 })
 
