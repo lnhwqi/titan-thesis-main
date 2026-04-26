@@ -1,6 +1,7 @@
 import { css } from "@emotion/css"
 import { State } from "../../State"
 import { JSX } from "react"
+import { Chatbox } from "../Part/Chatbox"
 
 type Props = { state: State; Page: React.FC<{ state: State }> }
 export function EmptyLayout(props: Props): JSX.Element {
@@ -8,6 +9,7 @@ export function EmptyLayout(props: Props): JSX.Element {
   return (
     <div className={styles.container}>
       <Page state={state} />
+      <Chatbox state={state} />
     </div>
   )
 }

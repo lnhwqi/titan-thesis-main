@@ -8,11 +8,14 @@ import {
   toOrderPayment,
   toOrderPaymentItem,
 } from "../../../../App/OrderPayment"
+import * as ConversationRow from "../../../../Database/ConversationRow"
+import * as MessageRow from "../../../../Database/ConversationMessageRow"
 import { createPrice } from "../../../../../../Core/App/Product/Price"
 import { createOrderPaymentID } from "../../../../../../Core/App/OrderPayment/OrderPaymentID"
 import { toAddressStorage } from "../../../../App/Address"
 import { createNow, toDate } from "../../../../../../Core/Data/Time/Timestamp"
 import { createUUID } from "../../../../../../Core/Data/UUID"
+import { getSocketIO } from "../../../../Socket"
 
 export const contract = API.contract
 
@@ -326,6 +329,12 @@ export async function handler(
       return created
     })
 
+    try {
+      await emitOrderPaymentBriefChatMessages(createdOrders)
+    } catch {
+      // Do not fail successful order creation when chat notification delivery fails.
+    }
+
     return ok({
       orderPayments: createdOrders.map((order) =>
         toOrderPayment(order.row, order.items.map(toOrderPaymentItem)),
@@ -359,4 +368,89 @@ export async function handler(
 
     throw e
   }
+}
+
+async function emitOrderPaymentBriefChatMessages(
+  createdOrders: Array<{
+    row: OrderPaymentRow.OrderPaymentRow
+    items: OrderPaymentItemRow.OrderPaymentItemRow[]
+  }>,
+): Promise<void> {
+  const io = getSocketIO()
+
+  for (const createdOrder of createdOrders) {
+    const row = createdOrder.row
+    if (!row.isPaid) {
+      continue
+    }
+
+    const userID = row.userId.unwrap()
+    const sellerID = row.sellerId.unwrap()
+
+    let conversation = await ConversationRow.findBetween(userID, sellerID)
+    if (conversation == null) {
+      try {
+        conversation = await ConversationRow.create(
+          userID,
+          "USER",
+          sellerID,
+          "SELLER",
+        )
+      } catch {
+        conversation = await ConversationRow.findBetween(userID, sellerID)
+      }
+    }
+
+    if (conversation == null) {
+      continue
+    }
+
+    const message = await MessageRow.create({
+      conversationId: conversation.id,
+      senderId: "SYSTEM",
+      senderType: "SYSTEM",
+      senderName: "System",
+      text: buildOrderPaymentBriefText(row),
+    })
+    await ConversationRow.touch(conversation.id)
+
+    if (io != null) {
+      io.to(`conversation:${conversation.id}`).emit("message:received", {
+        message: {
+          id: message.id,
+          conversationID: message.conversationId,
+          senderID: message.senderId,
+          senderType: message.senderType,
+          senderName: message.senderName,
+          text: message.text,
+          readAt: message.readAt,
+          createdAt: message.createdAt,
+        },
+      })
+      io.to(`user:${userID}`).emit("conversation:updated", {
+        conversationID: conversation.id,
+      })
+      io.to(`user:${sellerID}`).emit("conversation:updated", {
+        conversationID: conversation.id,
+      })
+    }
+  }
+}
+
+function buildOrderPaymentBriefText(
+  row: OrderPaymentRow.OrderPaymentRow,
+): string {
+  const orderCode = row.id.unwrap().slice(0, 8)
+  const amount = row.price.unwrap()
+  const goodsSummary = row.goodsSummary.trim()
+  const summary =
+    goodsSummary.length > 140
+      ? `${goodsSummary.slice(0, 137)}...`
+      : goodsSummary
+
+  if (summary === "") {
+    return `Order #${orderCode} paid successfully. Amount: T ${amount}.`
+  }
+
+  return `Order #${orderCode} paid successfully. Items: ${summary}. Amount: T ${amount}.`
 }

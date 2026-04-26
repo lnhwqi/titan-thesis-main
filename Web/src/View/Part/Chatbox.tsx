@@ -20,35 +20,32 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
     messagesLoading,
     typingUsers,
     onlineUsers,
+    error,
+    conversationsError,
   } = state.message
 
-  const handleToggle = () => {
-    emit(MessageAction.toggleChatbox())
-  }
-
-  const handleOpenConversation = (conversationID: ConversationID) => {
+  const handleToggle = () => emit(MessageAction.toggleChatbox())
+  const handleOpenConversation = (conversationID: ConversationID) =>
     emit(MessageAction.openConversation(conversationID))
-  }
-
-  const handleChangeMessage = (text: string) => {
+  const handleChangeMessage = (text: string) =>
     emit(MessageAction.updateMessageInput(text))
-  }
-
-  const handleSendMessage = () => {
-    emit(MessageAction.sendMessage())
-  }
-
+  const handleSendMessage = () => emit(MessageAction.sendMessage())
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
     }
   }
-
   return (
     <div className={`${styles.chatboxContainer} ${isOpen ? styles.open : ""}`}>
-      {/* Chatbox Toggle Button */}
+      {/* Toggle Button */}
       <div className={styles.chatboxToggleWrap}>
+        {!isOpen && (
+          <div className={styles.chatboxBubble}>
+            <span className={styles.chatboxBubbleText}>Chat with us!</span>
+            <span className={styles.chatboxBubbleTail} />
+          </div>
+        )}
         <button
           className={`${styles.chatboxToggle} ${isOpen ? styles.chatboxToggleOpen : ""}`}
           onClick={handleToggle}
@@ -76,20 +73,24 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
             </button>
           </div>
 
+          {(error != null || conversationsError != null) && (
+            <p className={styles.errorBanner}>{error ?? conversationsError}</p>
+          )}
+
           <div className={styles.content}>
             {/* Conversations List */}
             <div className={styles.conversationList}>
               <h4>Conversations</h4>
               {conversationsLoading && <p>Loading conversations...</p>}
               <ul className={styles.conversations}>
-                {conversations.length === 0 ? (
-                  <p className={styles.emptyState}>No conversations yet</p>
+                {conversations.length === 0 && !conversationsLoading ? (
+                  <p className={styles.emptyState}>No conversations yet.</p>
                 ) : (
                   conversations.map((conv) => (
                     <li
                       key={conv.id.unwrap()}
                       className={`${styles.conversationItem} ${
-                        currentConversationID === conv.id ? styles.active : ""
+                        currentConversationID?.unwrap() === conv.id.unwrap() ? styles.active : ""
                       }`}
                       onClick={() => handleOpenConversation(conv.id)}
                     >
@@ -109,7 +110,8 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                       {conv.lastMessage && (
                         <p className={styles.lastMessage}>
                           {conv.lastMessage.senderName}:{" "}
-                          {conv.lastMessage.text.unwrap().substring(0, 30)}...
+                          {conv.lastMessage.text.unwrap().substring(0, 30)}
+                          {conv.lastMessage.text.unwrap().length > 30 ? "…" : ""}
                         </p>
                       )}
                     </li>
@@ -118,7 +120,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
               </ul>
             </div>
 
-            {/* Messages Display */}
+            {/* Messages Panel */}
             {currentConversationID && (
               <div className={styles.messagesContainer}>
                 {messagesLoading && (
@@ -128,7 +130,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                   <div className={styles.messagesList}>
                     {currentMessages.length === 0 && (
                       <p className={styles.noMessages}>
-                        No messages yet. Start the conversation!
+                        No messages yet. Say hello!
                       </p>
                     )}
                     {currentMessages.map((msg) => (
@@ -175,7 +177,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                   <textarea
                     id="chatbox-input"
                     className={styles.input}
-                    placeholder="Type your message... (Shift+Enter for new line)"
+                    placeholder="Type a message… (Enter to send)"
                     value={messageInput}
                     onChange={(e) => handleChangeMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -190,7 +192,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                     disabled={isLoading || !messageInput.trim()}
                     aria-label="Send message"
                   >
-                    {isLoading ? "Sending..." : "Send"}
+                    {isLoading ? "…" : "Send"}
                   </button>
                 </div>
               </div>

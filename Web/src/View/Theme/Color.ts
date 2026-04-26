@@ -91,7 +91,8 @@ export const Color = {
     darkBorder: "#2D2D44",
     gradientPurplePink: "linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)",
     gradientCyanLime: "linear-gradient(135deg, #06B6D4 0%, #84CC16 100%)",
-    gradientHero: "linear-gradient(135deg, #7C3AED 0%, #EC4899 50%, #F97316 100%)",
+    gradientHero:
+      "linear-gradient(135deg, #7C3AED 0%, #EC4899 50%, #F97316 100%)",
   },
 
   transparent: "transparent",

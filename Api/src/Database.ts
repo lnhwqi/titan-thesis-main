@@ -27,6 +27,8 @@ export type Schema = {
   market_config: MarketConfigTable
   product_rating: ProductRatingTable
   product_rating_report: ProductRatingReportTable
+  conversation: ConversationTable
+  conversation_message: ConversationMessageTable
 }
 
 type UserTable = {
@@ -328,6 +330,27 @@ export type ProductVariantTable = {
   stock: number
   isDeleted: boolean
   updatedAt: Date
+  createdAt: Date
+}
+
+export type ConversationTable = {
+  id: string
+  user1Id: string
+  user1Type: "USER" | "SELLER"
+  user2Id: string
+  user2Type: "USER" | "SELLER"
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type ConversationMessageTable = {
+  id: string
+  conversationId: string
+  senderId: string
+  senderType: "USER" | "SELLER" | "SYSTEM"
+  senderName: string
+  text: string
+  readAt: Date | null
   createdAt: Date
 }
 

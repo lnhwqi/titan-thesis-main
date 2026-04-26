@@ -3,6 +3,8 @@ import { css } from "@emotion/css"
 import { AuthState, PublicState } from "../State"
 import { color, font, theme } from "../View/Theme"
 import { ProductCard } from "../View/Part/ProductCard"
+import { emit } from "../Runtime/React"
+import * as MessageAction from "../Action/Message"
 
 export type SellerProfilePageProps = { state: AuthState | PublicState }
 
@@ -50,6 +52,17 @@ export default function SellerProfilePage(
         <p className={styles.shopDescription}>
           {seller.shopDescription.unwrap()}
         </p>
+
+        {state._t === "AuthUser" && (
+          <button
+            className={styles.messageBtn}
+            onClick={() =>
+              emit(MessageAction.openConversationWithSeller(seller.id))
+            }
+          >
+            Message Seller
+          </button>
+        )}
       </section>
 
       <section className={styles.productsSection}>
@@ -128,6 +141,20 @@ const styles = {
     ...font.regular17,
     color: color.neutral800,
     margin: 0,
+  }),
+  messageBtn: css({
+    alignSelf: "flex-start",
+    marginTop: theme.s2,
+    padding: `${theme.s2} ${theme.s5}`,
+    background: color.genz.purple,
+    color: color.neutral0,
+    border: "none",
+    borderRadius: theme.br1,
+    ...font.medium14,
+    cursor: "pointer",
+    ":hover": {
+      opacity: 0.85,
+    },
   }),
   productsSection: css({
     display: "flex",

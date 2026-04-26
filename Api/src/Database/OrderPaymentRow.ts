@@ -303,6 +303,45 @@ export async function getBySellerID(
     )
 }
 
+export async function hasPaidOrderBetween(
+  userId: string,
+  sellerId: string,
+): Promise<boolean> {
+  const row = await db
+    .selectFrom(tableName)
+    .select("id")
+    .where("userId", "=", userId)
+    .where("sellerId", "=", sellerId)
+    .where("isDeleted", "=", false)
+    .where("isPaid", "=", true)
+    .executeTakeFirst()
+
+  return row != null
+}
+
+export async function getPaidConversationPairsForParticipant(
+  participantId: string,
+  participantType: "USER" | "SELLER",
+): Promise<Array<{ userId: string; sellerId: string }>> {
+  const rows = await db
+    .selectFrom(tableName)
+    .select(["userId", "sellerId"])
+    .where("isDeleted", "=", false)
+    .where("isPaid", "=", true)
+    .where(
+      participantType === "USER" ? "userId" : "sellerId",
+      "=",
+      participantId,
+    )
+    .distinct()
+    .execute()
+
+  return rows.map((row) => ({
+    userId: row.userId,
+    sellerId: row.sellerId,
+  }))
+}
+
 export async function getAllPaid(): Promise<OrderPaymentRow[]> {
   return db
     .selectFrom(tableName)

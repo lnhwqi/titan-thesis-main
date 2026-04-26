@@ -6,6 +6,7 @@ import { emit } from "../Runtime/React"
 import * as OrderPaymentAction from "../Action/OrderPayment"
 import * as ReportAction from "../Action/Report"
 import * as ProductRatingReportAction from "../Action/ProductRatingReport"
+import * as MessageAction from "../Action/Message"
 import { navigateTo, toRoute } from "../Route"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
 import { formatAddress } from "../../../Core/App/Address"
@@ -130,6 +131,14 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                   <span className={styles.metaValue}>
                     {order.username.unwrap()}
                   </span>
+                  <button
+                    className={styles.messageBuyerBtn}
+                    onClick={() =>
+                      emit(MessageAction.openConversationWithUser(order.userID))
+                    }
+                  >
+                    Message Buyer
+                  </button>
                 </div>
                 <div className={styles.metaItem}>
                   <span className={styles.metaLabel}>Amount</span>
@@ -583,6 +592,16 @@ const styles = {
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
     cursor: "pointer",
+  }),
+  messageBuyerBtn: css({
+    border: `1px solid ${color.genz.purple300}`,
+    background: color.neutral0,
+    color: color.genz.purple,
+    borderRadius: theme.s2,
+    padding: `${theme.s1} ${theme.s3}`,
+    ...font.medium14,
+    cursor: "pointer",
+    justifySelf: "start",
   }),
   primaryButton: css({
     border: "none",

@@ -19,6 +19,9 @@ export type MessageState = {
   typingUsers: Set<string>
   onlineUsers: Set<string>
   isOpen: boolean
+  showNewChat: boolean
+  newChatInput: string
+  newChatError: string | null
 }
 
 export function initMessageState(): MessageState {
@@ -36,6 +39,9 @@ export function initMessageState(): MessageState {
     typingUsers: new Set(),
     onlineUsers: new Set(),
     isOpen: false,
+    showNewChat: false,
+    newChatInput: "",
+    newChatError: null,
   }
 }
 

@@ -43,6 +43,17 @@ export type MessageListPayload = {
   conversationID: ConversationID
 }
 
+const jsDateDecoder: JD.Decoder<Date> = JD.either(
+  JD.date,
+  JD.string.transform((value) => {
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error(`Invalid date: ${value}`)
+    }
+    return parsed
+  }),
+)
+
 // Constructor functions (instead of type assertions)
 function createMessageID(id: string): MessageID {
   return jsonValueCreate<string, typeof messageIDKey>(messageIDKey)(id)
@@ -87,18 +98,20 @@ export const messageDecoder: JD.Decoder<Message> = JD.object({
   senderType: senderTypeDecoder,
   senderName: JD.string,
   text: messageTextDecoder,
-  readAt: JD.optional(JD.date).transform((date) => date ?? null),
-  createdAt: JD.date,
+  readAt: JD.optional(JD.nullable(jsDateDecoder)).transform((date) => date ?? null),
+  createdAt: jsDateDecoder,
 })
 
 export const conversationDecoder: JD.Decoder<Conversation> = JD.object({
   id: conversationIDDecoder,
   participantIDs: JD.either(userIDDecoder, sellerIDDecoder),
   participantName: JD.string,
-  lastMessage: JD.optional(messageDecoder).transform((msg) => msg ?? null),
+  lastMessage: JD.optional(JD.nullable(messageDecoder)).transform(
+    (msg) => msg ?? null,
+  ),
   unreadCount: JD.number,
-  createdAt: JD.date,
-  updatedAt: JD.date,
+  createdAt: jsDateDecoder,
+  updatedAt: jsDateDecoder,
 })
 
 // Exported constructor functions for use in components

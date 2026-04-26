@@ -4,7 +4,13 @@ import type {
   Conversation,
   ConversationID,
 } from "../../../Core/App/Message"
+import {
+  conversationDecoder,
+  messageDecoder,
+} from "../../../Core/App/Message"
+import * as JD from "decoders"
 import * as Logger from "../Logger"
+import Env from "../Env"
 
 let socket: Socket | null = null
 
@@ -21,14 +27,17 @@ export type SocketEventHandlers = {
     userID: string
     status: "online" | "offline"
   }) => void
+  onConversationUpdated: (conversationID: string) => void
 }
 
 /**
- * Initialize Socket.IO connection and event listeners
+ * Initialize Socket.IO connection and event listeners.
+ * Pass authToken for logged-in users, guestID for guests.
  */
 export function initializeSocket(
   handlers: SocketEventHandlers,
   authToken?: string,
+  guestID?: string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     if (socket && socket.connected) {
@@ -37,13 +46,10 @@ export function initializeSocket(
     }
 
     try {
-      const socketUrl =
-        process.env.REACT_APP_SOCKET_URL || "http://localhost:3001"
+      const socketUrl = `http://${Env.API_HOST}`
 
       socket = io(socketUrl, {
-        auth: {
-          token: authToken,
-        },
+        auth: authToken ? { token: authToken } : { guestID },
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
@@ -88,14 +94,33 @@ export function getSocket(): Socket | null {
 }
 
 /**
+ * Wait for socket to be connected (with retries)
+ */
+export async function waitForSocketConnection(
+  maxRetries: number = 10,
+  retryDelay: number = 100,
+): Promise<boolean> {
+  for (let i = 0; i < maxRetries; i++) {
+    if (socket && socket.connected) {
+      return true
+    }
+    await new Promise((resolve) => setTimeout(resolve, retryDelay))
+  }
+  return false
+}
+
+/**
  * Setup all message-related event listeners
  */
 function setupMessageListeners(
   socket: Socket,
   handlers: SocketEventHandlers,
 ): void {
-  socket.on("message:received", (data: { message: Message }) => {
-    handlers.onMessageReceived(data.message)
+  socket.on("message:received", (data: { message: unknown }) => {
+    const decoded = messageDecoder.decode(data.message)
+    if (decoded.ok) {
+      handlers.onMessageReceived(decoded.value)
+    }
   })
 
   socket.on(
@@ -120,8 +145,8 @@ function setupMessageListeners(
     // no-op: read receipts handled via state
   })
 
-  socket.on("conversation:updated", (_data: { conversationID: string }) => {
-    // no-op: handled via message receive
+  socket.on("conversation:updated", (data: { conversationID: string }) => {
+    handlers.onConversationUpdated(data.conversationID)
   })
 
   socket.on("error", (err: Error) => {
@@ -151,8 +176,17 @@ export function emitSendMessage(
     socket.emit(
       "message:send",
       { conversationID, text },
-      (response: { success: boolean; message?: Message; error?: string }) => {
-        resolve(response)
+      (raw: { success: boolean; message?: unknown; error?: string }) => {
+        if (raw.success && raw.message != null) {
+          const decoded = messageDecoder.decode(raw.message)
+          resolve(
+            decoded.ok
+              ? { success: true, message: decoded.value }
+              : { success: false, error: "Invalid message response" },
+          )
+        } else {
+          resolve({ success: raw.success, error: raw.error })
+        }
       },
     )
   })
@@ -196,12 +230,17 @@ export function emitGetConversations(): Promise<{
     socket.emit(
       "conversation:list",
       {},
-      (response: {
-        success: boolean
-        conversations?: Conversation[]
-        error?: string
-      }) => {
-        resolve(response)
+      (raw: { success: boolean; conversations?: unknown[]; error?: string }) => {
+        if (raw.success && raw.conversations != null) {
+          const decoded = JD.array(conversationDecoder).decode(raw.conversations)
+          resolve(
+            decoded.ok
+              ? { success: true, conversations: decoded.value }
+              : { success: false, error: "Invalid conversations response" },
+          )
+        } else {
+          resolve({ success: raw.success, error: raw.error })
+        }
       },
     )
   })
@@ -230,14 +269,23 @@ export function emitGetMessages(
     socket.emit(
       "message:list",
       { conversationID, page, limit },
-      (response: {
+      (raw: {
         success: boolean
-        messages?: Message[]
+        messages?: unknown[]
         page?: number
         totalCount?: number
         error?: string
       }) => {
-        resolve(response)
+        if (raw.success && raw.messages != null) {
+          const decoded = JD.array(messageDecoder).decode(raw.messages)
+          resolve(
+            decoded.ok
+              ? { success: true, messages: decoded.value, page: raw.page, totalCount: raw.totalCount }
+              : { success: false, error: "Invalid messages response" },
+          )
+        } else {
+          resolve({ success: raw.success, error: raw.error })
+        }
       },
     )
   })
@@ -246,7 +294,10 @@ export function emitGetMessages(
 /**
  * Start new conversation
  */
-export function emitStartConversation(participantID: string): Promise<{
+export function emitStartConversation(
+  participantID: string,
+  participantType: "USER" | "SELLER" = "USER",
+): Promise<{
   success: boolean
   conversation?: Conversation
   error?: string
@@ -259,13 +310,18 @@ export function emitStartConversation(participantID: string): Promise<{
 
     socket.emit(
       "conversation:start",
-      { participantID },
-      (response: {
-        success: boolean
-        conversation?: Conversation
-        error?: string
-      }) => {
-        resolve(response)
+      { participantID, participantType },
+      (raw: { success: boolean; conversation?: unknown; error?: string }) => {
+        if (raw.success && raw.conversation != null) {
+          const decoded = conversationDecoder.decode(raw.conversation)
+          resolve(
+            decoded.ok
+              ? { success: true, conversation: decoded.value }
+              : { success: false, error: "Invalid conversation response" },
+          )
+        } else {
+          resolve({ success: raw.success, error: raw.error })
+        }
       },
     )
   })

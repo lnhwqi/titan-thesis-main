@@ -10,6 +10,7 @@ import * as AuthToken from "../App/AuthToken"
 import { toRoute, goBack, navigateTo } from "../Route"
 import { initAuthState, initState } from "../State/init"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
+import { reconnectAuthenticated, reconnectGuest } from "../Subscription"
 
 export function onChangeEmail(value: string): Action {
   return (state) => {
@@ -41,6 +42,7 @@ export function logout(): Action {
 
 function onLogout(): Action {
   return (_state) => {
+    reconnectGuest()
     return [initState(toRoute("Login", { redirect: null })), cmd()]
   }
 }
@@ -92,7 +94,7 @@ export function onSubmitResponse(response: LoginApi.Response): Action {
       refreshToken,
     })
 
-    // Create the updated state first
+    reconnectAuthenticated(String(accessToken.toJSON()))
     const nextState = _LoginState(initAuthState(user, state), {
       loginResponse: RD.success(response.value),
     })
@@ -125,6 +127,8 @@ function onSubmitSellerResponse(response: LoginSellerApi.Response): Action {
       refreshToken,
     })
 
+    reconnectAuthenticated(String(accessToken.toJSON()))
+
     return [
       _LoginState(state, { loginResponse: RD.notAsked() }),
       cmd(perform(navigateTo(toRoute("SellerDashboard", {})))),
@@ -151,6 +155,8 @@ function onSubmitAdminResponse(response: LoginAdminApi.Response): Action {
       accessToken,
       refreshToken,
     })
+
+    reconnectAuthenticated(String(accessToken.toJSON()))
 
     return [
       _LoginState(state, { loginResponse: RD.notAsked() }),
