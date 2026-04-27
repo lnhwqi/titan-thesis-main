@@ -738,7 +738,10 @@ function normalizeSupportQuestion(question: string): string {
 }
 
 function formatSupportAnswer(response: SupportAnswer): string {
-  const answer = clampSupportText(response.answer.trim(), SUPPORT_MAX_REPLY_LENGTH)
+  const answer = clampSupportText(
+    response.answer.trim(),
+    SUPPORT_MAX_REPLY_LENGTH,
+  )
   if (answer.length === 0) {
     return ""
   }
@@ -766,7 +769,10 @@ function formatSupportCitations(response: SupportAnswer): string[] {
   return Array.from(bestBySource.values())
     .sort((a, b) => b.score - a.score)
     .slice(0, SUPPORT_MAX_CITATIONS)
-    .map((item, index) => `${index + 1}. ${item.source} (${item.score.toFixed(2)})`)
+    .map(
+      (item, index) =>
+        `${index + 1}. ${item.source} (${item.score.toFixed(2)})`,
+    )
 }
 
 function clampSupportText(text: string, maxLength: number): string {
@@ -815,7 +821,10 @@ function checkSupportRateLimit(userID: string): {
   }
 
   if (state.requestCount >= SUPPORT_MAX_REQUESTS_PER_WINDOW) {
-    const remaining = Math.max(1, SUPPORT_WINDOW_MS - (now - state.windowStartAtMs))
+    const remaining = Math.max(
+      1,
+      SUPPORT_WINDOW_MS - (now - state.windowStartAtMs),
+    )
     const waitSeconds = Math.ceil(remaining / 1000)
     return {
       allowed: false,
