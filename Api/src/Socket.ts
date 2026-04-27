@@ -475,7 +475,10 @@ async function ensureSupportConversation(user: AuthUser): Promise<void> {
     return
   }
 
-  const existing = await ConversationRow.findBetween(user.id, SUPPORT_PARTICIPANT_ID)
+  const existing = await ConversationRow.findBetween(
+    user.id,
+    SUPPORT_PARTICIPANT_ID,
+  )
   if (existing != null) {
     return
   }
@@ -601,7 +604,9 @@ function toClientSenderID(
   return senderId
 }
 
-function isSupportConversation(conversation: ConversationRow.ConversationRow): boolean {
+function isSupportConversation(
+  conversation: ConversationRow.ConversationRow,
+): boolean {
   return (
     conversation.user1Id === SUPPORT_PARTICIPANT_ID ||
     conversation.user2Id === SUPPORT_PARTICIPANT_ID
