@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto"
-import db, { Schema } from "../Database"
+import { sql } from "kysely"
+import db from "../Database"
+import type { Schema } from "../Database"
 import * as Logger from "../Logger"
 import { VectorDocumentDraft } from "../AI/IngestionContract"
 import {
@@ -36,7 +38,9 @@ export type AIIngestionCheckpointRow = {
   createdAt: Date
 }
 
-export async function upsertDraft(draft: VectorDocumentDraft): Promise<void> {
+export async function upsertDraft(
+  draft: VectorDocumentDraft,
+): Promise<AIVectorDocumentRow> {
   const now = new Date()
 
   return db
@@ -53,7 +57,7 @@ export async function upsertDraft(draft: VectorDocumentDraft): Promise<void> {
       participantUserIds: draft.access.participantUserIds,
       participantSellerIds: draft.access.participantSellerIds,
       metadata: draft.metadata,
-      embedding: null,
+      embedding: sql`'[]'::jsonb`,
       createdAt: now,
       updatedAt: now,
     })
@@ -66,15 +70,44 @@ export async function upsertDraft(draft: VectorDocumentDraft): Promise<void> {
         participantUserIds: draft.access.participantUserIds,
         participantSellerIds: draft.access.participantSellerIds,
         metadata: draft.metadata,
+        embedding: sql`'[]'::jsonb`,
         updatedAt: now,
       }),
     )
-    .execute()
-    .then(() => undefined)
+    .returningAll()
+    .executeTakeFirstOrThrow()
     .catch((e) => {
       Logger.error(`#${vectorTable}.upsertDraft error: ${e}`)
       throw e
     })
+}
+
+export async function updateEmbedding(
+  documentId: string,
+  embedding: number[],
+): Promise<void> {
+  const normalized = _normalizeEmbedding(embedding)
+
+  if (normalized.length === 0) {
+    return
+  }
+
+  const now = new Date()
+  const embeddingJson = JSON.stringify(normalized)
+
+  await sql`
+    update ai_vector_document
+    set embedding = cast(${embeddingJson} as jsonb),
+        "updatedAt" = ${now}
+    where id = ${documentId}
+  `
+    .execute(db)
+    .catch((e) => {
+      Logger.error(`#${vectorTable}.updateEmbedding error: ${e}`)
+      throw e
+    })
+
+  await _trySyncEmbeddingVector(documentId, normalized)
 }
 
 export async function listBySource(
@@ -166,4 +199,59 @@ export async function upsertCheckpoint(params: {
       Logger.error(`#${checkpointTable}.upsertCheckpoint error: ${e}`)
       throw e
     })
+}
+
+function _normalizeEmbedding(values: number[]): number[] {
+  return values
+    .filter((value) => Number.isFinite(value))
+    .map((value) => Number(value))
+}
+
+async function _trySyncEmbeddingVector(
+  documentId: string,
+  embedding: number[],
+): Promise<void> {
+  const vectorReady = await _isVectorColumnReady()
+  if (!vectorReady) {
+    return
+  }
+
+  const vectorLiteral = _toVectorLiteral(embedding)
+
+  await sql`
+    update ai_vector_document
+    set "embeddingVector" = cast(${vectorLiteral} as vector)
+    where id = ${documentId}
+  `
+    .execute(db)
+    .then(() => undefined)
+    .catch((e) => {
+      Logger.warn(`#${vectorTable}.syncEmbeddingVector skipped: ${e}`)
+    })
+}
+
+async function _isVectorColumnReady(): Promise<boolean> {
+  return sql<{ ready: boolean }>`
+    select
+      (
+        to_regtype('vector') is not null
+        and exists (
+          select 1
+          from information_schema.columns
+          where table_name = 'ai_vector_document'
+            and column_name = 'embeddingVector'
+        )
+      ) as ready
+  `
+    .execute(db)
+    .then((result) => result.rows[0]?.ready === true)
+    .catch(() => false)
+}
+
+function _toVectorLiteral(values: number[]): string {
+  const safe = values
+    .filter((value) => Number.isFinite(value))
+    .map((value) => Number(value).toFixed(12))
+
+  return `[${safe.join(",")}]`
 }

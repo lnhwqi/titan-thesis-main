@@ -13,6 +13,7 @@
     "db:seed": "bash ./devops/external/db-seed.sh",
     "db:rollback": "bash ./devops/external/db-rollback.sh",
     "db:migrate:create": "bash ./devops/external/db-migrate-create.sh",
+    "ai:ingest": "bash ./devops/dev/ai-ingest.sh",
     "test": "bash ./devops/test/run-test.sh",
     "test:watch": "bash ./devops/test/run-test.sh --watch",
     "staging:deploy:api": "TODO",

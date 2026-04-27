@@ -1,8 +1,6 @@
 import { Kysely, sql } from "kysely"
 
 export async function up(db: Kysely<unknown>): Promise<void> {
-  await sql`create extension if not exists vector`.execute(db)
-
   await db.schema
     .createTable("ai_vector_document")
     .addColumn("id", "varchar(36)", (col) => col.primaryKey())
@@ -22,7 +20,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("metadata", "jsonb", (col) =>
       col.notNull().defaultTo(sql`'{}'::jsonb`),
     )
-    .addColumn("embedding", sql`vector(768)`)
+    .addColumn("embedding", "jsonb", (col) =>
+      col.notNull().defaultTo(sql`'[]'::jsonb`),
+    )
     .addColumn("createdAt", "timestamp", (col) =>
       col.notNull().defaultTo(sql`now()`),
     )
@@ -69,10 +69,25 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   `.execute(db)
 
   await sql`
-    create index ai_vector_document_embedding_ivfflat_idx
-    on ai_vector_document
-    using ivfflat (embedding vector_cosine_ops)
-    with (lists = 100)
+    do $$
+    begin
+      if exists (select 1 from pg_available_extensions where name = 'vector') then
+        create extension if not exists vector;
+
+        alter table ai_vector_document
+        add column if not exists "embeddingVector" vector(768);
+
+        create index if not exists ai_vector_document_embedding_ivfflat_idx
+        on ai_vector_document
+        using ivfflat ("embeddingVector" vector_cosine_ops)
+        with (lists = 100);
+      end if;
+    exception
+      when others then
+        -- Keep migration compatible on environments without pgvector.
+        null;
+    end
+    $$
   `.execute(db)
 
   await db.schema

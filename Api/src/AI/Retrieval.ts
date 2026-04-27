@@ -1,4 +1,3 @@
-import type { Schema } from "../Database"
 import {
   ActorContext,
   VectorDocumentMeta,
@@ -17,7 +16,7 @@ export type VectorSearchResult = {
   score: number
   content: string
   metadata: VectorDocumentMeta & {
-    sourceTable: keyof Schema
+    sourceTable: string
     sourceRowId: string
     sourceUpdatedAt: string
     chunkIndex: number
