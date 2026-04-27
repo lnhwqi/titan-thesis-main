@@ -29,6 +29,8 @@ export type Schema = {
   product_rating_report: ProductRatingReportTable
   conversation: ConversationTable
   conversation_message: ConversationMessageTable
+  ai_vector_document: AIVectorDocumentTable
+  ai_ingestion_checkpoint: AIIngestionCheckpointTable
 }
 
 type UserTable = {
@@ -351,6 +353,31 @@ export type ConversationMessageTable = {
   senderName: string
   text: string
   readAt: Date | null
+  createdAt: Date
+}
+
+export type AIVectorDocumentTable = {
+  id: string
+  sourceTable: string
+  sourceRowId: string
+  sourceUpdatedAt: Date
+  chunkIndex: number
+  content: string
+  contentHash: string
+  scope: "PUBLIC" | "PARTICIPANT_PRIVATE" | "ADMIN_INTERNAL"
+  participantUserIds: string[]
+  participantSellerIds: string[]
+  metadata: Record<string, unknown>
+  embedding: unknown
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type AIIngestionCheckpointTable = {
+  tableName: string
+  lastSourceUpdatedAt: Date | null
+  lastRunAt: Date
+  updatedAt: Date
   createdAt: Date
 }
 

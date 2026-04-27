@@ -18,9 +18,9 @@ describe("Api/AI/SecurityPolicy", () => {
     expect(isColumnAllowedForVectorIngestion("seller", "shopName")).toBe(true)
     expect(isColumnAllowedForVectorIngestion("seller", "email")).toBe(false)
     expect(isColumnAllowedForVectorIngestion("seller", "password")).toBe(false)
-    expect(isColumnAllowedForVectorIngestion("order_payment", "trackingCode")).toBe(
-      false,
-    )
+    expect(
+      isColumnAllowedForVectorIngestion("order_payment", "trackingCode"),
+    ).toBe(false)
   })
 
   test("row filtering keeps only allowed columns", () => {
@@ -51,12 +51,12 @@ describe("Api/AI/SecurityPolicy", () => {
       participantSellerIds: ["s-2"],
     }
 
-    expect(canActorReadVectorDocument({ role: "USER", userId: "u-1" }, metadata)).toBe(
-      true,
-    )
-    expect(canActorReadVectorDocument({ role: "USER", userId: "u-2" }, metadata)).toBe(
-      false,
-    )
+    expect(
+      canActorReadVectorDocument({ role: "USER", userId: "u-1" }, metadata),
+    ).toBe(true)
+    expect(
+      canActorReadVectorDocument({ role: "USER", userId: "u-2" }, metadata),
+    ).toBe(false)
     expect(
       canActorReadVectorDocument({ role: "SELLER", sellerId: "s-2" }, metadata),
     ).toBe(true)
@@ -71,11 +71,14 @@ describe("Api/AI/SecurityPolicy", () => {
     }
 
     expect(
-      canActorReadVectorDocument({ role: "ADMIN", adminId: "admin-1" }, metadata),
+      canActorReadVectorDocument(
+        { role: "ADMIN", adminId: "admin-1" },
+        metadata,
+      ),
     ).toBe(true)
-    expect(canActorReadVectorDocument({ role: "USER", userId: "u-1" }, metadata)).toBe(
-      false,
-    )
+    expect(
+      canActorReadVectorDocument({ role: "USER", userId: "u-1" }, metadata),
+    ).toBe(false)
   })
 
   test("enabled table list contains protected participant tables", () => {

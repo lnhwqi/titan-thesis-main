@@ -1,4 +1,4 @@
-import { Schema } from "../Database"
+import type { Schema } from "../Database"
 
 export type ActorContext =
   | { role: "GUEST" }
@@ -25,7 +25,9 @@ type TableIngestionPolicyEntry = {
   policy: TableIngestionPolicy
 }
 
-type TableIngestionPolicyMap = Partial<Record<keyof Schema, TableIngestionPolicy>>
+type TableIngestionPolicyMap = Partial<
+  Record<keyof Schema, TableIngestionPolicy>
+>
 
 const GLOBAL_DENY_EXACT: string[] = [
   "password",
@@ -117,7 +119,14 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
         "updatedAt",
         "createdAt",
       ],
-      deniedColumns: ["email", "password", "wallet", "revenue", "withdrawn", "profit"],
+      deniedColumns: [
+        "email",
+        "password",
+        "wallet",
+        "revenue",
+        "withdrawn",
+        "profit",
+      ],
     },
   },
   {
@@ -383,7 +392,9 @@ export function canActorReadVectorDocument(
   return false
 }
 
-function _toPolicyMap(entries: TableIngestionPolicyEntry[]): TableIngestionPolicyMap {
+function _toPolicyMap(
+  entries: TableIngestionPolicyEntry[],
+): TableIngestionPolicyMap {
   const map: TableIngestionPolicyMap = {}
 
   entries.forEach((entry) => {
@@ -393,8 +404,13 @@ function _toPolicyMap(entries: TableIngestionPolicyEntry[]): TableIngestionPolic
   return map
 }
 
-function _isDeniedColumn(columnName: string, tableDenyColumns: string[]): boolean {
-  if (GLOBAL_DENY_EXACT.some((denied) => _normalizeName(denied) === columnName)) {
+function _isDeniedColumn(
+  columnName: string,
+  tableDenyColumns: string[],
+): boolean {
+  if (
+    GLOBAL_DENY_EXACT.some((denied) => _normalizeName(denied) === columnName)
+  ) {
     return true
   }
 
@@ -406,7 +422,9 @@ function _isDeniedColumn(columnName: string, tableDenyColumns: string[]): boolea
     return true
   }
 
-  return tableDenyColumns.some((denied) => _normalizeName(denied) === columnName)
+  return tableDenyColumns.some(
+    (denied) => _normalizeName(denied) === columnName,
+  )
 }
 
 function _normalizeName(input: string): string {
