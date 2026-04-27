@@ -40,12 +40,6 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
     <div className={`${styles.chatboxContainer} ${isOpen ? styles.open : ""}`}>
       {/* Toggle Button */}
       <div className={styles.chatboxToggleWrap}>
-        {!isOpen && (
-          <div className={styles.chatboxBubble}>
-            <span className={styles.chatboxBubbleText}>Chat with us!</span>
-            <span className={styles.chatboxBubbleTail} />
-          </div>
-        )}
         <button
           className={`${styles.chatboxToggle} ${isOpen ? styles.chatboxToggleOpen : ""}`}
           onClick={handleToggle}
