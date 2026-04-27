@@ -9,6 +9,7 @@ import * as MessageRow from "./Database/ConversationMessageRow"
 import * as OrderPaymentRow from "./Database/OrderPaymentRow"
 import { answerSupportQuestionRuntime } from "./AI/SupportRuntime"
 import type { ActorContext } from "./AI/SecurityPolicy"
+import type { SupportAnswer } from "./AI/SupportAssistant"
 
 let socketIOInstance: SocketIOServer | null = null
 
@@ -23,6 +24,22 @@ const jwtSecret = new TextEncoder().encode(ENV.JWT_SECRET)
 const SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
 const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
 const GUEST_ID_PREFIX = "guest_"
+const SUPPORT_MAX_QUESTION_LENGTH = 600
+const SUPPORT_MAX_REPLY_LENGTH = 1200
+const SUPPORT_MAX_CITATIONS = 3
+const SUPPORT_MIN_INTERVAL_MS = 3000
+const SUPPORT_WINDOW_MS = 60 * 1000
+const SUPPORT_MAX_REQUESTS_PER_WINDOW = 6
+const SUPPORT_RATE_LIMIT_STALE_MS = 10 * 60 * 1000
+const SUPPORT_RATE_LIMIT_MAP_MAX_SIZE = 5000
+
+type SupportRateLimitState = {
+  windowStartAtMs: number
+  requestCount: number
+  lastRequestAtMs: number
+}
+
+const supportRateLimitByUser = new Map<string, SupportRateLimitState>()
 
 /**
  * Verify a JWT and resolve the authenticated user by looking up the DB.
@@ -635,24 +652,70 @@ async function sendSupportReply(
   user: AuthUser,
   question: string,
 ): Promise<void> {
+  const normalizedQuestion = normalizeSupportQuestion(question)
+  if (normalizedQuestion.length === 0) {
+    return
+  }
+
+  if (normalizedQuestion.length > SUPPORT_MAX_QUESTION_LENGTH) {
+    await sendSupportSystemMessage(
+      io,
+      conversationID,
+      user.id,
+      `Please keep your question under ${SUPPORT_MAX_QUESTION_LENGTH} characters.`,
+    )
+    return
+  }
+
+  const rateLimit = checkSupportRateLimit(user.id)
+  if (!rateLimit.allowed) {
+    await sendSupportSystemMessage(
+      io,
+      conversationID,
+      user.id,
+      rateLimit.message,
+    )
+    return
+  }
+
   try {
     const response = await answerSupportQuestionRuntime({
       actor: toSupportActor(user),
-      question,
+      question: normalizedQuestion,
       topK: 6,
     })
 
-    const answerText = response.answer.trim()
+    const answerText = formatSupportAnswer(response)
     if (answerText.length === 0) {
       return
     }
 
+    await sendSupportSystemMessage(io, conversationID, user.id, answerText)
+  } catch (error) {
+    Logger.error(`AI support reply failed: ${error}`)
+
+    await sendSupportSystemMessage(
+      io,
+      conversationID,
+      user.id,
+      "I'm having trouble right now. Please try again in a moment.",
+    )
+  }
+}
+
+async function sendSupportSystemMessage(
+  io: SocketIOServer,
+  conversationID: string,
+  userID: string,
+  text: string,
+): Promise<void> {
+  try {
     const supportMessage = await MessageRow.create({
       conversationId: conversationID,
       senderId: "SYSTEM",
       senderType: "SYSTEM",
       senderName: "Titan Support",
-      text: answerText,
+      text,
     })
 
     await ConversationRow.touch(conversationID)
@@ -661,28 +724,121 @@ async function sendSupportReply(
       message: buildClientMessagePayload(supportMessage),
     })
 
-    io.to(`user:${user.id}`).emit("conversation:updated", {
+    io.to(`user:${userID}`).emit("conversation:updated", {
       conversationID,
     })
   } catch (error) {
-    Logger.error(`AI support reply failed: ${error}`)
-
-    const fallback = await MessageRow.create({
-      conversationId: conversationID,
-      senderId: "SYSTEM",
-      senderType: "SYSTEM",
-      senderName: "Titan Support",
-      text: "I'm having trouble right now. Please try again in a moment.",
-    })
-
-    await ConversationRow.touch(conversationID)
-
-    io.to(`conversation:${conversationID}`).emit("message:received", {
-      message: buildClientMessagePayload(fallback),
-    })
-
-    io.to(`user:${user.id}`).emit("conversation:updated", {
-      conversationID,
-    })
+    Logger.error(`Support system message delivery failed: ${error}`)
   }
+}
+
+function normalizeSupportQuestion(question: string): string {
+  const collapsed = question.replace(/\s+/g, " ").trim()
+  return collapsed
+}
+
+function formatSupportAnswer(response: SupportAnswer): string {
+  const answer = clampSupportText(response.answer.trim(), SUPPORT_MAX_REPLY_LENGTH)
+  if (answer.length === 0) {
+    return ""
+  }
+
+  const citationLines = formatSupportCitations(response)
+  if (citationLines.length === 0) {
+    return answer
+  }
+
+  const combined = `${answer}\n\nSources:\n${citationLines.join("\n")}`
+  return clampSupportText(combined, SUPPORT_MAX_REPLY_LENGTH)
+}
+
+function formatSupportCitations(response: SupportAnswer): string[] {
+  const bestBySource = new Map<string, { source: string; score: number }>()
+
+  response.citations.forEach((citation) => {
+    const source = `${citation.sourceTable}/${citation.sourceRowId}`
+    const existing = bestBySource.get(source)
+    if (existing == null || citation.score > existing.score) {
+      bestBySource.set(source, { source, score: citation.score })
+    }
+  })
+
+  return Array.from(bestBySource.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, SUPPORT_MAX_CITATIONS)
+    .map((item, index) => `${index + 1}. ${item.source} (${item.score.toFixed(2)})`)
+}
+
+function clampSupportText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text
+  }
+
+  if (maxLength <= 1) {
+    return ""
+  }
+
+  return `${text.slice(0, maxLength - 1)}…`
+}
+
+function checkSupportRateLimit(userID: string): {
+  allowed: boolean
+  message: string
+} {
+  const now = Date.now()
+  cleanupSupportRateLimitMap(now)
+
+  const state = supportRateLimitByUser.get(userID)
+  if (state == null) {
+    supportRateLimitByUser.set(userID, {
+      windowStartAtMs: now,
+      requestCount: 1,
+      lastRequestAtMs: now,
+    })
+
+    return { allowed: true, message: "" }
+  }
+
+  if (now - state.lastRequestAtMs < SUPPORT_MIN_INTERVAL_MS) {
+    const waitSeconds = Math.ceil(
+      (SUPPORT_MIN_INTERVAL_MS - (now - state.lastRequestAtMs)) / 1000,
+    )
+    return {
+      allowed: false,
+      message: `Please wait ${waitSeconds}s before sending another support question.`,
+    }
+  }
+
+  if (now - state.windowStartAtMs > SUPPORT_WINDOW_MS) {
+    state.windowStartAtMs = now
+    state.requestCount = 0
+  }
+
+  if (state.requestCount >= SUPPORT_MAX_REQUESTS_PER_WINDOW) {
+    const remaining = Math.max(1, SUPPORT_WINDOW_MS - (now - state.windowStartAtMs))
+    const waitSeconds = Math.ceil(remaining / 1000)
+    return {
+      allowed: false,
+      message: `Support is busy. Please try again in about ${waitSeconds}s.`,
+    }
+  }
+
+  state.requestCount += 1
+  state.lastRequestAtMs = now
+  supportRateLimitByUser.set(userID, state)
+
+  return { allowed: true, message: "" }
+}
+
+function cleanupSupportRateLimitMap(now: number): void {
+  if (supportRateLimitByUser.size <= SUPPORT_RATE_LIMIT_MAP_MAX_SIZE) {
+    return
+  }
+
+  supportRateLimitByUser.forEach((state, key) => {
+    const lastSeen = Math.max(state.lastRequestAtMs, state.windowStartAtMs)
+    if (now - lastSeen > SUPPORT_RATE_LIMIT_STALE_MS) {
+      supportRateLimitByUser.delete(key)
+    }
+  })
 }
