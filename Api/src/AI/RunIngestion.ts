@@ -1,4 +1,7 @@
-import { DeterministicEmbeddingProvider, GeminiEmbeddingProvider } from "./Embedding"
+import {
+  DeterministicEmbeddingProvider,
+  GeminiEmbeddingProvider,
+} from "./Embedding"
 import { runVectorIngestionCycle } from "./IngestionWorker"
 
 async function main(): Promise<void> {

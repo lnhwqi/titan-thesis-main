@@ -32,7 +32,9 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
   }
 
   async embed(texts: string[]): Promise<number[][]> {
-    const cleaned = texts.map((text) => text.trim()).filter((text) => text !== "")
+    const cleaned = texts
+      .map((text) => text.trim())
+      .filter((text) => text !== "")
     if (cleaned.length === 0) {
       return []
     }
@@ -57,7 +59,9 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
     })
 
     if (!response.ok) {
-      throw new Error(`Gemini embedding request failed with status ${response.status}`)
+      throw new Error(
+        `Gemini embedding request failed with status ${response.status}`,
+      )
     }
 
     const data = await response.json()

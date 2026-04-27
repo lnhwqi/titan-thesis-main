@@ -71,8 +71,9 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
   ): Promise<VectorSearchResult[]> {
     const vectorLiteral = _toVectorLiteral(embedding)
 
-    const result = scopes == null || scopes.length === 0
-      ? await sql<VectorRow>`
+    const result =
+      scopes == null || scopes.length === 0
+        ? await sql<VectorRow>`
           select
             id,
             content,
@@ -89,8 +90,8 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
           order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
           limit ${topK}
         `.execute(db)
-      : scopes.length === 1
-        ? await sql<VectorRow>`
+        : scopes.length === 1
+          ? await sql<VectorRow>`
             select
               id,
               content,
@@ -108,7 +109,7 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
             order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
             limit ${topK}
           `.execute(db)
-        : await sql<VectorRow>`
+          : await sql<VectorRow>`
             select
               id,
               content,
@@ -122,7 +123,10 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
               ("embeddingVector" <=> cast(${vectorLiteral} as vector)) as distance
             from ai_vector_document
             where "embeddingVector" is not null
-              and scope in (${sql.join(scopes.map((scope) => sql`${scope}`), sql`, `)})
+              and scope in (${sql.join(
+                scopes.map((scope) => sql`${scope}`),
+                sql`, `,
+              )})
             order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
             limit ${topK}
           `.execute(db)
@@ -150,8 +154,9 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
   ): Promise<VectorSearchResult[]> {
     const scanLimit = Math.max(topK * 20, this.fallbackScanLimit)
 
-    const result = scopes == null || scopes.length === 0
-      ? await sql<FallbackRow>`
+    const result =
+      scopes == null || scopes.length === 0
+        ? await sql<FallbackRow>`
           select
             id,
             content,
@@ -169,8 +174,8 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
           order by "updatedAt" desc
           limit ${scanLimit}
         `.execute(db)
-      : scopes.length === 1
-        ? await sql<FallbackRow>`
+        : scopes.length === 1
+          ? await sql<FallbackRow>`
             select
               id,
               content,
@@ -189,7 +194,7 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
             order by "updatedAt" desc
             limit ${scanLimit}
           `.execute(db)
-        : await sql<FallbackRow>`
+          : await sql<FallbackRow>`
             select
               id,
               content,
@@ -204,7 +209,10 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
             from ai_vector_document
             where jsonb_typeof(embedding) = 'array'
               and jsonb_array_length(embedding) > 0
-              and scope in (${sql.join(scopes.map((scope) => sql`${scope}`), sql`, `)})
+              and scope in (${sql.join(
+                scopes.map((scope) => sql`${scope}`),
+                sql`, `,
+              )})
             order by "updatedAt" desc
             limit ${scanLimit}
           `.execute(db)

@@ -67,7 +67,11 @@ async function _ingestTable(params: {
 
   const rows = await _fetchRowsSince(params.table, since, params.batchSize)
 
-  const drafts: Array<{ documentId: string; content: string; sourceUpdatedAt: Date }> = []
+  const drafts: Array<{
+    documentId: string
+    content: string
+    sourceUpdatedAt: Date
+  }> = []
   let latestSourceUpdatedAt = since
 
   for (const row of rows) {
@@ -117,7 +121,10 @@ async function _ingestTable(params: {
 
     const updates = Math.min(drafts.length, embeddings.length)
     for (let i = 0; i < updates; i += 1) {
-      await AIVectorDocumentRow.updateEmbedding(drafts[i].documentId, embeddings[i])
+      await AIVectorDocumentRow.updateEmbedding(
+        drafts[i].documentId,
+        embeddings[i],
+      )
     }
   }
 
@@ -318,8 +325,18 @@ function _participantsFromConversationRow(row: Record<string, unknown>): {
   const userIds: string[] = []
   const sellerIds: string[] = []
 
-  _pushParticipant(userIds, sellerIds, _readString(row, "user1Id"), _readString(row, "user1Type"))
-  _pushParticipant(userIds, sellerIds, _readString(row, "user2Id"), _readString(row, "user2Type"))
+  _pushParticipant(
+    userIds,
+    sellerIds,
+    _readString(row, "user1Id"),
+    _readString(row, "user1Type"),
+  )
+  _pushParticipant(
+    userIds,
+    sellerIds,
+    _readString(row, "user2Id"),
+    _readString(row, "user2Type"),
+  )
 
   return {
     participantUserIds: _uniqueSorted(userIds),
@@ -356,7 +373,9 @@ function _toArrayOfOne(value: string | null): string[] {
 }
 
 function _uniqueSorted(values: string[]): string[] {
-  const deduped = Array.from(new Set(values.filter((value) => value.trim() !== "")))
+  const deduped = Array.from(
+    new Set(values.filter((value) => value.trim() !== "")),
+  )
   deduped.sort((a, b) => a.localeCompare(b))
   return deduped
 }

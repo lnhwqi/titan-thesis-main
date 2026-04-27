@@ -9,10 +9,7 @@ import {
   GeminiEmbeddingProvider,
 } from "./Embedding"
 import { PGVectorSearchProvider } from "./PGVectorSearchProvider"
-import {
-  SupportAnswer,
-  answerSupportQuestion,
-} from "./SupportAssistant"
+import { SupportAnswer, answerSupportQuestion } from "./SupportAssistant"
 import { ActorContext } from "./SecurityPolicy"
 
 const searchProvider = new PGVectorSearchProvider()

@@ -1,9 +1,6 @@
 import { AnswerGenerator } from "./Answer"
 import { EmbeddingProvider } from "./Embedding"
-import {
-  VectorSearchProvider,
-  searchWithPolicyFilter,
-} from "./Retrieval"
+import { VectorSearchProvider, searchWithPolicyFilter } from "./Retrieval"
 import { ActorContext } from "./SecurityPolicy"
 
 export type SupportAssistantDeps = {

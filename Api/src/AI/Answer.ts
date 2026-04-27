@@ -25,7 +25,9 @@ export class TemplateAnswerGenerator implements AnswerGenerator {
 
     return [
       "Here is what I found from the support knowledge base:",
-      ...params.contexts.slice(0, 3).map((context, index) => `${index + 1}. ${context}`),
+      ...params.contexts
+        .slice(0, 3)
+        .map((context, index) => `${index + 1}. ${context}`),
       `Question: ${params.question}`,
     ].join("\n")
   }
@@ -69,7 +71,9 @@ export class GeminiAnswerGenerator implements AnswerGenerator {
     })
 
     if (!response.ok) {
-      throw new Error(`Gemini answer request failed with status ${response.status}`)
+      throw new Error(
+        `Gemini answer request failed with status ${response.status}`,
+      )
     }
 
     const data = await response.json()
@@ -84,9 +88,12 @@ export class GeminiAnswerGenerator implements AnswerGenerator {
 }
 
 function _buildPrompt(question: string, contexts: string[]): string {
-  const contextText = contexts.length === 0
-    ? "No retrieved context."
-    : contexts.map((context, index) => `Context ${index + 1}: ${context}`).join("\n\n")
+  const contextText =
+    contexts.length === 0
+      ? "No retrieved context."
+      : contexts
+          .map((context, index) => `Context ${index + 1}: ${context}`)
+          .join("\n\n")
 
   return [
     "You are a customer support assistant for an e-commerce platform.",
@@ -122,7 +129,11 @@ function _extractText(value: unknown): string {
   }
 
   const content = first.content
-  if (typeof content !== "object" || content === null || !("parts" in content)) {
+  if (
+    typeof content !== "object" ||
+    content === null ||
+    !("parts" in content)
+  ) {
     return ""
   }
 
