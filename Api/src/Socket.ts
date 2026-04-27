@@ -7,6 +7,8 @@ import db from "./Database"
 import * as ConversationRow from "./Database/ConversationRow"
 import * as MessageRow from "./Database/ConversationMessageRow"
 import * as OrderPaymentRow from "./Database/OrderPaymentRow"
+import { answerSupportQuestionRuntime } from "./AI/SupportRuntime"
+import type { ActorContext } from "./AI/SecurityPolicy"
 
 let socketIOInstance: SocketIOServer | null = null
 
@@ -18,6 +20,9 @@ interface AuthUser {
 }
 
 const jwtSecret = new TextEncoder().encode(ENV.JWT_SECRET)
+const SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
+const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
+const GUEST_ID_PREFIX = "guest_"
 
 /**
  * Verify a JWT and resolve the authenticated user by looking up the DB.
@@ -121,7 +126,7 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
     // Guest user: accept any UUID-shaped guestID, no DB lookup needed
     if (typeof guestID === "string" && guestID.length > 0) {
       const guest: AuthUser = {
-        id: `guest_${guestID}`,
+        id: `${GUEST_ID_PREFIX}${guestID}`,
         role: "GUEST",
         email: "",
         name: "Guest",
@@ -198,21 +203,16 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
 
           await ConversationRow.touch(conversationID)
 
-          const payload = {
-            id: message.id,
-            conversationID: message.conversationId,
-            senderID: message.senderId,
-            senderType: message.senderType,
-            senderName: message.senderName,
-            text: message.text,
-            readAt: message.readAt,
-            createdAt: message.createdAt,
-          }
+          const payload = buildClientMessagePayload(message)
 
           io.to(`conversation:${conversationID}`).emit("message:received", {
             message: payload,
           })
           callback({ success: true, message: payload })
+
+          if (isSupportConversation(conversation)) {
+            void sendSupportReply(io, conversationID, user, text.trim())
+          }
         } catch (error) {
           Logger.error(error)
           callback({ success: false, error: "Failed to send message" })
@@ -254,6 +254,7 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
         >,
       ) => {
         try {
+          await ensureSupportConversation(user)
           await ensurePaidOrderConversations(user)
           const rows = await ConversationRow.listForUser(user.id)
 
@@ -267,23 +268,16 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
                 otherPartyType,
               )
               const lastMessage = await MessageRow.getLatest(conv.id)
+              const lastMessagePayload =
+                lastMessage == null
+                  ? null
+                  : buildClientMessagePayload(lastMessage)
               const unreadCount = await MessageRow.countUnread(conv.id, user.id)
               return {
                 id: conv.id,
                 participantIDs: otherPartyId,
                 participantName,
-                lastMessage: lastMessage
-                  ? {
-                      id: lastMessage.id,
-                      conversationID: conv.id,
-                      senderID: lastMessage.senderId,
-                      senderType: lastMessage.senderType,
-                      senderName: lastMessage.senderName,
-                      text: lastMessage.text,
-                      createdAt: lastMessage.createdAt,
-                      readAt: lastMessage.readAt,
-                    }
-                  : null,
+                lastMessage: lastMessagePayload,
                 unreadCount,
                 createdAt: conv.createdAt,
                 updatedAt: conv.updatedAt,
@@ -337,16 +331,7 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
 
           callback({
             success: true,
-            messages: messages.map((m) => ({
-              id: m.id,
-              conversationID: m.conversationId,
-              senderID: m.senderId,
-              senderType: m.senderType,
-              senderName: m.senderName,
-              text: m.text,
-              readAt: m.readAt,
-              createdAt: m.createdAt,
-            })),
+            messages: messages.map((m) => buildClientMessagePayload(m)),
             page,
             totalCount,
           })
@@ -462,6 +447,7 @@ async function resolveName(
   id: string,
   type: "USER" | "SELLER",
 ): Promise<string> {
+  if (id === SUPPORT_PARTICIPANT_ID) return "Titan Support"
   if (id.startsWith("guest_")) return "Guest"
   try {
     if (type === "USER") {
@@ -481,6 +467,30 @@ async function resolveName(
     }
   } catch {
     return type === "USER" ? "Unknown User" : "Unknown Seller"
+  }
+}
+
+async function ensureSupportConversation(user: AuthUser): Promise<void> {
+  if (user.role === "ADMIN") {
+    return
+  }
+
+  const existing = await ConversationRow.findBetween(user.id, SUPPORT_PARTICIPANT_ID)
+  if (existing != null) {
+    return
+  }
+
+  const myType: "USER" | "SELLER" = user.role === "SELLER" ? "SELLER" : "USER"
+
+  try {
+    await ConversationRow.create(
+      user.id,
+      myType,
+      SUPPORT_PARTICIPANT_ID,
+      SUPPORT_PARTICIPANT_TYPE,
+    )
+  } catch {
+    // Ignore duplicate/create races.
   }
 }
 
@@ -551,4 +561,123 @@ export function broadcastSystemNotification(
     message,
     timestamp: new Date(),
   })
+}
+
+function buildClientMessagePayload(message: MessageRow.MessageRow): {
+  id: string
+  conversationID: string
+  senderID: string
+  senderType: "USER" | "SELLER" | "SYSTEM"
+  senderName: string
+  text: string
+  readAt: Date | null
+  createdAt: Date
+} {
+  return {
+    id: message.id,
+    conversationID: message.conversationId,
+    senderID: toClientSenderID(message.senderId, message.senderType),
+    senderType: message.senderType,
+    senderName: message.senderName,
+    text: message.text,
+    readAt: message.readAt,
+    createdAt: message.createdAt,
+  }
+}
+
+function toClientSenderID(
+  senderId: string,
+  senderType: "USER" | "SELLER" | "SYSTEM",
+): string {
+  if (senderType === "SYSTEM") {
+    return "SYSTEM"
+  }
+
+  if (senderId.startsWith(GUEST_ID_PREFIX)) {
+    const normalized = senderId.substring(GUEST_ID_PREFIX.length)
+    return normalized.length > 0 ? normalized : senderId
+  }
+
+  return senderId
+}
+
+function isSupportConversation(conversation: ConversationRow.ConversationRow): boolean {
+  return (
+    conversation.user1Id === SUPPORT_PARTICIPANT_ID ||
+    conversation.user2Id === SUPPORT_PARTICIPANT_ID
+  )
+}
+
+function toSupportActor(user: AuthUser): ActorContext {
+  if (user.role === "USER") {
+    return { role: "USER", userId: user.id }
+  }
+
+  if (user.role === "SELLER") {
+    return { role: "SELLER", sellerId: user.id }
+  }
+
+  if (user.role === "ADMIN") {
+    return { role: "ADMIN", adminId: user.id }
+  }
+
+  return { role: "GUEST" }
+}
+
+async function sendSupportReply(
+  io: SocketIOServer,
+  conversationID: string,
+  user: AuthUser,
+  question: string,
+): Promise<void> {
+  try {
+    const response = await answerSupportQuestionRuntime({
+      actor: toSupportActor(user),
+      question,
+      topK: 6,
+    })
+
+    const answerText = response.answer.trim()
+    if (answerText.length === 0) {
+      return
+    }
+
+    const supportMessage = await MessageRow.create({
+      conversationId: conversationID,
+      senderId: "SYSTEM",
+      senderType: "SYSTEM",
+      senderName: "Titan Support",
+      text: answerText,
+    })
+
+    await ConversationRow.touch(conversationID)
+
+    io.to(`conversation:${conversationID}`).emit("message:received", {
+      message: buildClientMessagePayload(supportMessage),
+    })
+
+    io.to(`user:${user.id}`).emit("conversation:updated", {
+      conversationID,
+    })
+  } catch (error) {
+    Logger.error(`AI support reply failed: ${error}`)
+
+    const fallback = await MessageRow.create({
+      conversationId: conversationID,
+      senderId: "SYSTEM",
+      senderType: "SYSTEM",
+      senderName: "Titan Support",
+      text: "I'm having trouble right now. Please try again in a moment.",
+    })
+
+    await ConversationRow.touch(conversationID)
+
+    io.to(`conversation:${conversationID}`).emit("message:received", {
+      message: buildClientMessagePayload(fallback),
+    })
+
+    io.to(`user:${user.id}`).emit("conversation:updated", {
+      conversationID,
+    })
+  }
 }
