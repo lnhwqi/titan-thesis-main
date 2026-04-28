@@ -11,6 +11,10 @@ import * as OrderPaymentRow from "./Database/OrderPaymentRow"
 import { answerSupportQuestionRuntime } from "./AI/SupportRuntime"
 import type { ActorContext } from "./AI/SecurityPolicy"
 import type { SupportAnswer } from "./AI/SupportAssistant"
+import {
+  recordSupportMetric,
+  type SupportMetricEvent,
+} from "./AI/SupportMetrics"
 
 let socketIOInstance: SocketIOServer | null = null
 
@@ -990,9 +994,11 @@ function normalizeErrorMessage(error: unknown): string {
 }
 
 function logSupportMetric(
-  event: string,
+  event: SupportMetricEvent,
   payload: Record<string, unknown>,
 ): void {
+  recordSupportMetric(event, payload)
+
   Logger.log({
     _t: "SUPPORT_AI_METRIC",
     event,

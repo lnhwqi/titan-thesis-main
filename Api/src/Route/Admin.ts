@@ -31,6 +31,7 @@ import * as ProductRatingReportLimitGet from "../Api/Auth/Admin/ProductRatingRep
 import * as ProductRatingReportLimitUpdate from "../Api/Auth/Admin/ProductRatingReportLimit/Update"
 import * as ProductRatingDelete from "../Api/Auth/Admin/ProductRating/Delete"
 import * as Stats from "../Api/Auth/Admin/Stats"
+import * as SupportAIMetrics from "../Api/Auth/Admin/SupportAIMetrics"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -39,6 +40,7 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, Logout)
   adminAuthApi(app, HomeAdmin)
   adminAuthApi(app, Stats)
+  adminAuthApi(app, SupportAIMetrics)
   adminAuthApi(app, ListPendingSellers)
   adminAuthApi(app, ListAllSellers)
   adminAuthApi(app, SendSellerVerifyEmail)
