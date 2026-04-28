@@ -1,4 +1,5 @@
 import { Server as HTTPServer } from "http"
+import { createHash, randomUUID } from "node:crypto"
 import { Server as SocketIOServer, Socket } from "socket.io"
 import { jwtVerify } from "jose"
 import * as Logger from "./Logger"
@@ -37,6 +38,21 @@ type SupportRateLimitState = {
   windowStartAtMs: number
   requestCount: number
   lastRequestAtMs: number
+}
+
+type SupportRateLimitResult = {
+  allowed: boolean
+  message: string
+  reason: "OK" | "TOO_FAST" | "WINDOW_LIMIT"
+  retryAfterSeconds: number
+  windowRequestCount: number
+}
+
+type SupportLogContext = {
+  supportRequestID: string
+  actorRole: AuthUser["role"]
+  actorHash: string
+  conversationHash: string
 }
 
 const supportRateLimitByUser = new Map<string, SupportRateLimitState>()
@@ -652,12 +668,31 @@ async function sendSupportReply(
   user: AuthUser,
   question: string,
 ): Promise<void> {
+  const startedAtMs = Date.now()
+  const logContext = createSupportLogContext(user, conversationID)
   const normalizedQuestion = normalizeSupportQuestion(question)
+
+  logSupportMetric("REQUEST_RECEIVED", {
+    ...logContext,
+    questionLength: normalizedQuestion.length,
+  })
+
   if (normalizedQuestion.length === 0) {
+    logSupportMetric("REQUEST_REJECTED", {
+      ...logContext,
+      reason: "EMPTY_QUESTION",
+    })
     return
   }
 
   if (normalizedQuestion.length > SUPPORT_MAX_QUESTION_LENGTH) {
+    logSupportMetric("REQUEST_REJECTED", {
+      ...logContext,
+      reason: "QUESTION_TOO_LONG",
+      questionLength: normalizedQuestion.length,
+      maxQuestionLength: SUPPORT_MAX_QUESTION_LENGTH,
+    })
+
     await sendSupportSystemMessage(
       io,
       conversationID,
@@ -669,6 +704,13 @@ async function sendSupportReply(
 
   const rateLimit = checkSupportRateLimit(user.id)
   if (!rateLimit.allowed) {
+    logSupportMetric("REQUEST_RATE_LIMITED", {
+      ...logContext,
+      reason: rateLimit.reason,
+      retryAfterSeconds: rateLimit.retryAfterSeconds,
+      windowRequestCount: rateLimit.windowRequestCount,
+    })
+
     await sendSupportSystemMessage(
       io,
       conversationID,
@@ -685,21 +727,60 @@ async function sendSupportReply(
       topK: 6,
     })
 
-    const answerText = formatSupportAnswer(response)
+    const citationLines = formatSupportCitations(response)
+    const answerText = formatSupportAnswer(response, citationLines)
+    const latencyMs = Date.now() - startedAtMs
+
+    logSupportMetric("ANSWER_GENERATED", {
+      ...logContext,
+      latencyMs,
+      usedContextCount: response.usedContextCount,
+      citationsRetrieved: response.citations.length,
+      citationsIncluded: citationLines.length,
+      answerLength: answerText.length,
+    })
+
     if (answerText.length === 0) {
+      logSupportMetric("ANSWER_SKIPPED", {
+        ...logContext,
+        reason: "EMPTY_FORMATTED_ANSWER",
+      })
       return
     }
 
-    await sendSupportSystemMessage(io, conversationID, user.id, answerText)
-  } catch (error) {
-    Logger.error(`AI support reply failed: ${error}`)
+    const delivered = await sendSupportSystemMessage(
+      io,
+      conversationID,
+      user.id,
+      answerText,
+    )
 
-    await sendSupportSystemMessage(
+    logSupportMetric("ANSWER_DELIVERED", {
+      ...logContext,
+      delivered,
+    })
+  } catch (error) {
+    const latencyMs = Date.now() - startedAtMs
+    const errorMessage = normalizeErrorMessage(error)
+
+    Logger.error(`AI support reply failed: ${error}`)
+    logSupportMetric("ANSWER_FAILED", {
+      ...logContext,
+      latencyMs,
+      errorMessage,
+    })
+
+    const fallbackDelivered = await sendSupportSystemMessage(
       io,
       conversationID,
       user.id,
       "I'm having trouble right now. Please try again in a moment.",
     )
+
+    logSupportMetric("FALLBACK_DELIVERED", {
+      ...logContext,
+      delivered: fallbackDelivered,
+    })
   }
 }
 
@@ -708,7 +789,7 @@ async function sendSupportSystemMessage(
   conversationID: string,
   userID: string,
   text: string,
-): Promise<void> {
+): Promise<boolean> {
   try {
     const supportMessage = await MessageRow.create({
       conversationId: conversationID,
@@ -727,8 +808,11 @@ async function sendSupportSystemMessage(
     io.to(`user:${userID}`).emit("conversation:updated", {
       conversationID,
     })
+
+    return true
   } catch (error) {
     Logger.error(`Support system message delivery failed: ${error}`)
+    return false
   }
 }
 
@@ -737,7 +821,10 @@ function normalizeSupportQuestion(question: string): string {
   return collapsed
 }
 
-function formatSupportAnswer(response: SupportAnswer): string {
+function formatSupportAnswer(
+  response: SupportAnswer,
+  citationLines: string[],
+): string {
   const answer = clampSupportText(
     response.answer.trim(),
     SUPPORT_MAX_REPLY_LENGTH,
@@ -746,7 +833,6 @@ function formatSupportAnswer(response: SupportAnswer): string {
     return ""
   }
 
-  const citationLines = formatSupportCitations(response)
   if (citationLines.length === 0) {
     return answer
   }
@@ -787,10 +873,7 @@ function clampSupportText(text: string, maxLength: number): string {
   return `${text.slice(0, maxLength - 1)}…`
 }
 
-function checkSupportRateLimit(userID: string): {
-  allowed: boolean
-  message: string
-} {
+function checkSupportRateLimit(userID: string): SupportRateLimitResult {
   const now = Date.now()
   cleanupSupportRateLimitMap(now)
 
@@ -802,7 +885,13 @@ function checkSupportRateLimit(userID: string): {
       lastRequestAtMs: now,
     })
 
-    return { allowed: true, message: "" }
+    return {
+      allowed: true,
+      message: "",
+      reason: "OK",
+      retryAfterSeconds: 0,
+      windowRequestCount: 1,
+    }
   }
 
   if (now - state.lastRequestAtMs < SUPPORT_MIN_INTERVAL_MS) {
@@ -812,6 +901,9 @@ function checkSupportRateLimit(userID: string): {
     return {
       allowed: false,
       message: `Please wait ${waitSeconds}s before sending another support question.`,
+      reason: "TOO_FAST",
+      retryAfterSeconds: waitSeconds,
+      windowRequestCount: state.requestCount,
     }
   }
 
@@ -829,6 +921,9 @@ function checkSupportRateLimit(userID: string): {
     return {
       allowed: false,
       message: `Support is busy. Please try again in about ${waitSeconds}s.`,
+      reason: "WINDOW_LIMIT",
+      retryAfterSeconds: waitSeconds,
+      windowRequestCount: state.requestCount,
     }
   }
 
@@ -836,7 +931,13 @@ function checkSupportRateLimit(userID: string): {
   state.lastRequestAtMs = now
   supportRateLimitByUser.set(userID, state)
 
-  return { allowed: true, message: "" }
+  return {
+    allowed: true,
+    message: "",
+    reason: "OK",
+    retryAfterSeconds: 0,
+    windowRequestCount: state.requestCount,
+  }
 }
 
 function cleanupSupportRateLimitMap(now: number): void {
@@ -844,10 +945,58 @@ function cleanupSupportRateLimitMap(now: number): void {
     return
   }
 
+  const sizeBefore = supportRateLimitByUser.size
+  let removedCount = 0
+
   supportRateLimitByUser.forEach((state, key) => {
     const lastSeen = Math.max(state.lastRequestAtMs, state.windowStartAtMs)
     if (now - lastSeen > SUPPORT_RATE_LIMIT_STALE_MS) {
       supportRateLimitByUser.delete(key)
+      removedCount += 1
     }
+  })
+
+  if (removedCount > 0) {
+    logSupportMetric("RATE_LIMIT_MAP_CLEANUP", {
+      removedCount,
+      sizeBefore,
+      sizeAfter: supportRateLimitByUser.size,
+    })
+  }
+}
+
+function createSupportLogContext(
+  user: AuthUser,
+  conversationID: string,
+): SupportLogContext {
+  return {
+    supportRequestID: randomUUID(),
+    actorRole: user.role,
+    actorHash: hashForLogs(user.id),
+    conversationHash: hashForLogs(conversationID),
+  }
+}
+
+function hashForLogs(value: string): string {
+  return createHash("sha256").update(value).digest("hex").slice(0, 16)
+}
+
+function normalizeErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return clampSupportText(error.message, 300)
+  }
+
+  return clampSupportText(String(error), 300)
+}
+
+function logSupportMetric(
+  event: string,
+  payload: Record<string, unknown>,
+): void {
+  Logger.log({
+    _t: "SUPPORT_AI_METRIC",
+    event,
+    at: new Date().toISOString(),
+    ...payload,
   })
 }
