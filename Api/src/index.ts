@@ -7,6 +7,7 @@ import ENV from "./Env"
 import { HttpLogger } from "./Logger"
 import { ensureUploadsDir, uploadsRoot } from "./Uploads"
 import { initializeSocketIO } from "./Socket"
+import { startSupportMetricsPersistence } from "./AI/SupportMetricsPersistence"
 
 const app: Express = express()
 const { APP_PORT, NODE_ENV } = ENV
@@ -41,6 +42,7 @@ routes(app)
 // Create HTTP server and initialize Socket.IO
 const server = createServer(app)
 initializeSocketIO(server)
+startSupportMetricsPersistence()
 
 server.listen(APP_PORT, () => {
   console.info(`⚡️[server]: Server is running at http://localhost:${APP_PORT}`)

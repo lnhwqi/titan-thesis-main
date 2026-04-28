@@ -31,6 +31,7 @@ export type Schema = {
   conversation_message: ConversationMessageTable
   ai_vector_document: AIVectorDocumentTable
   ai_ingestion_checkpoint: AIIngestionCheckpointTable
+  ai_support_metrics_snapshot: AISupportMetricsSnapshotTable
 }
 
 type UserTable = {
@@ -378,6 +379,14 @@ export type AIIngestionCheckpointTable = {
   lastSourceUpdatedAt: Date | null
   lastRunAt: Date
   updatedAt: Date
+  createdAt: Date
+}
+
+export type AISupportMetricsSnapshotTable = {
+  id: string
+  generatedAt: Date
+  lastEventAt: Date | null
+  snapshot: Record<string, unknown>
   createdAt: Date
 }
 

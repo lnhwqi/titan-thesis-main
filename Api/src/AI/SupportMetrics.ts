@@ -187,7 +187,8 @@ export function getSupportMetricsSnapshot(): SupportMetricsSnapshot {
     generatedAt: new Date(now).toISOString(),
     startedAt: new Date(startedAtMs).toISOString(),
     uptimeSeconds: Math.max(0, Math.floor((now - startedAtMs) / 1000)),
-    lastEventAt: lastEventAtMs == null ? null : new Date(lastEventAtMs).toISOString(),
+    lastEventAt:
+      lastEventAtMs == null ? null : new Date(lastEventAtMs).toISOString(),
     counters: EVENT_ORDER.map((event) => ({ event, count: counters[event] })),
     totals: {
       requests: counters.REQUEST_RECEIVED,
@@ -252,12 +253,18 @@ export function _resetSupportMetricsForTest(): void {
   cleanupLastSizeAfter = 0
 }
 
-function readNumber(payload: Record<string, unknown>, key: string): number | null {
+function readNumber(
+  payload: Record<string, unknown>,
+  key: string,
+): number | null {
   const value = payload[key]
   return typeof value === "number" && Number.isFinite(value) ? value : null
 }
 
-function readString(payload: Record<string, unknown>, key: string): string | null {
+function readString(
+  payload: Record<string, unknown>,
+  key: string,
+): string | null {
   const value = payload[key]
   return typeof value === "string" ? value : null
 }
