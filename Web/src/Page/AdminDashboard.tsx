@@ -69,7 +69,13 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
         </div>
       ) : null}
 
-      <AdminStatsChart statsResponse={state.adminDashboard.statsResponse} />
+      <AdminStatsChart
+        statsResponse={state.adminDashboard.statsResponse}
+        supportMetricsResponse={state.adminDashboard.supportMetricsResponse}
+        supportMetricsHistoryResponse={
+          state.adminDashboard.supportMetricsHistoryResponse
+        }
+      />
 
       <section className={styles.grid}>
         <article className={styles.card}>

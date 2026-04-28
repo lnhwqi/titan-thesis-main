@@ -16,19 +16,40 @@ import { color, font, theme, bp } from "../View/Theme"
 import * as RD from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
 import * as StatsApi from "../Api/Auth/Admin/Stats"
+import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
+import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
 
 export type Props = {
   statsResponse: RD.RemoteData<ApiError<StatsApi.ErrorCode>, StatsApi.Payload>
+  supportMetricsResponse: RD.RemoteData<
+    ApiError<SupportAIMetricsApi.ErrorCode>,
+    SupportAIMetricsApi.Payload
+  >
+  supportMetricsHistoryResponse: RD.RemoteData<
+    ApiError<SupportAIMetricsHistoryApi.ErrorCode>,
+    SupportAIMetricsHistoryApi.Payload
+  >
 }
 
 export default function AdminStatsChart(_props: Props): JSX.Element {
-  const { statsResponse } = _props
+  const {
+    statsResponse,
+    supportMetricsResponse,
+    supportMetricsHistoryResponse,
+  } = _props
 
   if (statsResponse._t === "Loading" || statsResponse._t === "NotAsked") {
     return (
       <div className={styles.container}>
         <h2 className={styles.title}>Dashboard Analytics</h2>
         <div className={styles.infoMeta}>Loading analytics data...</div>
+
+        <div className={styles.sectionDivider} />
+        <h3 className={styles.sectionTitle}>Support AI Monitoring</h3>
+        {renderSupportMetrics(
+          supportMetricsResponse,
+          supportMetricsHistoryResponse,
+        )}
       </div>
     )
   }
@@ -40,6 +61,13 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
         <div className={styles.infoMetaError}>
           Failed to load analytics data.
         </div>
+
+        <div className={styles.sectionDivider} />
+        <h3 className={styles.sectionTitle}>Support AI Monitoring</h3>
+        {renderSupportMetrics(
+          supportMetricsResponse,
+          supportMetricsHistoryResponse,
+        )}
       </div>
     )
   }
@@ -275,8 +303,184 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      <div className={styles.sectionDivider} />
+      <h3 className={styles.sectionTitle}>Support AI Monitoring</h3>
+      {renderSupportMetrics(supportMetricsResponse, supportMetricsHistoryResponse)}
     </div>
   )
+}
+
+function renderSupportMetrics(
+  supportMetricsResponse: RD.RemoteData<
+    ApiError<SupportAIMetricsApi.ErrorCode>,
+    SupportAIMetricsApi.Payload
+  >,
+  supportMetricsHistoryResponse: RD.RemoteData<
+    ApiError<SupportAIMetricsHistoryApi.ErrorCode>,
+    SupportAIMetricsHistoryApi.Payload
+  >,
+): JSX.Element {
+  if (
+    supportMetricsResponse._t === "Loading" ||
+    supportMetricsResponse._t === "NotAsked" ||
+    supportMetricsHistoryResponse._t === "Loading" ||
+    supportMetricsHistoryResponse._t === "NotAsked"
+  ) {
+    return <div className={styles.infoMeta}>Loading support AI metrics...</div>
+  }
+
+  if (
+    supportMetricsResponse._t === "Failure" ||
+    supportMetricsHistoryResponse._t === "Failure"
+  ) {
+    return (
+      <div className={styles.infoMetaError}>
+        Failed to load support AI monitoring data.
+      </div>
+    )
+  }
+
+  const current = supportMetricsResponse.data
+  const history = supportMetricsHistoryResponse.data.items
+
+  const trendData = [...history]
+    .reverse()
+    .map((item, index) => ({
+      label: toHistoryLabel(item.generatedAt, index),
+      requests: item.snapshot.totals.requests,
+      delivered: item.snapshot.totals.answersDelivered,
+      failed: item.snapshot.totals.answersFailed,
+      rateLimited: item.snapshot.totals.rateLimited,
+      latencyMs: item.snapshot.latency.averageMs,
+    }))
+
+  return (
+    <>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Requests</div>
+          <div className={styles.statValue}>
+            {current.totals.requests.toLocaleString()}
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Answers Delivered</div>
+          <div className={styles.statValue}>
+            {current.totals.answersDelivered.toLocaleString()}
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Rate Limited</div>
+          <div className={styles.statValue}>
+            {current.totals.rateLimited.toLocaleString()}
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Average Latency</div>
+          <div className={styles.statValue}>
+            {current.latency.averageMs.toLocaleString()} ms
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.chartCard}>
+        <div className={styles.chartHeader}>
+          <h3 className={styles.chartTitle}>Support Trend (Recent Snapshots)</h3>
+        </div>
+
+        {trendData.length === 0 ? (
+          <div className={styles.infoMeta}>No persisted support snapshots yet.</div>
+        ) : (
+          <ResponsiveContainer
+            width="100%"
+            height={320}
+          >
+            <LineChart
+              data={trendData}
+              margin={{ top: 10, right: 20, left: 0, bottom: 50 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={color.neutral200}
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: color.neutral600, fontSize: 12 }}
+                axisLine={{ stroke: color.neutral300 }}
+                tickLine={{ stroke: color.neutral300 }}
+                angle={-25}
+                textAnchor="end"
+                height={65}
+              />
+              <YAxis
+                tick={{ fill: color.neutral600, fontSize: 12 }}
+                axisLine={{ stroke: color.neutral300 }}
+                tickLine={{ stroke: color.neutral300 }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: color.neutral0,
+                  border: `1px solid ${color.genz.purple200}`,
+                  borderRadius: theme.s2,
+                  ...font.regular14,
+                  boxShadow: theme.elevation.medium,
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="requests"
+                stroke={color.genz.purple}
+                strokeWidth={2}
+                dot={false}
+                name="Requests"
+              />
+              <Line
+                type="monotone"
+                dataKey="delivered"
+                stroke={color.semantics.success.green500}
+                strokeWidth={2}
+                dot={false}
+                name="Delivered"
+              />
+              <Line
+                type="monotone"
+                dataKey="failed"
+                stroke={color.semantics.error.red500}
+                strokeWidth={2}
+                dot={false}
+                name="Failed"
+              />
+              <Line
+                type="monotone"
+                dataKey="rateLimited"
+                stroke={color.genz.pink}
+                strokeWidth={2}
+                dot={false}
+                name="Rate Limited"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </>
+  )
+}
+
+function toHistoryLabel(value: string, index: number): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return `#${index + 1}`
+  }
+
+  const hh = String(date.getHours()).padStart(2, "0")
+  const mm = String(date.getMinutes()).padStart(2, "0")
+  return `${date.getMonth() + 1}/${date.getDate()} ${hh}:${mm}`
 }
 
 const styles = {
@@ -376,5 +580,16 @@ const styles = {
     padding: theme.s4,
     boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
     marginTop: theme.s4,
+  }),
+  sectionDivider: css({
+    marginTop: theme.s6,
+    marginBottom: theme.s4,
+    borderTop: `1px solid ${color.neutral200}`,
+  }),
+  sectionTitle: css({
+    ...font.boldH5_20,
+    margin: 0,
+    marginBottom: theme.s4,
+    color: color.neutral900,
   }),
 }

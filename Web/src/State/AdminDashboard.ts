@@ -9,6 +9,8 @@ import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import * as SellerTierPolicyGetApi from "../Api/Auth/Admin/SellerTierPolicyGet"
 import * as StatsApi from "../Api/Auth/Admin/Stats"
+import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
+import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
 //import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
@@ -30,6 +32,14 @@ export type AdminDashboardState = {
     AdminOrderPaymentListApi.Payload
   >
   statsResponse: RD.RemoteData<ApiError<StatsApi.ErrorCode>, StatsApi.Payload>
+  supportMetricsResponse: RD.RemoteData<
+    ApiError<SupportAIMetricsApi.ErrorCode>,
+    SupportAIMetricsApi.Payload
+  >
+  supportMetricsHistoryResponse: RD.RemoteData<
+    ApiError<SupportAIMetricsHistoryApi.ErrorCode>,
+    SupportAIMetricsHistoryApi.Payload
+  >
   sellerTierPolicyResponse: RD.RemoteData<
     ApiError<SellerTierPolicyGetApi.ErrorCode>,
     SellerTierPolicyGetApi.Payload
@@ -79,6 +89,8 @@ export function initAdminDashboardState(): AdminDashboardState {
     adminHomeResponse: RD.notAsked(),
     orderPaymentsResponse: RD.notAsked(),
     statsResponse: RD.notAsked(),
+    supportMetricsResponse: RD.notAsked(),
+    supportMetricsHistoryResponse: RD.notAsked(),
     sellerTierPolicyResponse: RD.notAsked(),
     approvingSellerIDs: [],
     sendingVerifyEmailSellerIDs: [],

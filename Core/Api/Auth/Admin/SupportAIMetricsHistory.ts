@@ -5,15 +5,19 @@ import {
   noBodyParamsDecoder,
   NoErrorCode,
   noErrorCodeDecoder,
-  NoUrlParams,
-  noUrlParamsDecoder,
 } from "../../../Data/Api"
 import {
   payloadDecoder as supportMetricsPayloadDecoder,
   type Payload as SupportMetricsPayload,
 } from "./SupportAIMetrics"
 
-export type UrlParams = NoUrlParams
+const DEFAULT_HISTORY_LIMIT = 120
+const MAX_HISTORY_LIMIT = 200
+
+export type UrlParams = {
+  limit: number
+}
+
 export type BodyParams = NoBodyParams
 export type ErrorCode = NoErrorCode
 
@@ -28,6 +32,18 @@ export type PersistedSnapshot = {
 export type Payload = {
   items: PersistedSnapshot[]
 }
+
+export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
+  limit: JD.optional(JD.either(JD.string, JD.number)),
+}).transform((obj) => {
+  const parsed = obj.limit == null ? DEFAULT_HISTORY_LIMIT : Number(obj.limit)
+  const safe = Number.isNaN(parsed) ? DEFAULT_HISTORY_LIMIT : parsed
+  const normalized = Math.floor(safe)
+
+  return {
+    limit: Math.max(1, Math.min(MAX_HISTORY_LIMIT, normalized)),
+  }
+})
 
 const persistedSnapshotDecoder: JD.Decoder<PersistedSnapshot> = JD.object({
   id: JD.string,
@@ -44,8 +60,8 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 export type Contract = AuthApi<
   AuthAdmin,
   "GET",
-  "/admin/support-ai-metrics/history",
-  NoUrlParams,
+  "/admin/support-ai-metrics/history?limit=:limit",
+  UrlParams,
   NoBodyParams,
   NoErrorCode,
   Payload
@@ -53,8 +69,8 @@ export type Contract = AuthApi<
 
 export const contract: Contract = {
   method: "GET",
-  route: "/admin/support-ai-metrics/history",
-  urlDecoder: noUrlParamsDecoder,
+  route: "/admin/support-ai-metrics/history?limit=:limit",
+  urlDecoder: urlParamsDecoder,
   bodyDecoder: noBodyParamsDecoder,
   responseDecoder: authResponseDecoder(noErrorCodeDecoder, payloadDecoder),
 }

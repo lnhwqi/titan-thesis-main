@@ -7,6 +7,8 @@ import * as ListAllSellersApi from "../Api/Auth/Admin/ListAllSellers"
 import * as HomeAdminApi from "../Api/Auth/Admin/Home"
 import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import * as StatsApi from "../Api/Auth/Admin/Stats"
+import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
+import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
 import * as ReportWindowGetApi from "../Api/Auth/Admin/ReportWindowGet"
 import * as ReportWindowUpdateApi from "../Api/Auth/Admin/ReportWindowUpdate"
 import * as ProductRatingReportLimitGetApi from "../Api/Auth/Admin/ProductRatingReportLimitGet"
@@ -24,6 +26,8 @@ import { State } from "../State"
 import { createName } from "../../../Core/App/Category/Name"
 import { slugify } from "../../../Core/App/Category/Slug"
 import { navigateTo, toRoute } from "../Route"
+
+const SUPPORT_HISTORY_LIMIT = 120
 
 export function onEnterRoute(state: State): [State, Cmd] {
   return loadOverview()(
@@ -79,6 +83,8 @@ export function loadOverview(): Action {
         orderPaymentsResponse: RD.loading(),
         allSellersResponse: RD.loading(),
         statsResponse: RD.loading(),
+        supportMetricsResponse: RD.loading(),
+        supportMetricsHistoryResponse: RD.loading(),
         sellerTierPolicyResponse: RD.loading(),
       }),
       cmd(
@@ -87,6 +93,10 @@ export function loadOverview(): Action {
         AdminOrderPaymentListApi.call().then(onOrderPaymentsResponse),
         ListAllSellersApi.call().then(onLoadAllSellersResponse),
         StatsApi.call().then(onStatsResponse),
+        SupportAIMetricsApi.call().then(onSupportMetricsResponse),
+        SupportAIMetricsHistoryApi.call({
+          limit: SUPPORT_HISTORY_LIMIT,
+        }).then(onSupportMetricsHistoryResponse),
         ReportWindowGetApi.call().then(onReportWindowLoaded),
         ProductRatingReportLimitGetApi.call().then(onRatingReportLimitLoaded),
         SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse),
@@ -408,6 +418,34 @@ function onStatsResponse(response: StatsApi.Response): Action {
   return (state) => [
     _AdminDashboardState(state, {
       statsResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+function onSupportMetricsResponse(
+  response: SupportAIMetricsApi.Response,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      supportMetricsResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+function onSupportMetricsHistoryResponse(
+  response: SupportAIMetricsHistoryApi.Response,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      supportMetricsHistoryResponse:
         response._t === "Ok"
           ? RD.success(response.value)
           : RD.failure(response.error),
