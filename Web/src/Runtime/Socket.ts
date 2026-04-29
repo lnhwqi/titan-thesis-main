@@ -4,7 +4,11 @@ import type {
   Conversation,
   ConversationID,
 } from "../../../Core/App/Message"
-import { conversationDecoder, messageDecoder } from "../../../Core/App/Message"
+import {
+  conversationDecoder,
+  conversationIDDecoder,
+  messageDecoder,
+} from "../../../Core/App/Message"
 import * as JD from "decoders"
 import * as Logger from "../Logger"
 import Env from "../Env"
@@ -24,7 +28,7 @@ export type SocketEventHandlers = {
     userID: string
     status: "online" | "offline"
   }) => void
-  onConversationUpdated: (conversationID: string) => void
+  onConversationUpdated: (conversationID: ConversationID) => void
 }
 
 /**
@@ -43,7 +47,7 @@ export function initializeSocket(
     }
 
     try {
-      const socketUrl = `http://${Env.API_HOST}`
+      const socketUrl = `${location.protocol}//${Env.API_HOST}`
 
       socket = io(socketUrl, {
         auth: authToken ? { token: authToken } : { guestID },
@@ -91,22 +95,6 @@ export function getSocket(): Socket | null {
 }
 
 /**
- * Wait for socket to be connected (with retries)
- */
-export async function waitForSocketConnection(
-  maxRetries: number = 10,
-  retryDelay: number = 100,
-): Promise<boolean> {
-  for (let i = 0; i < maxRetries; i++) {
-    if (socket && socket.connected) {
-      return true
-    }
-    await new Promise((resolve) => setTimeout(resolve, retryDelay))
-  }
-  return false
-}
-
-/**
  * Setup all message-related event listeners
  */
 function setupMessageListeners(
@@ -142,8 +130,11 @@ function setupMessageListeners(
     // no-op: read receipts handled via state
   })
 
-  socket.on("conversation:updated", (data: { conversationID: string }) => {
-    handlers.onConversationUpdated(data.conversationID)
+  socket.on("conversation:updated", (data: { conversationID: unknown }) => {
+    const decoded = conversationIDDecoder.decode(data.conversationID)
+    if (decoded.ok) {
+      handlers.onConversationUpdated(decoded.value)
+    }
   })
 
   socket.on("error", (err: Error) => {

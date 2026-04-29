@@ -19,8 +19,8 @@ describe("Api/AI/SupportAssistant", () => {
           content: "Public FAQ",
           metadata: {
             scope: "PUBLIC",
-            participantUserIds: [],
-            participantSellerIds: [],
+            ownerId: null,
+            shopId: null,
             sourceTable: "product",
             sourceRowId: "p-1",
             sourceUpdatedAt: "2026-04-28T00:00:00.000Z",
@@ -32,9 +32,9 @@ describe("Api/AI/SupportAssistant", () => {
           score: 0.8,
           content: "Private ticket",
           metadata: {
-            scope: "PARTICIPANT_PRIVATE",
-            participantUserIds: ["u-2"],
-            participantSellerIds: [],
+            scope: "USER_PRIVATE",
+            ownerId: "u-2",
+            shopId: null,
             sourceTable: "conversation_message",
             sourceRowId: "m-1",
             sourceUpdatedAt: "2026-04-28T00:00:00.000Z",
@@ -60,6 +60,7 @@ describe("Api/AI/SupportAssistant", () => {
       "public-1",
     ])
     expect(response.answer.includes("Public FAQ")).toBe(true)
+    expect(response.refusalReason).toBeNull()
   })
 
   test("returns prompt when question is empty", async () => {
@@ -86,5 +87,6 @@ describe("Api/AI/SupportAssistant", () => {
     expect(response.usedContextCount).toBe(0)
     expect(response.citations).toEqual([])
     expect(response.answer).toBe("Please provide a question.")
+    expect(response.refusalReason).toBe("EMPTY_QUESTION")
   })
 })

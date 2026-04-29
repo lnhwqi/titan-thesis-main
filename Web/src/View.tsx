@@ -18,6 +18,7 @@ import AdminPosterManagementPage from "./Page/AdminPosterManagement"
 import AdminSellerModerationPage from "./Page/AdminSellerModeration"
 import AdminSettingPage from "./Page/AdminSetting"
 import AdminOrderManagementPage from "./Page/AdminOrderManagement"
+import AdminSupportMonitoringPage from "./Page/AdminSupportMonitoring"
 import SellerDashboardPage from "./Page/SellerDashboard"
 import SellerProductCreatePage from "./Page/SellerProductCreate"
 import SellerProductEditPage from "./Page/SellerProductEdit"
@@ -178,6 +179,13 @@ export default function View(props: Props): JSX.Element {
         <EmptyLayout
           state={state}
           Page={AdminOrderManagementPage}
+        />
+      )
+    case "AdminSupportMonitoring":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminSupportMonitoringPage}
         />
       )
 

@@ -2,11 +2,24 @@ import { sql } from "kysely"
 import db from "../Database"
 import type { Schema } from "../Database"
 import * as Logger from "../Logger"
-import * as ConversationRow from "../Database/ConversationRow"
 import * as AIVectorDocumentRow from "../Database/AIVectorDocumentRow"
+import * as AIIngestionDeadLetterRow from "../Database/AIIngestionDeadLetterRow"
 import { EmbeddingProvider } from "./Embedding"
-import { buildVectorDocumentDraft } from "./IngestionContract"
-import { getTablesEnabledForVectorIngestion } from "./SecurityPolicy"
+import { type VectorStoreProvider } from "./Retrieval"
+import {
+  buildVectorDocumentDrafts,
+  type VectorDocumentDraft,
+} from "./IngestionContract"
+import {
+  getCurrentRagPhase,
+  getTablesEnabledForVectorIngestion,
+} from "./SecurityPolicy"
+
+const EMBEDDING_BATCH_MAX = 1
+const EMBEDDING_RETRY_ATTEMPTS = 5
+const EMBEDDING_RETRY_BASE_MS = 300
+const EMBEDDING_RATE_LIMIT_WAIT_MS = 65_000
+const EMBEDDING_INTER_REQUEST_DELAY_MS = 700
 
 export type IngestionTableStats = {
   table: keyof Schema
@@ -23,24 +36,34 @@ export type IngestionSummary = {
 
 export async function runVectorIngestionCycle(params: {
   embeddingProvider: EmbeddingProvider
+  vectorStore?: VectorStoreProvider
   batchSize?: number
   tables?: Array<keyof Schema>
 }): Promise<IngestionSummary> {
   const startedAt = new Date()
   const batchSize = Math.max(1, Math.min(params.batchSize ?? 200, 1000))
-  const targetTables = params.tables ?? getTablesEnabledForVectorIngestion()
+  const phase = getCurrentRagPhase()
+  const targetTables =
+    params.tables ?? getTablesEnabledForVectorIngestion(phase)
   const stats: IngestionTableStats[] = []
 
   for (const table of targetTables) {
     try {
       const tableStats = await _ingestTable({
         table,
+        phase,
         batchSize,
         embeddingProvider: params.embeddingProvider,
+        vectorStore: params.vectorStore,
       })
       stats.push(tableStats)
-    } catch (e) {
-      Logger.error(`Vector ingestion failed for table ${String(table)}: ${e}`)
+    } catch (error) {
+      if (error instanceof DailyQuotaExhaustedError) {
+        throw error
+      }
+      Logger.error(
+        `Vector ingestion failed for table ${String(table)}: ${error}`,
+      )
       stats.push({
         table,
         scannedRows: 0,
@@ -59,20 +82,22 @@ export async function runVectorIngestionCycle(params: {
 
 async function _ingestTable(params: {
   table: keyof Schema
+  phase: 1 | 2 | 3
   batchSize: number
   embeddingProvider: EmbeddingProvider
+  vectorStore?: VectorStoreProvider
 }): Promise<IngestionTableStats> {
   const checkpoint = await AIVectorDocumentRow.getCheckpoint(params.table)
   const since = checkpoint?.lastSourceUpdatedAt ?? null
 
   const rows = await _fetchRowsSince(params.table, since, params.batchSize)
 
-  const drafts: Array<{
+  const pendingEmbeddings: Array<{
     documentId: string
-    content: string
-    sourceUpdatedAt: Date
+    draft: VectorDocumentDraft
   }> = []
   let latestSourceUpdatedAt = since
+  let draftedRows = 0
 
   for (const row of rows) {
     const sourceRowId = _resolveSourceRowId(params.table, row)
@@ -82,29 +107,31 @@ async function _ingestTable(params: {
       continue
     }
 
-    const participants = await _resolveParticipants(params.table, row)
-
-    const draft = buildVectorDocumentDraft({
+    const drafts = buildVectorDocumentDrafts({
       source: {
         table: params.table,
         rowId: sourceRowId,
         updatedAt: sourceUpdatedAt,
       },
       row,
-      participants,
+      phase: params.phase,
     })
 
-    if (draft == null) {
+    if (drafts.length === 0) {
       continue
     }
 
-    const stored = await AIVectorDocumentRow.upsertDraft(draft)
+    draftedRows += drafts.length
 
-    drafts.push({
-      documentId: stored.id,
-      content: draft.content,
-      sourceUpdatedAt,
-    })
+    for (const draft of drafts) {
+      const stored = await AIVectorDocumentRow.upsertDraft(draft)
+      if (stored.changed) {
+        pendingEmbeddings.push({
+          documentId: stored.row.id,
+          draft,
+        })
+      }
+    }
 
     if (
       latestSourceUpdatedAt == null ||
@@ -114,17 +141,70 @@ async function _ingestTable(params: {
     }
   }
 
-  if (drafts.length > 0) {
-    const embeddings = await params.embeddingProvider.embed(
-      drafts.map((draft) => draft.content),
-    )
+  let embeddedRows = 0
+  let batchCount = 0
+  const embeddingBatchSize = Math.min(EMBEDDING_BATCH_MAX, params.batchSize)
 
-    const updates = Math.min(drafts.length, embeddings.length)
-    for (let i = 0; i < updates; i += 1) {
-      await AIVectorDocumentRow.updateEmbedding(
-        drafts[i].documentId,
-        embeddings[i],
+  for (const batch of _chunkArray(pendingEmbeddings, embeddingBatchSize)) {
+    if (batchCount > 0) {
+      await _wait(EMBEDDING_INTER_REQUEST_DELAY_MS)
+    }
+    batchCount += 1
+    const texts = batch.map((item) => item.draft.content)
+    const embeddings = await _embedWithRetry({
+      provider: params.embeddingProvider,
+      texts,
+      maxAttempts: EMBEDDING_RETRY_ATTEMPTS,
+    })
+
+    if (embeddings == null) {
+      await Promise.all(
+        batch.map((item) =>
+          _recordDeadLetter(params.table, item.draft, {
+            errorMessage: "Embedding batch failed after retries",
+            retryCount: EMBEDDING_RETRY_ATTEMPTS,
+          }),
+        ),
       )
+      continue
+    }
+
+    for (let index = 0; index < batch.length; index += 1) {
+      const item = batch[index]
+      const embedding = embeddings[index]
+
+      if (embedding == null || embedding.length === 0) {
+        await _recordDeadLetter(params.table, item.draft, {
+          errorMessage: "Embedding provider returned empty vector",
+          retryCount: EMBEDDING_RETRY_ATTEMPTS,
+        })
+        continue
+      }
+
+      try {
+        if (params.vectorStore != null) {
+          await params.vectorStore.upsert({
+            id: item.documentId,
+            embedding,
+            content: item.draft.content,
+            scope: item.draft.access.scope,
+            ownerId: item.draft.access.ownerId ?? null,
+            shopId: item.draft.access.shopId ?? null,
+            sourceTable: item.draft.sourceTable,
+            sourceRowId: item.draft.sourceRowId,
+            sourceUpdatedAt: item.draft.sourceUpdatedAt,
+            chunkIndex: item.draft.chunkIndex,
+          })
+        } else {
+          await AIVectorDocumentRow.updateEmbedding(item.documentId, embedding)
+        }
+        embeddedRows += 1
+      } catch (error) {
+        await _recordDeadLetter(params.table, item.draft, {
+          errorMessage: `Embedding write failed: ${String(error)}`,
+          retryCount: EMBEDDING_RETRY_ATTEMPTS,
+        })
+      }
     }
   }
 
@@ -138,9 +218,98 @@ async function _ingestTable(params: {
   return {
     table: params.table,
     scannedRows: rows.length,
-    draftedRows: drafts.length,
-    embeddedRows: drafts.length,
+    draftedRows,
+    embeddedRows,
   }
+}
+
+class DailyQuotaExhaustedError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "DailyQuotaExhaustedError"
+  }
+}
+
+async function _embedWithRetry(params: {
+  provider: EmbeddingProvider
+  texts: string[]
+  maxAttempts: number
+}): Promise<number[][] | null> {
+  for (let attempt = 1; attempt <= params.maxAttempts; attempt += 1) {
+    try {
+      return await params.provider.embed(params.texts)
+    } catch (error) {
+      const errorStr = String(error)
+
+      if (errorStr.includes("429")) {
+        if (_isDailyQuotaExhausted(errorStr)) {
+          throw new DailyQuotaExhaustedError(
+            "Daily embedding quota exhausted. Re-run ai:ingest tomorrow when the quota resets.",
+          )
+        }
+
+        if (attempt >= params.maxAttempts) {
+          Logger.error(`Embedding failed after retries: ${error}`)
+          return null
+        }
+
+        const delay =
+          _parseRetryDelayMs(errorStr) ?? EMBEDDING_RATE_LIMIT_WAIT_MS
+        Logger.warn(
+          `Rate limited by embedding API (attempt ${attempt}/${params.maxAttempts}), waiting ${Math.round(delay / 1000)}s...`,
+        )
+        await _wait(delay)
+      } else {
+        if (attempt >= params.maxAttempts) {
+          Logger.error(`Embedding failed after retries: ${error}`)
+          return null
+        }
+        await _wait(EMBEDDING_RETRY_BASE_MS * 2 ** (attempt - 1))
+      }
+    }
+  }
+
+  return null
+}
+
+function _isDailyQuotaExhausted(errorMessage: string): boolean {
+  return errorMessage.includes("PerDay")
+}
+
+function _parseRetryDelayMs(errorMessage: string): number | null {
+  const match = errorMessage.match(/"retryDelay":\s*"(\d+)s"/)
+  if (match == null) {
+    return null
+  }
+  const seconds = Number(match[1])
+  return Number.isFinite(seconds) ? (seconds + 5) * 1000 : null
+}
+
+async function _recordDeadLetter(
+  table: keyof Schema,
+  draft: VectorDocumentDraft,
+  params: {
+    errorMessage: string
+    retryCount: number
+  },
+): Promise<void> {
+  const nextRetryAt = new Date(Date.now() + 5 * 60 * 1000)
+
+  await AIIngestionDeadLetterRow.recordFailure({
+    sourceTable: table,
+    sourceRowId: draft.sourceRowId,
+    chunkIndex: draft.chunkIndex,
+    contentHash: draft.contentHash,
+    errorMessage: params.errorMessage,
+    payload: {
+      scope: draft.access.scope,
+      ownerId: draft.access.ownerId,
+      shopId: draft.access.shopId,
+      metadata: draft.metadata,
+    },
+    retryCount: params.retryCount,
+    nextRetryAt,
+  })
 }
 
 async function _fetchRowsSince(
@@ -225,6 +394,7 @@ function _hasSoftDelete(table: keyof Schema): boolean {
     case "order_payment":
     case "report":
     case "product_rating_report":
+    case "voucher":
       return true
     default:
       return false
@@ -258,126 +428,18 @@ function _resolveSourceRowId(
   return _readString(row, "id")
 }
 
-async function _resolveParticipants(
-  table: keyof Schema,
-  row: Record<string, unknown>,
-): Promise<{ participantUserIds: string[]; participantSellerIds: string[] }> {
-  if (table === "order_payment" || table === "report") {
-    return {
-      participantUserIds: _toArrayOfOne(_readString(row, "userId")),
-      participantSellerIds: _toArrayOfOne(_readString(row, "sellerId")),
-    }
+function _chunkArray<T>(value: T[], size: number): T[][] {
+  if (size <= 0 || value.length === 0) {
+    return value.length === 0 ? [] : [value]
   }
 
-  if (table === "conversation") {
-    return _participantsFromConversationRow(row)
+  const chunks: T[][] = []
+
+  for (let index = 0; index < value.length; index += size) {
+    chunks.push(value.slice(index, index + size))
   }
 
-  if (table === "conversation_message") {
-    const conversationId = _readString(row, "conversationId")
-    if (conversationId == null) {
-      return { participantUserIds: [], participantSellerIds: [] }
-    }
-
-    const conversation = await ConversationRow.findById(conversationId)
-    if (conversation == null) {
-      return { participantUserIds: [], participantSellerIds: [] }
-    }
-
-    return _participantsFromConversationRow({
-      user1Id: conversation.user1Id,
-      user1Type: conversation.user1Type,
-      user2Id: conversation.user2Id,
-      user2Type: conversation.user2Type,
-    })
-  }
-
-  if (table === "order_payment_item") {
-    const orderPaymentId = _readString(row, "orderPaymentId")
-    if (orderPaymentId == null) {
-      return { participantUserIds: [], participantSellerIds: [] }
-    }
-
-    const order = await db
-      .selectFrom("order_payment")
-      .select(["userId", "sellerId"])
-      .where("id", "=", orderPaymentId)
-      .where("isDeleted", "=", false)
-      .executeTakeFirst()
-
-    if (order == null) {
-      return { participantUserIds: [], participantSellerIds: [] }
-    }
-
-    return {
-      participantUserIds: _toArrayOfOne(order.userId),
-      participantSellerIds: _toArrayOfOne(order.sellerId),
-    }
-  }
-
-  return { participantUserIds: [], participantSellerIds: [] }
-}
-
-function _participantsFromConversationRow(row: Record<string, unknown>): {
-  participantUserIds: string[]
-  participantSellerIds: string[]
-} {
-  const userIds: string[] = []
-  const sellerIds: string[] = []
-
-  _pushParticipant(
-    userIds,
-    sellerIds,
-    _readString(row, "user1Id"),
-    _readString(row, "user1Type"),
-  )
-  _pushParticipant(
-    userIds,
-    sellerIds,
-    _readString(row, "user2Id"),
-    _readString(row, "user2Type"),
-  )
-
-  return {
-    participantUserIds: _uniqueSorted(userIds),
-    participantSellerIds: _uniqueSorted(sellerIds),
-  }
-}
-
-function _pushParticipant(
-  userIds: string[],
-  sellerIds: string[],
-  id: string | null,
-  type: string | null,
-): void {
-  if (id == null || type == null) {
-    return
-  }
-
-  if (type === "USER") {
-    userIds.push(id)
-    return
-  }
-
-  if (type === "SELLER") {
-    sellerIds.push(id)
-  }
-}
-
-function _toArrayOfOne(value: string | null): string[] {
-  if (value == null || value.trim() === "") {
-    return []
-  }
-
-  return [value]
-}
-
-function _uniqueSorted(values: string[]): string[] {
-  const deduped = Array.from(
-    new Set(values.filter((value) => value.trim() !== "")),
-  )
-  deduped.sort((a, b) => a.localeCompare(b))
-  return deduped
+  return chunks
 }
 
 function _readString(row: Record<string, unknown>, key: string): string | null {
@@ -410,4 +472,10 @@ async function _tableExists(table: keyof Schema): Promise<boolean> {
     .execute(db)
     .then((result) => result.rows[0]?.exists === true)
     .catch(() => false)
+}
+
+async function _wait(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs)
+  })
 }

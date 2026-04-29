@@ -1,5 +1,4 @@
 import { Server as HTTPServer } from "http"
-import { createHash, randomUUID } from "node:crypto"
 import { Server as SocketIOServer, Socket } from "socket.io"
 import { jwtVerify } from "jose"
 import * as Logger from "./Logger"
@@ -8,15 +7,11 @@ import db from "./Database"
 import * as ConversationRow from "./Database/ConversationRow"
 import * as MessageRow from "./Database/ConversationMessageRow"
 import * as OrderPaymentRow from "./Database/OrderPaymentRow"
-import { answerSupportQuestionRuntime } from "./AI/SupportRuntime"
-import type { ActorContext } from "./AI/SecurityPolicy"
-import type { SupportAnswer } from "./AI/SupportAssistant"
 import {
-  recordSupportMetric,
-  type SupportMetricEvent,
-} from "./AI/SupportMetrics"
-
-let socketIOInstance: SocketIOServer | null = null
+  enqueueSupportAIReply,
+  type SupportChatHandlerParams,
+} from "./AI/SupportChatHandler"
+import type { ActorContext } from "./AI/SecurityPolicy"
 
 interface AuthUser {
   id: string
@@ -26,40 +21,14 @@ interface AuthUser {
 }
 
 const jwtSecret = new TextEncoder().encode(ENV.JWT_SECRET)
-const SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
+const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
+const LEGACY_SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
 const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
 const GUEST_ID_PREFIX = "guest_"
-const SUPPORT_MAX_QUESTION_LENGTH = 600
-const SUPPORT_MAX_REPLY_LENGTH = 1200
-const SUPPORT_MAX_CITATIONS = 3
-const SUPPORT_MIN_INTERVAL_MS = 3000
-const SUPPORT_WINDOW_MS = 60 * 1000
-const SUPPORT_MAX_REQUESTS_PER_WINDOW = 6
-const SUPPORT_RATE_LIMIT_STALE_MS = 10 * 60 * 1000
-const SUPPORT_RATE_LIMIT_MAP_MAX_SIZE = 5000
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-type SupportRateLimitState = {
-  windowStartAtMs: number
-  requestCount: number
-  lastRequestAtMs: number
-}
-
-type SupportRateLimitResult = {
-  allowed: boolean
-  message: string
-  reason: "OK" | "TOO_FAST" | "WINDOW_LIMIT"
-  retryAfterSeconds: number
-  windowRequestCount: number
-}
-
-type SupportLogContext = {
-  supportRequestID: string
-  actorRole: AuthUser["role"]
-  actorHash: string
-  conversationHash: string
-}
-
-const supportRateLimitByUser = new Map<string, SupportRateLimitState>()
+let socketIOInstance: SocketIOServer | null = null
 
 /**
  * Verify a JWT and resolve the authenticated user by looking up the DB.
@@ -160,10 +129,15 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
       }
     }
 
-    // Guest user: accept any UUID-shaped guestID, no DB lookup needed
+    // Guest user: require a valid UUID guestID
     if (typeof guestID === "string" && guestID.length > 0) {
+      const normalizedGuestID = guestID.trim().toLowerCase()
+      if (!isValidGuestID(normalizedGuestID)) {
+        return next(new Error("Invalid guestID"))
+      }
+
       const guest: AuthUser = {
-        id: `${GUEST_ID_PREFIX}${guestID}`,
+        id: `${GUEST_ID_PREFIX}${normalizedGuestID}`,
         role: "GUEST",
         email: "",
         name: "Guest",
@@ -223,18 +197,33 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           if (conversation == null) {
             return callback({ success: false, error: "Conversation not found" })
           }
+          if (user.role === "GUEST" && !isSupportConversation(conversation)) {
+            return callback({
+              success: false,
+              error: "Login required for non-support conversations",
+            })
+          }
+          // Admin can send messages in support conversations as Titan Support
+          const isAdminAsSupport =
+            user.role === "ADMIN" && isSupportConversation(conversation)
           const isParticipant =
-            conversation.user1Id === user.id || conversation.user2Id === user.id
+            isAdminAsSupport ||
+            conversation.user1Id === user.id ||
+            conversation.user2Id === user.id
           if (!isParticipant) {
             return callback({ success: false, error: "Access denied" })
           }
 
-          const senderType = user.role === "SELLER" ? "SELLER" : "USER"
+          const senderId = isAdminAsSupport ? SUPPORT_PARTICIPANT_ID : user.id
+          const senderType = isAdminAsSupport
+            ? SUPPORT_PARTICIPANT_TYPE
+            : toConversationMessageSenderType(user)
+          const senderName = isAdminAsSupport ? "Titan Support" : user.name
           const message = await MessageRow.create({
             conversationId: conversationID,
-            senderId: user.id,
+            senderId,
             senderType,
-            senderName: user.name,
+            senderName,
             text: text.trim(),
           })
 
@@ -247,8 +236,19 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           })
           callback({ success: true, message: payload })
 
-          if (isSupportConversation(conversation)) {
-            void sendSupportReply(io, conversationID, user, text.trim())
+          // Trigger AI reply for user/seller/guest messages in support conversations
+          if (
+            isSupportConversation(conversation) &&
+            !isAdminAsSupport &&
+            user.role !== "ADMIN"
+          ) {
+            const aiParams: SupportChatHandlerParams = {
+              io,
+              conversationID,
+              userMessage: text.trim(),
+              actor: toActorContext(user),
+            }
+            enqueueSupportAIReply(aiParams)
           }
         } catch (error) {
           Logger.error(error)
@@ -258,18 +258,56 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
     )
 
     // Typing indicator
-    socket.on("message:typing", (data: TypingData) => {
-      const { conversationID } = data
-      socket.to(`conversation:${conversationID}`).emit("message:userTyping", {
-        conversationID,
-        userID: user.id,
-      })
+    socket.on("message:typing", async (data: TypingData) => {
+      try {
+        const { conversationID } = data
+        const conversation = await ConversationRow.findById(conversationID)
+        if (conversation == null) {
+          return
+        }
+
+        if (user.role === "GUEST" && !isSupportConversation(conversation)) {
+          return
+        }
+
+        const isParticipant =
+          conversation.user1Id === user.id ||
+          conversation.user2Id === user.id ||
+          (user.role === "ADMIN" && isSupportConversation(conversation))
+        if (!isParticipant) {
+          return
+        }
+
+        socket.to(`conversation:${conversationID}`).emit("message:userTyping", {
+          conversationID,
+          userID: user.id,
+        })
+      } catch (error) {
+        Logger.error(error)
+      }
     })
 
     // Mark message as read
     socket.on("message:read", async (data: MessageReadData) => {
       try {
         const { messageID, conversationID } = data
+        const conversation = await ConversationRow.findById(conversationID)
+        if (conversation == null) {
+          return
+        }
+
+        if (user.role === "GUEST" && !isSupportConversation(conversation)) {
+          return
+        }
+
+        const isParticipant =
+          conversation.user1Id === user.id ||
+          conversation.user2Id === user.id ||
+          (user.role === "ADMIN" && isSupportConversation(conversation))
+        if (!isParticipant) {
+          return
+        }
+
         const readAt = new Date()
         await MessageRow.markRead(messageID, readAt)
         socket.to(`conversation:${conversationID}`).emit("message:read", {
@@ -293,28 +331,60 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
         try {
           await ensureSupportConversation(user)
           await ensurePaidOrderConversations(user)
-          const rows = await ConversationRow.listForUser(user.id)
+          // Admin sees all support conversations so they can reply as Titan Support
+          const rows =
+            user.role === "ADMIN"
+              ? await ConversationRow.listByParticipantIDs([
+                  SUPPORT_PARTICIPANT_ID,
+                  LEGACY_SUPPORT_PARTICIPANT_ID,
+                ])
+              : await ConversationRow.listForUser(user.id)
+          const visibleRows =
+            user.role === "GUEST"
+              ? rows.filter((row) => isSupportConversation(row))
+              : rows
+          const orderedRows = sortConversationsPinned(visibleRows)
 
           const conversations = await Promise.all(
-            rows.map(async (conv) => {
-              const isUser1 = conv.user1Id === user.id
-              const otherPartyId = isUser1 ? conv.user2Id : conv.user1Id
-              const otherPartyType = isUser1 ? conv.user2Type : conv.user1Type
+            orderedRows.map(async (conv) => {
+              // Admin acts as Titan Support — show the user/seller side of each conv
+              let otherPartyId: string
+              let otherPartyType: "USER" | "SELLER"
+              if (user.role === "ADMIN" && isSupportConversation(conv)) {
+                const supportIsUser1 = isSupportParticipantID(conv.user1Id)
+                otherPartyId = supportIsUser1 ? conv.user2Id : conv.user1Id
+                otherPartyType = supportIsUser1
+                  ? conv.user2Type
+                  : conv.user1Type
+              } else {
+                const isUser1 = conv.user1Id === user.id
+                otherPartyId = isUser1 ? conv.user2Id : conv.user1Id
+                otherPartyType = isUser1 ? conv.user2Type : conv.user1Type
+              }
+              const normalizedOtherPartyId =
+                normalizeSupportParticipantID(otherPartyId)
               const participantName = await resolveName(
-                otherPartyId,
+                normalizedOtherPartyId,
                 otherPartyType,
               )
               const lastMessage = await MessageRow.getLatest(conv.id)
-              const lastMessagePayload =
-                lastMessage == null
-                  ? null
-                  : buildClientMessagePayload(lastMessage)
-              const unreadCount = await MessageRow.countUnread(conv.id, user.id)
+              // Admin unread = messages not sent by support that have not been read
+              const readerID =
+                user.role === "ADMIN" && isSupportConversation(conv)
+                  ? SUPPORT_PARTICIPANT_ID
+                  : user.id
+              const unreadCount = await MessageRow.countUnread(
+                conv.id,
+                readerID,
+              )
               return {
                 id: conv.id,
-                participantIDs: otherPartyId,
+                participantIDs: normalizedOtherPartyId,
                 participantName,
-                lastMessage: lastMessagePayload,
+                lastMessage:
+                  lastMessage == null
+                    ? null
+                    : buildClientMessagePayload(lastMessage),
                 unreadCount,
                 createdAt: conv.createdAt,
                 updatedAt: conv.updatedAt,
@@ -351,8 +421,16 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           if (conversation == null) {
             return callback({ success: false, error: "Conversation not found" })
           }
+          if (user.role === "GUEST" && !isSupportConversation(conversation)) {
+            return callback({
+              success: false,
+              error: "Login required for non-support conversations",
+            })
+          }
           const isParticipant =
-            conversation.user1Id === user.id || conversation.user2Id === user.id
+            conversation.user1Id === user.id ||
+            conversation.user2Id === user.id ||
+            (user.role === "ADMIN" && isSupportConversation(conversation))
           if (!isParticipant) {
             return callback({ success: false, error: "Access denied" })
           }
@@ -390,6 +468,8 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
       ) => {
         try {
           const { participantID, participantType } = data
+          const normalizedParticipantID =
+            normalizeSupportParticipantID(participantID)
 
           if (!participantID || !participantType) {
             return callback({
@@ -397,49 +477,45 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
               error: "participantID and participantType are required",
             })
           }
-          if (participantID === user.id) {
+          if (normalizedParticipantID === user.id) {
             return callback({
               success: false,
               error: "Cannot start a conversation with yourself",
             })
           }
 
-          if (user.role === "SELLER" && participantType === "USER") {
-            const hasPaidOrder = await OrderPaymentRow.hasPaidOrderBetween(
-              participantID,
-              user.id,
-            )
-            if (!hasPaidOrder) {
-              return callback({
-                success: false,
-                error:
-                  "You can only message users who purchased from your shop",
-              })
-            }
+          if (
+            user.role === "GUEST" &&
+            !isSupportTarget(normalizedParticipantID, participantType)
+          ) {
+            return callback({
+              success: false,
+              error: "Login required for non-support conversations",
+            })
           }
 
           let conversation = await ConversationRow.findBetween(
             user.id,
-            participantID,
+            normalizedParticipantID,
           )
           const myType = user.role === "SELLER" ? "SELLER" : "USER"
           if (conversation == null) {
             conversation = await ConversationRow.create(
               user.id,
               myType,
-              participantID,
+              normalizedParticipantID,
               participantType,
             )
           }
 
           const participantName = await resolveName(
-            participantID,
+            normalizedParticipantID,
             participantType,
           )
 
           const result = {
             id: conversation.id,
-            participantIDs: participantID,
+            participantIDs: normalizedParticipantID,
             participantName,
             lastMessage: null,
             unreadCount: 0,
@@ -450,9 +526,12 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           callback({ success: true, conversation: result })
 
           // Notify the other party so their list refreshes
-          io.to(`user:${participantID}`).emit("conversation:updated", {
-            conversationID: conversation.id,
-          })
+          io.to(`user:${normalizedParticipantID}`).emit(
+            "conversation:updated",
+            {
+              conversationID: conversation.id,
+            },
+          )
         } catch (error) {
           Logger.error(error)
           callback({ success: false, error: "Failed to start conversation" })
@@ -484,8 +563,8 @@ async function resolveName(
   id: string,
   type: "USER" | "SELLER",
 ): Promise<string> {
-  if (id === SUPPORT_PARTICIPANT_ID) return "Titan Support"
-  if (id.startsWith("guest_")) return "Guest"
+  if (isSupportParticipantID(id)) return "Titan Support"
+  if (id.startsWith(GUEST_ID_PREFIX)) return "Guest"
   try {
     if (type === "USER") {
       const row = await db
@@ -517,6 +596,14 @@ async function ensureSupportConversation(user: AuthUser): Promise<void> {
     SUPPORT_PARTICIPANT_ID,
   )
   if (existing != null) {
+    return
+  }
+
+  const existingLegacy = await ConversationRow.findBetween(
+    user.id,
+    LEGACY_SUPPORT_PARTICIPANT_ID,
+  )
+  if (existingLegacy != null) {
     return
   }
 
@@ -561,10 +648,117 @@ async function ensurePaidOrderConversations(user: AuthUser): Promise<void> {
           "SELLER",
         )
       } catch {
-        // Ignore duplicate/create races; conversation list below will fetch existing rows.
+        // Ignore duplicate/create races.
       }
     }
   }
+}
+
+function buildClientMessagePayload(message: MessageRow.MessageRow): {
+  id: string
+  conversationID: string
+  senderID: string
+  senderType: "USER" | "SELLER" | "GUEST" | "SYSTEM"
+  senderName: string
+  text: string
+  readAt: Date | null
+  createdAt: Date
+} {
+  return {
+    id: message.id,
+    conversationID: message.conversationId,
+    senderID: toClientSenderID(message.senderId, message.senderType),
+    senderType: message.senderType,
+    senderName: message.senderName,
+    text: message.text,
+    readAt: message.readAt,
+    createdAt: message.createdAt,
+  }
+}
+
+function toClientSenderID(
+  senderId: string,
+  senderType: "USER" | "SELLER" | "GUEST" | "SYSTEM",
+): string {
+  if (senderType === "SYSTEM") {
+    return "SYSTEM"
+  }
+
+  if (senderId.startsWith(GUEST_ID_PREFIX)) {
+    const normalized = senderId.substring(GUEST_ID_PREFIX.length)
+    return normalized.length > 0 ? normalized : senderId
+  }
+
+  return senderId
+}
+
+function toConversationMessageSenderType(
+  user: AuthUser,
+): "USER" | "SELLER" | "GUEST" {
+  if (user.role === "SELLER") {
+    return "SELLER"
+  }
+
+  if (user.role === "GUEST") {
+    return "GUEST"
+  }
+
+  return "USER"
+}
+
+function toActorContext(user: AuthUser): ActorContext {
+  if (user.role === "USER") return { role: "USER", userId: user.id }
+  if (user.role === "SELLER") return { role: "SELLER", sellerId: user.id }
+  if (user.role === "ADMIN") return { role: "ADMIN", adminId: user.id }
+  return { role: "GUEST" }
+}
+
+function isSupportParticipantID(value: string): boolean {
+  return (
+    value === SUPPORT_PARTICIPANT_ID || value === LEGACY_SUPPORT_PARTICIPANT_ID
+  )
+}
+
+function normalizeSupportParticipantID(value: string): string {
+  return isSupportParticipantID(value) ? SUPPORT_PARTICIPANT_ID : value
+}
+
+function isSupportConversation(
+  conversation: ConversationRow.ConversationRow,
+): boolean {
+  return (
+    isSupportParticipantID(conversation.user1Id) ||
+    isSupportParticipantID(conversation.user2Id)
+  )
+}
+
+function isSupportTarget(
+  participantID: string,
+  participantType: "USER" | "SELLER",
+): boolean {
+  return (
+    isSupportParticipantID(participantID) &&
+    participantType === SUPPORT_PARTICIPANT_TYPE
+  )
+}
+
+function sortConversationsPinned(
+  rows: ConversationRow.ConversationRow[],
+): ConversationRow.ConversationRow[] {
+  return [...rows].sort((a, b) => {
+    const aSupport = isSupportConversation(a)
+    const bSupport = isSupportConversation(b)
+
+    if (aSupport !== bSupport) {
+      return aSupport ? -1 : 1
+    }
+
+    return b.updatedAt.getTime() - a.updatedAt.getTime()
+  })
+}
+
+function isValidGuestID(value: string): boolean {
+  return UUID_PATTERN.test(value)
 }
 
 /**
@@ -600,409 +794,5 @@ export function broadcastSystemNotification(
   io.to(`user:${userID}`).emit("notification:system", {
     message,
     timestamp: new Date(),
-  })
-}
-
-function buildClientMessagePayload(message: MessageRow.MessageRow): {
-  id: string
-  conversationID: string
-  senderID: string
-  senderType: "USER" | "SELLER" | "SYSTEM"
-  senderName: string
-  text: string
-  readAt: Date | null
-  createdAt: Date
-} {
-  return {
-    id: message.id,
-    conversationID: message.conversationId,
-    senderID: toClientSenderID(message.senderId, message.senderType),
-    senderType: message.senderType,
-    senderName: message.senderName,
-    text: message.text,
-    readAt: message.readAt,
-    createdAt: message.createdAt,
-  }
-}
-
-function toClientSenderID(
-  senderId: string,
-  senderType: "USER" | "SELLER" | "SYSTEM",
-): string {
-  if (senderType === "SYSTEM") {
-    return "SYSTEM"
-  }
-
-  if (senderId.startsWith(GUEST_ID_PREFIX)) {
-    const normalized = senderId.substring(GUEST_ID_PREFIX.length)
-    return normalized.length > 0 ? normalized : senderId
-  }
-
-  return senderId
-}
-
-function isSupportConversation(
-  conversation: ConversationRow.ConversationRow,
-): boolean {
-  return (
-    conversation.user1Id === SUPPORT_PARTICIPANT_ID ||
-    conversation.user2Id === SUPPORT_PARTICIPANT_ID
-  )
-}
-
-function toSupportActor(user: AuthUser): ActorContext {
-  if (user.role === "USER") {
-    return { role: "USER", userId: user.id }
-  }
-
-  if (user.role === "SELLER") {
-    return { role: "SELLER", sellerId: user.id }
-  }
-
-  if (user.role === "ADMIN") {
-    return { role: "ADMIN", adminId: user.id }
-  }
-
-  return { role: "GUEST" }
-}
-
-async function sendSupportReply(
-  io: SocketIOServer,
-  conversationID: string,
-  user: AuthUser,
-  question: string,
-): Promise<void> {
-  const startedAtMs = Date.now()
-  const logContext = createSupportLogContext(user, conversationID)
-  const normalizedQuestion = normalizeSupportQuestion(question)
-
-  logSupportMetric("REQUEST_RECEIVED", {
-    ...logContext,
-    questionLength: normalizedQuestion.length,
-  })
-
-  if (normalizedQuestion.length === 0) {
-    logSupportMetric("REQUEST_REJECTED", {
-      ...logContext,
-      reason: "EMPTY_QUESTION",
-    })
-    return
-  }
-
-  if (normalizedQuestion.length > SUPPORT_MAX_QUESTION_LENGTH) {
-    logSupportMetric("REQUEST_REJECTED", {
-      ...logContext,
-      reason: "QUESTION_TOO_LONG",
-      questionLength: normalizedQuestion.length,
-      maxQuestionLength: SUPPORT_MAX_QUESTION_LENGTH,
-    })
-
-    await sendSupportSystemMessage(
-      io,
-      conversationID,
-      user.id,
-      `Please keep your question under ${SUPPORT_MAX_QUESTION_LENGTH} characters.`,
-    )
-    return
-  }
-
-  const rateLimit = checkSupportRateLimit(user.id)
-  if (!rateLimit.allowed) {
-    logSupportMetric("REQUEST_RATE_LIMITED", {
-      ...logContext,
-      reason: rateLimit.reason,
-      retryAfterSeconds: rateLimit.retryAfterSeconds,
-      windowRequestCount: rateLimit.windowRequestCount,
-    })
-
-    await sendSupportSystemMessage(
-      io,
-      conversationID,
-      user.id,
-      rateLimit.message,
-    )
-    return
-  }
-
-  try {
-    const response = await answerSupportQuestionRuntime({
-      actor: toSupportActor(user),
-      question: normalizedQuestion,
-      topK: 6,
-    })
-
-    const citationLines = formatSupportCitations(response)
-    const answerText = formatSupportAnswer(response, citationLines)
-    const latencyMs = Date.now() - startedAtMs
-
-    logSupportMetric("ANSWER_GENERATED", {
-      ...logContext,
-      latencyMs,
-      usedContextCount: response.usedContextCount,
-      citationsRetrieved: response.citations.length,
-      citationsIncluded: citationLines.length,
-      answerLength: answerText.length,
-    })
-
-    if (answerText.length === 0) {
-      logSupportMetric("ANSWER_SKIPPED", {
-        ...logContext,
-        reason: "EMPTY_FORMATTED_ANSWER",
-      })
-      return
-    }
-
-    const delivered = await sendSupportSystemMessage(
-      io,
-      conversationID,
-      user.id,
-      answerText,
-    )
-
-    logSupportMetric("ANSWER_DELIVERED", {
-      ...logContext,
-      delivered,
-    })
-  } catch (error) {
-    const latencyMs = Date.now() - startedAtMs
-    const errorMessage = normalizeErrorMessage(error)
-
-    Logger.error(`AI support reply failed: ${error}`)
-    logSupportMetric("ANSWER_FAILED", {
-      ...logContext,
-      latencyMs,
-      errorMessage,
-    })
-
-    const fallbackDelivered = await sendSupportSystemMessage(
-      io,
-      conversationID,
-      user.id,
-      "I'm having trouble right now. Please try again in a moment.",
-    )
-
-    logSupportMetric("FALLBACK_DELIVERED", {
-      ...logContext,
-      delivered: fallbackDelivered,
-    })
-  }
-}
-
-async function sendSupportSystemMessage(
-  io: SocketIOServer,
-  conversationID: string,
-  userID: string,
-  text: string,
-): Promise<boolean> {
-  try {
-    const supportMessage = await MessageRow.create({
-      conversationId: conversationID,
-      senderId: "SYSTEM",
-      senderType: "SYSTEM",
-      senderName: "Titan Support",
-      text,
-    })
-
-    await ConversationRow.touch(conversationID)
-
-    io.to(`conversation:${conversationID}`).emit("message:received", {
-      message: buildClientMessagePayload(supportMessage),
-    })
-
-    io.to(`user:${userID}`).emit("conversation:updated", {
-      conversationID,
-    })
-
-    return true
-  } catch (error) {
-    Logger.error(`Support system message delivery failed: ${error}`)
-    return false
-  }
-}
-
-function normalizeSupportQuestion(question: string): string {
-  const collapsed = question.replace(/\s+/g, " ").trim()
-  return collapsed
-}
-
-function formatSupportAnswer(
-  response: SupportAnswer,
-  citationLines: string[],
-): string {
-  const answer = clampSupportText(
-    response.answer.trim(),
-    SUPPORT_MAX_REPLY_LENGTH,
-  )
-  if (answer.length === 0) {
-    return ""
-  }
-
-  if (citationLines.length === 0) {
-    return answer
-  }
-
-  const combined = `${answer}\n\nSources:\n${citationLines.join("\n")}`
-  return clampSupportText(combined, SUPPORT_MAX_REPLY_LENGTH)
-}
-
-function formatSupportCitations(response: SupportAnswer): string[] {
-  const bestBySource = new Map<string, { source: string; score: number }>()
-
-  response.citations.forEach((citation) => {
-    const source = `${citation.sourceTable}/${citation.sourceRowId}`
-    const existing = bestBySource.get(source)
-    if (existing == null || citation.score > existing.score) {
-      bestBySource.set(source, { source, score: citation.score })
-    }
-  })
-
-  return Array.from(bestBySource.values())
-    .sort((a, b) => b.score - a.score)
-    .slice(0, SUPPORT_MAX_CITATIONS)
-    .map(
-      (item, index) =>
-        `${index + 1}. ${item.source} (${item.score.toFixed(2)})`,
-    )
-}
-
-function clampSupportText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
-    return text
-  }
-
-  if (maxLength <= 1) {
-    return ""
-  }
-
-  return `${text.slice(0, maxLength - 1)}…`
-}
-
-function checkSupportRateLimit(userID: string): SupportRateLimitResult {
-  const now = Date.now()
-  cleanupSupportRateLimitMap(now)
-
-  const state = supportRateLimitByUser.get(userID)
-  if (state == null) {
-    supportRateLimitByUser.set(userID, {
-      windowStartAtMs: now,
-      requestCount: 1,
-      lastRequestAtMs: now,
-    })
-
-    return {
-      allowed: true,
-      message: "",
-      reason: "OK",
-      retryAfterSeconds: 0,
-      windowRequestCount: 1,
-    }
-  }
-
-  if (now - state.lastRequestAtMs < SUPPORT_MIN_INTERVAL_MS) {
-    const waitSeconds = Math.ceil(
-      (SUPPORT_MIN_INTERVAL_MS - (now - state.lastRequestAtMs)) / 1000,
-    )
-    return {
-      allowed: false,
-      message: `Please wait ${waitSeconds}s before sending another support question.`,
-      reason: "TOO_FAST",
-      retryAfterSeconds: waitSeconds,
-      windowRequestCount: state.requestCount,
-    }
-  }
-
-  if (now - state.windowStartAtMs > SUPPORT_WINDOW_MS) {
-    state.windowStartAtMs = now
-    state.requestCount = 0
-  }
-
-  if (state.requestCount >= SUPPORT_MAX_REQUESTS_PER_WINDOW) {
-    const remaining = Math.max(
-      1,
-      SUPPORT_WINDOW_MS - (now - state.windowStartAtMs),
-    )
-    const waitSeconds = Math.ceil(remaining / 1000)
-    return {
-      allowed: false,
-      message: `Support is busy. Please try again in about ${waitSeconds}s.`,
-      reason: "WINDOW_LIMIT",
-      retryAfterSeconds: waitSeconds,
-      windowRequestCount: state.requestCount,
-    }
-  }
-
-  state.requestCount += 1
-  state.lastRequestAtMs = now
-  supportRateLimitByUser.set(userID, state)
-
-  return {
-    allowed: true,
-    message: "",
-    reason: "OK",
-    retryAfterSeconds: 0,
-    windowRequestCount: state.requestCount,
-  }
-}
-
-function cleanupSupportRateLimitMap(now: number): void {
-  if (supportRateLimitByUser.size <= SUPPORT_RATE_LIMIT_MAP_MAX_SIZE) {
-    return
-  }
-
-  const sizeBefore = supportRateLimitByUser.size
-  let removedCount = 0
-
-  supportRateLimitByUser.forEach((state, key) => {
-    const lastSeen = Math.max(state.lastRequestAtMs, state.windowStartAtMs)
-    if (now - lastSeen > SUPPORT_RATE_LIMIT_STALE_MS) {
-      supportRateLimitByUser.delete(key)
-      removedCount += 1
-    }
-  })
-
-  if (removedCount > 0) {
-    logSupportMetric("RATE_LIMIT_MAP_CLEANUP", {
-      removedCount,
-      sizeBefore,
-      sizeAfter: supportRateLimitByUser.size,
-    })
-  }
-}
-
-function createSupportLogContext(
-  user: AuthUser,
-  conversationID: string,
-): SupportLogContext {
-  return {
-    supportRequestID: randomUUID(),
-    actorRole: user.role,
-    actorHash: hashForLogs(user.id),
-    conversationHash: hashForLogs(conversationID),
-  }
-}
-
-function hashForLogs(value: string): string {
-  return createHash("sha256").update(value).digest("hex").slice(0, 16)
-}
-
-function normalizeErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return clampSupportText(error.message, 300)
-  }
-
-  return clampSupportText(String(error), 300)
-}
-
-function logSupportMetric(
-  event: SupportMetricEvent,
-  payload: Record<string, unknown>,
-): void {
-  recordSupportMetric(event, payload)
-
-  Logger.log({
-    _t: "SUPPORT_AI_METRIC",
-    event,
-    at: new Date().toISOString(),
-    ...payload,
   })
 }

@@ -3,12 +3,20 @@ import {
   VectorDocumentMeta,
   VectorScope,
   canActorReadVectorDocument,
+  getReadableScopesForActor,
 } from "./SecurityPolicy"
+
+export type VectorSearchActorFilter =
+  | { role: "GUEST" }
+  | { role: "USER"; ownerId: string }
+  | { role: "SELLER"; shopId: string }
+  | { role: "ADMIN" }
 
 export type VectorSearchRequest = {
   queryEmbedding: number[]
   topK: number
   scopes?: VectorScope[]
+  actorFilter?: VectorSearchActorFilter
 }
 
 export type VectorSearchResult = {
@@ -27,15 +35,45 @@ export type VectorSearchProvider = {
   search: (request: VectorSearchRequest) => Promise<VectorSearchResult[]>
 }
 
+export type VectorUpsertParams = {
+  id: string
+  embedding: number[]
+  content: string
+  scope: VectorScope
+  ownerId: string | null
+  shopId: string | null
+  sourceTable: string
+  sourceRowId: string
+  sourceUpdatedAt: Date
+  chunkIndex: number
+}
+
+export type VectorStoreProvider = {
+  upsert: (params: VectorUpsertParams) => Promise<void>
+}
+
 export async function searchWithPolicyFilter(params: {
   provider: VectorSearchProvider
   actor: ActorContext
   request: VectorSearchRequest
 }): Promise<VectorSearchResult[]> {
+  const actorScopes = getReadableScopesForActor(params.actor)
+  const requestedScopes = params.request.scopes
+
+  const scopes =
+    requestedScopes == null
+      ? actorScopes
+      : requestedScopes.filter((scope) => actorScopes.includes(scope))
+
+  if (scopes.length === 0) {
+    return []
+  }
+
   const safeRequest: VectorSearchRequest = {
     queryEmbedding: _normalizeEmbedding(params.request.queryEmbedding),
     topK: _sanitizeTopK(params.request.topK),
-    scopes: params.request.scopes,
+    scopes,
+    actorFilter: _toActorFilter(params.actor),
   }
 
   const candidates = await params.provider.search(safeRequest)
@@ -49,10 +87,32 @@ export function filterReadableDocuments(
   return candidates.filter((candidate) => {
     return canActorReadVectorDocument(actor, {
       scope: candidate.metadata.scope,
-      participantUserIds: candidate.metadata.participantUserIds,
-      participantSellerIds: candidate.metadata.participantSellerIds,
+      ownerId: candidate.metadata.ownerId,
+      shopId: candidate.metadata.shopId,
     })
   })
+}
+
+function _toActorFilter(actor: ActorContext): VectorSearchActorFilter {
+  if (actor.role === "USER") {
+    return {
+      role: "USER",
+      ownerId: actor.userId,
+    }
+  }
+
+  if (actor.role === "SELLER") {
+    return {
+      role: "SELLER",
+      shopId: actor.sellerId,
+    }
+  }
+
+  if (actor.role === "ADMIN") {
+    return { role: "ADMIN" }
+  }
+
+  return { role: "GUEST" }
 }
 
 function _sanitizeTopK(topK: number): number {

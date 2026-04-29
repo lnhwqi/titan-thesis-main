@@ -306,7 +306,10 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
 
       <div className={styles.sectionDivider} />
       <h3 className={styles.sectionTitle}>Support AI Monitoring</h3>
-      {renderSupportMetrics(supportMetricsResponse, supportMetricsHistoryResponse)}
+      {renderSupportMetrics(
+        supportMetricsResponse,
+        supportMetricsHistoryResponse,
+      )}
     </div>
   )
 }
@@ -344,16 +347,14 @@ function renderSupportMetrics(
   const current = supportMetricsResponse.data
   const history = supportMetricsHistoryResponse.data.items
 
-  const trendData = [...history]
-    .reverse()
-    .map((item, index) => ({
-      label: toHistoryLabel(item.generatedAt, index),
-      requests: item.snapshot.totals.requests,
-      delivered: item.snapshot.totals.answersDelivered,
-      failed: item.snapshot.totals.answersFailed,
-      rateLimited: item.snapshot.totals.rateLimited,
-      latencyMs: item.snapshot.latency.averageMs,
-    }))
+  const trendData = [...history].reverse().map((item, index) => ({
+    label: toHistoryLabel(item.generatedAt, index),
+    requests: item.snapshot.totals.requests,
+    delivered: item.snapshot.totals.answersDelivered,
+    failed: item.snapshot.totals.answersFailed,
+    rateLimited: item.snapshot.totals.rateLimited,
+    latencyMs: item.snapshot.latency.averageMs,
+  }))
 
   return (
     <>
@@ -389,11 +390,15 @@ function renderSupportMetrics(
 
       <div className={styles.chartCard}>
         <div className={styles.chartHeader}>
-          <h3 className={styles.chartTitle}>Support Trend (Recent Snapshots)</h3>
+          <h3 className={styles.chartTitle}>
+            Support Trend (Recent Snapshots)
+          </h3>
         </div>
 
         {trendData.length === 0 ? (
-          <div className={styles.infoMeta}>No persisted support snapshots yet.</div>
+          <div className={styles.infoMeta}>
+            No persisted support snapshots yet.
+          </div>
         ) : (
           <ResponsiveContainer
             width="100%"

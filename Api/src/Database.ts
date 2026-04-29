@@ -31,6 +31,7 @@ export type Schema = {
   conversation_message: ConversationMessageTable
   ai_vector_document: AIVectorDocumentTable
   ai_ingestion_checkpoint: AIIngestionCheckpointTable
+  ai_ingestion_dead_letter: AIIngestionDeadLetterTable
   ai_support_metrics_snapshot: AISupportMetricsSnapshotTable
 }
 
@@ -350,7 +351,7 @@ export type ConversationMessageTable = {
   id: string
   conversationId: string
   senderId: string
-  senderType: "USER" | "SELLER" | "SYSTEM"
+  senderType: "USER" | "SELLER" | "GUEST" | "SYSTEM"
   senderName: string
   text: string
   readAt: Date | null
@@ -365,7 +366,9 @@ export type AIVectorDocumentTable = {
   chunkIndex: number
   content: string
   contentHash: string
-  scope: "PUBLIC" | "PARTICIPANT_PRIVATE" | "ADMIN_INTERNAL"
+  scope: "PUBLIC" | "USER_PRIVATE" | "SELLER_PRIVATE" | "ADMIN_PRIVATE"
+  ownerId: string | null
+  shopId: string | null
   participantUserIds: string[]
   participantSellerIds: string[]
   metadata: Record<string, unknown>
@@ -378,6 +381,21 @@ export type AIIngestionCheckpointTable = {
   tableName: string
   lastSourceUpdatedAt: Date | null
   lastRunAt: Date
+  updatedAt: Date
+  createdAt: Date
+}
+
+export type AIIngestionDeadLetterTable = {
+  id: string
+  sourceTable: string
+  sourceRowId: string
+  chunkIndex: number
+  contentHash: string
+  errorMessage: string
+  payload: Record<string, unknown>
+  retryCount: number
+  lastTriedAt: Date
+  nextRetryAt: Date | null
   updatedAt: Date
   createdAt: Date
 }

@@ -5,7 +5,7 @@ export type MessageRow = {
   id: string
   conversationId: string
   senderId: string
-  senderType: "USER" | "SELLER" | "SYSTEM"
+  senderType: "USER" | "SELLER" | "GUEST" | "SYSTEM"
   senderName: string
   text: string
   readAt: Date | null
@@ -18,7 +18,7 @@ export type MessageRow = {
 export async function create(params: {
   conversationId: string
   senderId: string
-  senderType: "USER" | "SELLER" | "SYSTEM"
+  senderType: "USER" | "SELLER" | "GUEST" | "SYSTEM"
   senderName: string
   text: string
 }): Promise<MessageRow> {
@@ -85,10 +85,7 @@ export async function listForConversation(
 /**
  * Mark a message as read
  */
-export async function markRead(
-  messageId: string,
-  readAt: Date,
-): Promise<void> {
+export async function markRead(messageId: string, readAt: Date): Promise<void> {
   await db
     .updateTable("conversation_message")
     .set({ readAt })

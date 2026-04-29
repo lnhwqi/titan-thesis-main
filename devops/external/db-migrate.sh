@@ -20,7 +20,11 @@ source ./devops/test/.env.test
 export TOTAL_TEST_DB=$(source ./devops/test/.env.test && echo $TOTAL_TEST_DB)
 
 for i in $(seq $TOTAL_TEST_DB); do
-  (export VITEST_WORKER_ID="${i}" && tsx ./Api/database/migrate.ts) &
+  (
+    export VITEST_WORKER_ID="${i}"
+    export DB_MIGRATE_RESET_SCHEMA=true
+    tsx ./Api/database/migrate.ts
+  ) &
 done
 wait
 

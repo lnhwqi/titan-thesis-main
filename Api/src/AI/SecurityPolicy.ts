@@ -6,18 +6,25 @@ export type ActorContext =
   | { role: "SELLER"; sellerId: string }
   | { role: "ADMIN"; adminId: string }
 
-export type VectorScope = "PUBLIC" | "PARTICIPANT_PRIVATE" | "ADMIN_INTERNAL"
+export type AIRagPhase = 1 | 2 | 3
+
+export type VectorScope =
+  | "PUBLIC"
+  | "USER_PRIVATE"
+  | "SELLER_PRIVATE"
+  | "ADMIN_PRIVATE"
 
 export type VectorDocumentMeta = {
   scope: VectorScope
-  participantUserIds: string[]
-  participantSellerIds: string[]
+  ownerId: string | null
+  shopId: string | null
 }
 
 export type TableIngestionPolicy = {
   scope: VectorScope
   allowedColumns: string[]
   deniedColumns: string[]
+  minimumPhase: AIRagPhase
 }
 
 type TableIngestionPolicyEntry = {
@@ -31,25 +38,55 @@ type TableIngestionPolicyMap = Partial<
 
 const GLOBAL_DENY_EXACT: string[] = [
   "password",
-  "wallet",
-  "tax",
-  "withdrawn",
-  "profit",
-  "trackingcode",
-  "address",
+  "passwordhash",
   "email",
+  "phone",
+  "phonenumber",
+  "address",
+  "wallet",
+  "walletbalance",
+  "bank",
+  "bankname",
+  "banknumber",
+  "bankaccount",
+  "tax",
+  "taxid",
+  "taxcode",
+  "taxsecret",
+  "jwt",
+  "refreshtoken",
+  "userrefreshtoken",
+  "sellerrefreshtoken",
+  "adminrefreshtoken",
+  "internalmoderationnote",
+  "resulttextadmin",
+  "trackingcode",
   "apptransid",
   "previousid",
   "previouscreatedat",
 ]
 
-const GLOBAL_DENY_PARTIAL: string[] = ["token", "refresh", "secret"]
+const GLOBAL_DENY_PARTIAL: string[] = [
+  "token",
+  "refresh",
+  "jwt",
+  "password",
+  "secret",
+  "email",
+  "phone",
+  "address",
+  "wallet",
+  "bank",
+  "tax",
+  "moderation",
+]
 
 const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
   {
     table: "category",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
         "id",
         "name",
@@ -65,6 +102,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     table: "product",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
         "id",
         "sellerId",
@@ -83,6 +121,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     table: "productImage",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: ["id", "productID", "url", "updatedAt", "createdAt"],
       deniedColumns: [],
     },
@@ -91,6 +130,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     table: "product_variant",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
         "id",
         "productId",
@@ -108,6 +148,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     table: "seller",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
         "id",
         "name",
@@ -126,6 +167,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
         "revenue",
         "withdrawn",
         "profit",
+        "tax",
       ],
     },
   },
@@ -133,6 +175,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     table: "poster",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
         "id",
         "name",
@@ -151,15 +194,20 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     },
   },
   {
-    table: "product_rating",
+    table: "voucher",
     policy: {
       scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
-        "orderId",
-        "productId",
-        "userId",
-        "score",
-        "feedback",
+        "id",
+        "code",
+        "name",
+        "discount",
+        "limit",
+        "usedCount",
+        "minOrderValue",
+        "active",
+        "expiredDate",
         "updatedAt",
         "createdAt",
       ],
@@ -167,33 +215,15 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
     },
   },
   {
-    table: "conversation",
+    table: "market_config",
     policy: {
-      scope: "PARTICIPANT_PRIVATE",
+      scope: "PUBLIC",
+      minimumPhase: 1,
       allowedColumns: [
         "id",
-        "user1Id",
-        "user1Type",
-        "user2Id",
-        "user2Type",
-        "createdAt",
+        "reportWindowHours",
+        "ratingReportMaxPerDay",
         "updatedAt",
-      ],
-      deniedColumns: [],
-    },
-  },
-  {
-    table: "conversation_message",
-    policy: {
-      scope: "PARTICIPANT_PRIVATE",
-      allowedColumns: [
-        "id",
-        "conversationId",
-        "senderId",
-        "senderType",
-        "senderName",
-        "text",
-        "readAt",
         "createdAt",
       ],
       deniedColumns: [],
@@ -202,7 +232,8 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
   {
     table: "order_payment",
     policy: {
-      scope: "PARTICIPANT_PRIVATE",
+      scope: "USER_PRIVATE",
+      minimumPhase: 3,
       allowedColumns: [
         "id",
         "userId",
@@ -211,37 +242,19 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
         "paymentMethod",
         "isPaid",
         "status",
-        "price",
         "isSellerSettled",
         "settledAt",
         "createdAt",
         "updatedAt",
       ],
-      deniedColumns: ["username", "address", "trackingCode"],
-    },
-  },
-  {
-    table: "order_payment_item",
-    policy: {
-      scope: "PARTICIPANT_PRIVATE",
-      allowedColumns: [
-        "id",
-        "orderPaymentId",
-        "productId",
-        "variantId",
-        "productName",
-        "variantName",
-        "quantity",
-        "createdAt",
-        "updatedAt",
-      ],
-      deniedColumns: [],
+      deniedColumns: ["username", "address", "trackingCode", "price"],
     },
   },
   {
     table: "report",
     policy: {
-      scope: "PARTICIPANT_PRIVATE",
+      scope: "USER_PRIVATE",
+      minimumPhase: 3,
       allowedColumns: [
         "id",
         "sellerId",
@@ -262,80 +275,62 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
       ],
     },
   },
-  {
-    table: "seller_tier_policy",
-    policy: {
-      scope: "ADMIN_INTERNAL",
-      allowedColumns: [
-        "id",
-        "silverProfitThreshold",
-        "goldProfitThreshold",
-        "bronzeTax",
-        "silverTax",
-        "goldTax",
-        "updatedAt",
-        "createdAt",
-      ],
-      deniedColumns: [],
-    },
-  },
-  {
-    table: "market_config",
-    policy: {
-      scope: "ADMIN_INTERNAL",
-      allowedColumns: [
-        "id",
-        "reportWindowHours",
-        "ratingReportMaxPerDay",
-        "updatedAt",
-        "createdAt",
-      ],
-      deniedColumns: [],
-    },
-  },
-  {
-    table: "product_rating_report",
-    policy: {
-      scope: "ADMIN_INTERNAL",
-      allowedColumns: [
-        "id",
-        "orderId",
-        "productId",
-        "reporterSellerId",
-        "reason",
-        "detail",
-        "status",
-        "reviewedAt",
-        "updatedAt",
-        "createdAt",
-      ],
-      deniedColumns: [],
-    },
-  },
 ]
 
 const POLICY_BY_TABLE: TableIngestionPolicyMap = _toPolicyMap(POLICY_ENTRIES)
 
-export function getTablesEnabledForVectorIngestion(): Array<keyof Schema> {
-  return POLICY_ENTRIES.map((entry) => entry.table)
+export function getCurrentRagPhase(): AIRagPhase {
+  const raw = process.env.AI_RAG_PHASE ?? "1"
+  const parsed = Number(raw)
+
+  if (!Number.isFinite(parsed)) {
+    return 1
+  }
+
+  if (parsed <= 1) {
+    return 1
+  }
+
+  if (parsed >= 3) {
+    return 3
+  }
+
+  return 2
 }
 
-export function isTableEnabledForVectorIngestion(table: keyof Schema): boolean {
-  return getVectorIngestionPolicy(table) !== null
+export function getTablesEnabledForVectorIngestion(
+  phase: AIRagPhase = getCurrentRagPhase(),
+): Array<keyof Schema> {
+  return POLICY_ENTRIES.filter(
+    (entry) => entry.policy.minimumPhase <= phase,
+  ).map((entry) => entry.table)
+}
+
+export function isTableEnabledForVectorIngestion(
+  table: keyof Schema,
+  phase: AIRagPhase = getCurrentRagPhase(),
+): boolean {
+  return getVectorIngestionPolicy(table, phase) !== null
 }
 
 export function getVectorIngestionPolicy(
   table: keyof Schema,
+  phase: AIRagPhase = getCurrentRagPhase(),
 ): TableIngestionPolicy | null {
   const policy = POLICY_BY_TABLE[table]
-  return policy === undefined ? null : policy
+  if (policy === undefined) {
+    return null
+  }
+
+  return policy.minimumPhase <= phase ? policy : null
 }
 
 export function isColumnAllowedForVectorIngestion(
   table: keyof Schema,
   columnName: string,
+  phase: AIRagPhase = getCurrentRagPhase(),
 ): boolean {
-  const policy = getVectorIngestionPolicy(table)
+  const policy = getVectorIngestionPolicy(table, phase)
   if (policy === null) {
     return false
   }
@@ -353,11 +348,12 @@ export function isColumnAllowedForVectorIngestion(
 export function filterIngestionRow(
   table: keyof Schema,
   row: Record<string, unknown>,
+  phase: AIRagPhase = getCurrentRagPhase(),
 ): Record<string, unknown> {
   const filtered: Record<string, unknown> = {}
 
   Object.keys(row).forEach((columnName) => {
-    if (isColumnAllowedForVectorIngestion(table, columnName)) {
+    if (isColumnAllowedForVectorIngestion(table, columnName, phase)) {
       filtered[columnName] = row[columnName]
     }
   })
@@ -369,27 +365,79 @@ export function canActorReadVectorDocument(
   actor: ActorContext,
   metadata: VectorDocumentMeta,
 ): boolean {
-  if (metadata.scope === "PUBLIC") {
+  const normalizedScope = normalizeVectorScope(metadata.scope)
+
+  if (normalizedScope === "PUBLIC") {
     return true
   }
 
-  if (metadata.scope === "ADMIN_INTERNAL") {
+  if (normalizedScope === "USER_PRIVATE") {
+    return actor.role === "USER" && metadata.ownerId === actor.userId
+  }
+
+  if (normalizedScope === "SELLER_PRIVATE") {
+    return actor.role === "SELLER" && metadata.shopId === actor.sellerId
+  }
+
+  if (normalizedScope === "ADMIN_PRIVATE") {
     return actor.role === "ADMIN"
   }
 
-  if (metadata.scope === "PARTICIPANT_PRIVATE") {
+  return false
+}
+
+export function getReadableScopesForActor(
+  actor: ActorContext,
+  phase: AIRagPhase = getCurrentRagPhase(),
+): VectorScope[] {
+  if (phase === 1) {
+    return ["PUBLIC"]
+  }
+
+  if (phase === 2) {
     if (actor.role === "USER") {
-      return metadata.participantUserIds.includes(actor.userId)
+      return ["PUBLIC", "USER_PRIVATE"]
     }
 
     if (actor.role === "SELLER") {
-      return metadata.participantSellerIds.includes(actor.sellerId)
+      return ["PUBLIC", "SELLER_PRIVATE"]
     }
 
-    return false
+    return ["PUBLIC"]
   }
 
-  return false
+  if (actor.role === "USER") {
+    return ["PUBLIC", "USER_PRIVATE"]
+  }
+
+  if (actor.role === "SELLER") {
+    return ["PUBLIC", "SELLER_PRIVATE"]
+  }
+
+  if (actor.role === "ADMIN") {
+    return ["PUBLIC", "ADMIN_PRIVATE"]
+  }
+
+  return ["PUBLIC"]
+}
+
+export function normalizeVectorScope(value: string): VectorScope {
+  switch (_normalizeName(value)) {
+    case "public":
+      return "PUBLIC"
+    case "user_private":
+      return "USER_PRIVATE"
+    case "seller_private":
+      return "SELLER_PRIVATE"
+    case "admin_private":
+      return "ADMIN_PRIVATE"
+    case "admin_internal":
+      return "ADMIN_PRIVATE"
+    case "participant_private":
+      return "ADMIN_PRIVATE"
+    default:
+      return "ADMIN_PRIVATE"
+  }
 }
 
 function _toPolicyMap(

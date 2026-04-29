@@ -377,6 +377,9 @@ async function emitOrderPaymentBriefChatMessages(
   }>,
 ): Promise<void> {
   const io = getSocketIO()
+  const frontendURL = (
+    process.env.FRONTEND_URL ?? "http://localhost:3000"
+  ).replace(/\/$/, "")
 
   for (const createdOrder of createdOrders) {
     const row = createdOrder.row
@@ -405,28 +408,51 @@ async function emitOrderPaymentBriefChatMessages(
       continue
     }
 
-    const message = await MessageRow.create({
+    // Send one shared summary message visible to both parties
+    const summaryText = buildOrderPaymentBriefText(row)
+    const summaryMessage = await MessageRow.create({
       conversationId: conversation.id,
       senderId: "SYSTEM",
       senderType: "SYSTEM",
       senderName: "System",
-      text: buildOrderPaymentBriefText(row),
+      text: summaryText,
     })
+
+    // Send buyer's tracking link
+    const buyerLinkMessage = await MessageRow.create({
+      conversationId: conversation.id,
+      senderId: "SYSTEM",
+      senderType: "SYSTEM",
+      senderName: "System",
+      text: `Buyer: track your order at ${frontendURL}/orders`,
+    })
+
+    // Send seller's tracking link
+    const sellerLinkMessage = await MessageRow.create({
+      conversationId: conversation.id,
+      senderId: "SYSTEM",
+      senderType: "SYSTEM",
+      senderName: "System",
+      text: `Seller: manage this order at ${frontendURL}/seller/orders`,
+    })
+
     await ConversationRow.touch(conversation.id)
 
     if (io != null) {
-      io.to(`conversation:${conversation.id}`).emit("message:received", {
-        message: {
-          id: message.id,
-          conversationID: message.conversationId,
-          senderID: message.senderId,
-          senderType: message.senderType,
-          senderName: message.senderName,
-          text: message.text,
-          readAt: message.readAt,
-          createdAt: message.createdAt,
-        },
-      })
+      for (const msg of [summaryMessage, buyerLinkMessage, sellerLinkMessage]) {
+        io.to(`conversation:${conversation.id}`).emit("message:received", {
+          message: {
+            id: msg.id,
+            conversationID: msg.conversationId,
+            senderID: msg.senderId,
+            senderType: msg.senderType,
+            senderName: msg.senderName,
+            text: msg.text,
+            readAt: msg.readAt,
+            createdAt: msg.createdAt,
+          },
+        })
+      }
       io.to(`user:${userID}`).emit("conversation:updated", {
         conversationID: conversation.id,
       })

@@ -14,8 +14,8 @@ describe("Api/AI/Retrieval", () => {
             content: "Public content",
             metadata: {
               scope: "PUBLIC",
-              participantUserIds: [],
-              participantSellerIds: [],
+              ownerId: null,
+              shopId: null,
               sourceTable: "product",
               sourceRowId: "p-1",
               sourceUpdatedAt: "2026-04-27T00:00:00.000Z",
@@ -27,9 +27,9 @@ describe("Api/AI/Retrieval", () => {
             score: 0.02,
             content: "Private content",
             metadata: {
-              scope: "PARTICIPANT_PRIVATE",
-              participantUserIds: ["u-1"],
-              participantSellerIds: ["s-1"],
+              scope: "USER_PRIVATE",
+              ownerId: "u-1",
+              shopId: null,
               sourceTable: "conversation_message",
               sourceRowId: "m-1",
               sourceUpdatedAt: "2026-04-27T00:00:00.000Z",

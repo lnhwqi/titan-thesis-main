@@ -22,12 +22,19 @@ export type AIVectorDocumentRow = {
   content: string
   contentHash: string
   scope: VectorScope
+  ownerId: string | null
+  shopId: string | null
   participantUserIds: string[]
   participantSellerIds: string[]
   metadata: Record<string, unknown>
   embedding: unknown
   createdAt: Date
   updatedAt: Date
+}
+
+export type UpsertDraftResult = {
+  row: AIVectorDocumentRow
+  changed: boolean
 }
 
 export type AIIngestionCheckpointRow = {
@@ -40,10 +47,25 @@ export type AIIngestionCheckpointRow = {
 
 export async function upsertDraft(
   draft: VectorDocumentDraft,
-): Promise<AIVectorDocumentRow> {
+): Promise<UpsertDraftResult> {
+  const existing = await db
+    .selectFrom(vectorTable)
+    .selectAll()
+    .where("sourceTable", "=", String(draft.sourceTable))
+    .where("sourceRowId", "=", draft.sourceRowId)
+    .where("chunkIndex", "=", draft.chunkIndex)
+    .executeTakeFirst()
+
+  if (existing != null && _isDraftUnchanged(existing, draft)) {
+    return {
+      row: existing,
+      changed: false,
+    }
+  }
+
   const now = new Date()
 
-  return db
+  const row = await db
     .insertInto(vectorTable)
     .values({
       id: randomUUID(),
@@ -54,8 +76,10 @@ export async function upsertDraft(
       content: draft.content,
       contentHash: draft.contentHash,
       scope: draft.access.scope,
-      participantUserIds: draft.access.participantUserIds,
-      participantSellerIds: draft.access.participantSellerIds,
+      ownerId: draft.access.ownerId,
+      shopId: draft.access.shopId,
+      participantUserIds: sql`ARRAY[]::text[]`,
+      participantSellerIds: sql`ARRAY[]::text[]`,
       metadata: draft.metadata,
       embedding: sql`'[]'::jsonb`,
       createdAt: now,
@@ -67,8 +91,10 @@ export async function upsertDraft(
         content: draft.content,
         contentHash: draft.contentHash,
         scope: draft.access.scope,
-        participantUserIds: draft.access.participantUserIds,
-        participantSellerIds: draft.access.participantSellerIds,
+        ownerId: draft.access.ownerId,
+        shopId: draft.access.shopId,
+        participantUserIds: sql`ARRAY[]::text[]`,
+        participantSellerIds: sql`ARRAY[]::text[]`,
         metadata: draft.metadata,
         embedding: sql`'[]'::jsonb`,
         updatedAt: now,
@@ -76,10 +102,15 @@ export async function upsertDraft(
     )
     .returningAll()
     .executeTakeFirstOrThrow()
-    .catch((e) => {
-      Logger.error(`#${vectorTable}.upsertDraft error: ${e}`)
-      throw e
+    .catch((error) => {
+      Logger.error(`#${vectorTable}.upsertDraft error: ${error}`)
+      throw error
     })
+
+  return {
+    row,
+    changed: true,
+  }
 }
 
 export async function updateEmbedding(
@@ -150,8 +181,8 @@ export function filterRowsReadableByActor(
   return rows.filter((row) => {
     return canActorReadVectorDocument(actor, {
       scope: row.scope,
-      participantUserIds: row.participantUserIds,
-      participantSellerIds: row.participantSellerIds,
+      ownerId: row.ownerId,
+      shopId: row.shopId,
     })
   })
 }
@@ -254,4 +285,52 @@ function _toVectorLiteral(values: number[]): string {
     .map((value) => Number(value).toFixed(12))
 
   return `[${safe.join(",")}]`
+}
+
+function _isDraftUnchanged(
+  row: AIVectorDocumentRow,
+  draft: VectorDocumentDraft,
+): boolean {
+  if (row.contentHash !== draft.contentHash) {
+    return false
+  }
+
+  if (row.scope !== draft.access.scope) {
+    return false
+  }
+
+  if ((row.ownerId ?? null) !== (draft.access.ownerId ?? null)) {
+    return false
+  }
+
+  if ((row.shopId ?? null) !== (draft.access.shopId ?? null)) {
+    return false
+  }
+
+  if (row.sourceUpdatedAt.getTime() !== draft.sourceUpdatedAt.getTime()) {
+    return false
+  }
+
+  return _stableStringify(row.metadata) === _stableStringify(draft.metadata)
+}
+
+function _stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => _stableStringify(entry)).join(",")}]`
+  }
+
+  if (value instanceof Date) {
+    return JSON.stringify(value.toISOString())
+  }
+
+  if (typeof value === "object" && value !== null) {
+    const entries = Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+    return `{${entries
+      .map(([key, entryValue]) => {
+        return `${JSON.stringify(key)}:${_stableStringify(entryValue)}`
+      })
+      .join(",")}}`
+  }
+
+  return JSON.stringify(value)
 }

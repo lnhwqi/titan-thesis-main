@@ -14,6 +14,8 @@
     "db:rollback": "bash ./devops/external/db-rollback.sh",
     "db:migrate:create": "bash ./devops/external/db-migrate-create.sh",
     "ai:ingest": "bash ./devops/dev/ai-ingest.sh",
+    "ai:ingest:reset": "bash ./devops/dev/ai-ingest-reset.sh",
+    "ai:ingest:faq": "bash ./devops/dev/ai-ingest-faq.sh",
     "test": "bash ./devops/test/run-test.sh",
     "test:watch": "bash ./devops/test/run-test.sh --watch",
     "staging:deploy:api": "TODO",

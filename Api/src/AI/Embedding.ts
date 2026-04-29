@@ -20,15 +20,28 @@ export class DeterministicEmbeddingProvider implements EmbeddingProvider {
   }
 }
 
+const GEMINI_DEFAULT_BASE_URL =
+  "https://generativelanguage.googleapis.com/v1beta"
+
 export class GeminiEmbeddingProvider implements EmbeddingProvider {
   model: string
   dimension: number
   private apiKey: string
+  private baseURL: string
 
-  constructor(params: { apiKey: string; model?: string; dimension?: number }) {
+  constructor(params: {
+    apiKey: string
+    baseURL?: string
+    model?: string
+    dimension?: number
+  }) {
     this.apiKey = params.apiKey
-    this.model = params.model ?? "text-embedding-004"
-    this.dimension = Math.max(1, params.dimension ?? 768)
+    this.baseURL = (params.baseURL?.trim() || GEMINI_DEFAULT_BASE_URL).replace(
+      /\/+$/,
+      "",
+    )
+    this.model = params.model ?? "gemini-embedding-2"
+    this.dimension = Math.max(1, params.dimension ?? 3072)
   }
 
   async embed(texts: string[]): Promise<number[][]> {
@@ -43,7 +56,7 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
   }
 
   private async _embedOne(text: string): Promise<number[]> {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:embedContent?key=${encodeURIComponent(this.apiKey)}`
+    const endpoint = `${this.baseURL}/models/${this.model}:embedContent?key=${encodeURIComponent(this.apiKey)}`
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -55,12 +68,14 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
         content: {
           parts: [{ text }],
         },
+        outputDimensionality: this.dimension,
       }),
     })
 
     if (!response.ok) {
+      const body = await response.text().catch(() => "")
       throw new Error(
-        `Gemini embedding request failed with status ${response.status}`,
+        `Gemini embedding request failed with status ${response.status} at ${endpoint}: ${body}`,
       )
     }
 

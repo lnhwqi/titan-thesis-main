@@ -110,6 +110,7 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "AdminOrderManagement":
     case "AdminSetting":
     case "AdminSellerModeration":
+    case "AdminSupportMonitoring":
     case "AdminDashboard":
       return AdminDashboardAction.onEnterRoute(state)
 

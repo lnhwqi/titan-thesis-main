@@ -1,18 +1,19 @@
 import { sql } from "kysely"
 import db from "../Database"
 import {
-  VectorSearchProvider,
-  VectorSearchRequest,
-  VectorSearchResult,
+  type VectorSearchActorFilter,
+  type VectorSearchProvider,
+  type VectorSearchRequest,
+  type VectorSearchResult,
 } from "./Retrieval"
-import { VectorScope } from "./SecurityPolicy"
+import { type VectorScope, normalizeVectorScope } from "./SecurityPolicy"
 
 type VectorRow = {
   id: string
   content: string
-  scope: VectorScope
-  participantUserIds: unknown
-  participantSellerIds: unknown
+  scope: string
+  ownerId: string | null
+  shopId: string | null
   sourceTable: string
   sourceRowId: string
   sourceUpdatedAt: Date | string
@@ -23,14 +24,21 @@ type VectorRow = {
 type FallbackRow = {
   id: string
   content: string
-  scope: VectorScope
-  participantUserIds: unknown
-  participantSellerIds: unknown
+  scope: string
+  ownerId: string | null
+  shopId: string | null
   sourceTable: string
   sourceRowId: string
   sourceUpdatedAt: Date | string
   chunkIndex: number
   embedding: unknown
+}
+
+type ScopeFlags = {
+  includePublic: boolean
+  includeUserPrivate: boolean
+  includeSellerPrivate: boolean
+  includeAdminPrivate: boolean
 }
 
 export class PGVectorSearchProvider implements VectorSearchProvider {
@@ -51,94 +59,71 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
       return []
     }
 
+    const actorFilter = request.actorFilter ?? _guestActorFilter()
+    const scopeFlags = _buildScopeFlags(request.scopes)
+
     const canUseVector = await this._isVectorReady()
 
     if (canUseVector) {
       try {
-        return await this._searchWithVector(embedding, topK, request.scopes)
+        return await this._searchWithVector({
+          embedding,
+          topK,
+          actorFilter,
+          scopeFlags,
+        })
       } catch {
         this.vectorReady = false
       }
     }
 
-    return this._searchWithFallback(embedding, topK, request.scopes)
+    return this._searchWithFallback({
+      embedding,
+      topK,
+      actorFilter,
+      scopeFlags,
+    })
   }
 
-  private async _searchWithVector(
-    embedding: number[],
-    topK: number,
-    scopes: VectorScope[] | undefined,
-  ): Promise<VectorSearchResult[]> {
-    const vectorLiteral = _toVectorLiteral(embedding)
+  private async _searchWithVector(params: {
+    embedding: number[]
+    topK: number
+    actorFilter: VectorSearchActorFilter
+    scopeFlags: ScopeFlags
+  }): Promise<VectorSearchResult[]> {
+    const vectorLiteral = _toVectorLiteral(params.embedding)
+    const actorPredicate = _toActorPredicate(
+      params.actorFilter,
+      params.scopeFlags,
+    )
 
-    const result =
-      scopes == null || scopes.length === 0
-        ? await sql<VectorRow>`
-          select
-            id,
-            content,
-            scope,
-            "participantUserIds",
-            "participantSellerIds",
-            "sourceTable",
-            "sourceRowId",
-            "sourceUpdatedAt",
-            "chunkIndex",
-            ("embeddingVector" <=> cast(${vectorLiteral} as vector)) as distance
-          from ai_vector_document
-          where "embeddingVector" is not null
-          order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
-          limit ${topK}
-        `.execute(db)
-        : scopes.length === 1
-          ? await sql<VectorRow>`
-            select
-              id,
-              content,
-              scope,
-              "participantUserIds",
-              "participantSellerIds",
-              "sourceTable",
-              "sourceRowId",
-              "sourceUpdatedAt",
-              "chunkIndex",
-              ("embeddingVector" <=> cast(${vectorLiteral} as vector)) as distance
-            from ai_vector_document
-            where "embeddingVector" is not null
-              and scope = ${scopes[0]}
-            order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
-            limit ${topK}
-          `.execute(db)
-          : await sql<VectorRow>`
-            select
-              id,
-              content,
-              scope,
-              "participantUserIds",
-              "participantSellerIds",
-              "sourceTable",
-              "sourceRowId",
-              "sourceUpdatedAt",
-              "chunkIndex",
-              ("embeddingVector" <=> cast(${vectorLiteral} as vector)) as distance
-            from ai_vector_document
-            where "embeddingVector" is not null
-              and scope in (${sql.join(
-                scopes.map((scope) => sql`${scope}`),
-                sql`, `,
-              )})
-            order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
-            limit ${topK}
-          `.execute(db)
+    const result = await sql<VectorRow>`
+      select
+        id,
+        content,
+        scope,
+        "ownerId",
+        "shopId",
+        "sourceTable",
+        "sourceRowId",
+        "sourceUpdatedAt",
+        "chunkIndex",
+        ("embeddingVector" <=> cast(${vectorLiteral} as vector)) as distance
+      from ai_vector_document
+      where "embeddingVector" is not null
+        and ${actorPredicate}
+      order by "embeddingVector" <=> cast(${vectorLiteral} as vector) asc
+      limit ${params.topK}
+    `.execute(db)
 
     return result.rows.map((row) => ({
       documentId: row.id,
       score: 1 - Number(row.distance),
       content: row.content,
       metadata: {
-        scope: row.scope,
-        participantUserIds: _toStringArray(row.participantUserIds),
-        participantSellerIds: _toStringArray(row.participantSellerIds),
+        scope: normalizeVectorScope(row.scope),
+        ownerId: _toNullableString(row.ownerId),
+        shopId: _toNullableString(row.shopId),
         sourceTable: row.sourceTable,
         sourceRowId: row.sourceRowId,
         sourceUpdatedAt: _toISOString(row.sourceUpdatedAt),
@@ -147,80 +132,42 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
     }))
   }
 
-  private async _searchWithFallback(
-    embedding: number[],
-    topK: number,
-    scopes: VectorScope[] | undefined,
-  ): Promise<VectorSearchResult[]> {
-    const scanLimit = Math.max(topK * 20, this.fallbackScanLimit)
+  private async _searchWithFallback(params: {
+    embedding: number[]
+    topK: number
+    actorFilter: VectorSearchActorFilter
+    scopeFlags: ScopeFlags
+  }): Promise<VectorSearchResult[]> {
+    const scanLimit = Math.max(params.topK * 20, this.fallbackScanLimit)
+    const actorPredicate = _toActorPredicate(
+      params.actorFilter,
+      params.scopeFlags,
+    )
 
-    const result =
-      scopes == null || scopes.length === 0
-        ? await sql<FallbackRow>`
-          select
-            id,
-            content,
-            scope,
-            "participantUserIds",
-            "participantSellerIds",
-            "sourceTable",
-            "sourceRowId",
-            "sourceUpdatedAt",
-            "chunkIndex",
-            embedding
-          from ai_vector_document
-          where jsonb_typeof(embedding) = 'array'
-            and jsonb_array_length(embedding) > 0
-          order by "updatedAt" desc
-          limit ${scanLimit}
-        `.execute(db)
-        : scopes.length === 1
-          ? await sql<FallbackRow>`
-            select
-              id,
-              content,
-              scope,
-              "participantUserIds",
-              "participantSellerIds",
-              "sourceTable",
-              "sourceRowId",
-              "sourceUpdatedAt",
-              "chunkIndex",
-              embedding
-            from ai_vector_document
-            where jsonb_typeof(embedding) = 'array'
-              and jsonb_array_length(embedding) > 0
-              and scope = ${scopes[0]}
-            order by "updatedAt" desc
-            limit ${scanLimit}
-          `.execute(db)
-          : await sql<FallbackRow>`
-            select
-              id,
-              content,
-              scope,
-              "participantUserIds",
-              "participantSellerIds",
-              "sourceTable",
-              "sourceRowId",
-              "sourceUpdatedAt",
-              "chunkIndex",
-              embedding
-            from ai_vector_document
-            where jsonb_typeof(embedding) = 'array'
-              and jsonb_array_length(embedding) > 0
-              and scope in (${sql.join(
-                scopes.map((scope) => sql`${scope}`),
-                sql`, `,
-              )})
-            order by "updatedAt" desc
-            limit ${scanLimit}
-          `.execute(db)
+    const result = await sql<FallbackRow>`
+      select
+        id,
+        content,
+        scope,
+        "ownerId",
+        "shopId",
+        "sourceTable",
+        "sourceRowId",
+        "sourceUpdatedAt",
+        "chunkIndex",
+        embedding
+      from ai_vector_document
+      where jsonb_typeof(embedding) = 'array'
+        and jsonb_array_length(embedding) > 0
+        and ${actorPredicate}
+      order by "updatedAt" desc
+      limit ${scanLimit}
+    `.execute(db)
 
     const ranked = result.rows
       .map((row) => {
         const docEmbedding = _toNumberArray(row.embedding)
-        const distance = _cosineDistance(embedding, docEmbedding)
+        const distance = _cosineDistance(params.embedding, docEmbedding)
 
         return {
           row,
@@ -229,16 +176,16 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
       })
       .filter((entry) => Number.isFinite(entry.distance))
       .sort((a, b) => a.distance - b.distance)
-      .slice(0, topK)
+      .slice(0, params.topK)
 
     return ranked.map((entry) => ({
       documentId: entry.row.id,
       score: 1 - entry.distance,
       content: entry.row.content,
       metadata: {
-        scope: entry.row.scope,
-        participantUserIds: _toStringArray(entry.row.participantUserIds),
-        participantSellerIds: _toStringArray(entry.row.participantSellerIds),
+        scope: normalizeVectorScope(entry.row.scope),
+        ownerId: _toNullableString(entry.row.ownerId),
+        shopId: _toNullableString(entry.row.shopId),
         sourceTable: entry.row.sourceTable,
         sourceRowId: entry.row.sourceRowId,
         sourceUpdatedAt: _toISOString(entry.row.sourceUpdatedAt),
@@ -272,6 +219,63 @@ export class PGVectorSearchProvider implements VectorSearchProvider {
   }
 }
 
+function _guestActorFilter(): VectorSearchActorFilter {
+  return { role: "GUEST" }
+}
+
+function _buildScopeFlags(scopes: VectorScope[] | undefined): ScopeFlags {
+  const uniqueScopes = Array.from(new Set(scopes ?? ["PUBLIC"]))
+
+  return {
+    includePublic: uniqueScopes.includes("PUBLIC"),
+    includeUserPrivate: uniqueScopes.includes("USER_PRIVATE"),
+    includeSellerPrivate: uniqueScopes.includes("SELLER_PRIVATE"),
+    includeAdminPrivate: uniqueScopes.includes("ADMIN_PRIVATE"),
+  }
+}
+
+function _toActorPredicate(
+  actor: VectorSearchActorFilter,
+  flags: ScopeFlags,
+): ReturnType<typeof sql<boolean>> {
+  if (actor.role === "USER") {
+    return sql<boolean>`
+      (
+        (${flags.includePublic} and scope = 'PUBLIC')
+        or (
+          ${flags.includeUserPrivate}
+          and scope = 'USER_PRIVATE'
+          and "ownerId" = ${actor.ownerId}
+        )
+      )
+    `
+  }
+
+  if (actor.role === "SELLER") {
+    return sql<boolean>`
+      (
+        (${flags.includePublic} and scope = 'PUBLIC')
+        or (
+          ${flags.includeSellerPrivate}
+          and scope = 'SELLER_PRIVATE'
+          and "shopId" = ${actor.shopId}
+        )
+      )
+    `
+  }
+
+  if (actor.role === "ADMIN") {
+    return sql<boolean>`
+      (
+        (${flags.includePublic} and scope = 'PUBLIC')
+        or (${flags.includeAdminPrivate} and scope = 'ADMIN_PRIVATE')
+      )
+    `
+  }
+
+  return sql<boolean>`(${flags.includePublic} and scope = 'PUBLIC')`
+}
+
 function _toVectorLiteral(values: number[]): string {
   const safeValues = values
     .filter((value) => Number.isFinite(value))
@@ -280,39 +284,13 @@ function _toVectorLiteral(values: number[]): string {
   return `[${safeValues.join(",")}]`
 }
 
-function _toStringArray(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value.filter((entry) => typeof entry === "string")
+function _toNullableString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null
   }
 
-  if (typeof value === "string") {
-    const trimmed = value.trim()
-
-    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-      try {
-        const parsed = JSON.parse(trimmed)
-        return Array.isArray(parsed)
-          ? parsed.filter((entry) => typeof entry === "string")
-          : []
-      } catch {
-        return []
-      }
-    }
-
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      const values = trimmed.slice(1, trimmed.length - 1)
-      if (values === "") {
-        return []
-      }
-
-      return values
-        .split(",")
-        .map((entry) => entry.trim())
-        .filter((entry) => entry !== "")
-    }
-  }
-
-  return []
+  const trimmed = value.trim()
+  return trimmed === "" ? null : trimmed
 }
 
 function _toNumberArray(value: unknown): number[] {

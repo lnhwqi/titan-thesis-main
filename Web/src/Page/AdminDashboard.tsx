@@ -117,6 +117,22 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
         </article>
 
         <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Support AI Monitoring</h2>
+          <p className={styles.cardText}>
+            Inspect support-answer trends, adjust snapshot window, and export
+            metrics to CSV.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() =>
+              emit(navigateTo(toRoute("AdminSupportMonitoring", {})))
+            }
+          >
+            Open monitoring
+          </button>
+        </article>
+
+        <article className={styles.card}>
           <h2 className={styles.cardTitle}>Settings</h2>
           <p className={styles.cardText}>
             Manage application settings and configurations.

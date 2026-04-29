@@ -7,14 +7,28 @@ import {
   type SocketEventHandlers,
 } from "./Runtime/Socket"
 import * as AuthToken from "./App/AuthToken"
+import type { ConversationID } from "../../Core/App/Message"
+
+const guestStorageKey = "titan_guest_id"
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function getOrCreateGuestID(): string {
-  const key = "titan_guest_id"
-  const existing = localStorage.getItem(key)
-  if (existing != null && existing.length > 0) return existing
+  const existing = localStorage.getItem(guestStorageKey)
+  if (existing != null) {
+    const normalized = existing.trim().toLowerCase()
+    if (isValidGuestID(normalized)) {
+      return normalized
+    }
+  }
+
   const id = crypto.randomUUID()
-  localStorage.setItem(key, id)
+  localStorage.setItem(guestStorageKey, id)
   return id
+}
+
+function isValidGuestID(value: string): boolean {
+  return uuidPattern.test(value)
 }
 
 const handlers: SocketEventHandlers = {
@@ -27,7 +41,7 @@ const handlers: SocketEventHandlers = {
   onUserStatusChanged: (data) => {
     emit(MessageAction.receiveUserStatus(data.userID, data.status))
   },
-  onConversationUpdated: (_conversationID) => {
+  onConversationUpdated: (_conversationID: ConversationID) => {
     emit(MessageAction.loadConversations())
   },
 }

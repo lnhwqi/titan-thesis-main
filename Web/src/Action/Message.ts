@@ -1,13 +1,11 @@
 import { Action, cmd } from "../Action"
-import { State, _MessageState } from "../State"
+import { State, _MessageState, _AuthState } from "../State"
 import * as Logger from "../Logger"
 import {
   Message,
   Conversation,
   ConversationID,
 } from "../../../Core/App/Message"
-import type { SellerID } from "../../../Core/App/Seller/SellerID"
-import type { UserID } from "../../../Core/App/User/UserID"
 import {
   emitSendMessage,
   emitGetConversations,
@@ -15,8 +13,11 @@ import {
   emitTyping,
   emitMessageRead,
   emitStartConversation,
-  waitForSocketConnection,
 } from "../Runtime/Socket"
+
+const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
+const LEGACY_SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
+const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
 
 function scrollToBottomCmd(): Promise<Action | null> {
   return new Promise((resolve) => {
@@ -30,22 +31,26 @@ function scrollToBottomCmd(): Promise<Action | null> {
 export function toggleChatbox(): Action {
   return (state: State) => {
     const opening = !state.message.isOpen
-    if (opening && state.message.conversations.length === 0) {
+    if (opening) {
       return [
-        _MessageState(state, { isOpen: true }),
+        _MessageState(state, {
+          isOpen: true,
+          showNewChat: false,
+          // Always start at the conversation list
+          currentConversationID: null,
+          currentMessages: [],
+          conversationsLoading: true,
+          conversationsError: null,
+        }),
         cmd(loadConversationsCmd()),
       ]
     }
-    return [_MessageState(state, { isOpen: !state.message.isOpen }), cmd()]
+    return [_MessageState(state, { isOpen: false }), cmd()]
   }
 }
 
 async function loadConversationsCmd(): Promise<Action | null> {
   try {
-    const isConnected = await waitForSocketConnection(20, 100)
-    if (!isConnected) {
-      return setConversationsError("Connection timeout. Please try again.")
-    }
     const response = await emitGetConversations()
     if (response.success && response.conversations) {
       return setConversations(response.conversations)
@@ -56,6 +61,21 @@ async function loadConversationsCmd(): Promise<Action | null> {
   } catch (err) {
     Logger.error(err)
     return setConversationsError("Failed to load conversations")
+  }
+}
+
+async function loadMessagesForConversationCmd(
+  conversationID: ConversationID,
+): Promise<Action | null> {
+  try {
+    const response = await emitGetMessages(conversationID.unwrap(), 1, 20)
+    if (response.success && response.messages) {
+      return setCurrentMessages(response.messages)
+    }
+    return setMessagesError(response.error ?? "Failed to load messages")
+  } catch (err) {
+    Logger.error(err)
+    return setMessagesError("Failed to load messages")
   }
 }
 
@@ -76,13 +96,9 @@ export function setError(error: string | null): Action {
 }
 
 export function loadConversations(): Action {
-  return (state: State) => {
-    async function loadConversationsCmd2(): Promise<Action | null> {
+  return _AuthState((state) => {
+    async function loadConversationsCmd(): Promise<Action | null> {
       try {
-        const isConnected = await waitForSocketConnection(20, 100)
-        if (!isConnected) {
-          return setConversationsError("Connection timeout. Please try again.")
-        }
         const response = await emitGetConversations()
         if (response.success && response.conversations) {
           return setConversations(response.conversations)
@@ -101,15 +117,38 @@ export function loadConversations(): Action {
         conversationsLoading: true,
         conversationsError: null,
       }),
-      cmd(loadConversationsCmd2()),
+      cmd(loadConversationsCmd()),
     ]
-  }
+  })
 }
 
 export function setConversations(conversations: Conversation[]): Action {
   return (state: State) => {
+    const sorted = sortConversationsPinned(conversations)
+    // Keep the currently open conversation selected if it still exists in the refreshed list.
+    // Do NOT auto-select when no conversation is chosen — the new single-panel layout shows
+    // the conversation list first; users tap to enter a specific conversation.
+    const currentID = state.message.currentConversationID
+    const stillExists =
+      currentID != null &&
+      sorted.some((c) => c.id.unwrap() === currentID.unwrap())
+    if (!stillExists && currentID != null) {
+      // The selected conversation disappeared (deleted/filtered out) — fall back to list.
+      return [
+        _MessageState(state, {
+          conversations: sorted,
+          conversationsLoading: false,
+          currentConversationID: null,
+          currentMessages: [],
+        }),
+        cmd(),
+      ]
+    }
     return [
-      _MessageState(state, { conversations, conversationsLoading: false }),
+      _MessageState(state, {
+        conversations: sorted,
+        conversationsLoading: false,
+      }),
       cmd(),
     ]
   }
@@ -127,32 +166,28 @@ export function setConversationsError(error: string): Action {
   }
 }
 
+export function closeConversation(): Action {
+  return (state: State) => [
+    _MessageState(state, {
+      currentConversationID: null,
+      currentMessages: [],
+      messagesError: null,
+    }),
+    cmd(),
+  ]
+}
+
 export function openConversation(conversationID: ConversationID): Action {
-  return (state: State) => {
-    const id = conversationID
-
-    async function loadMessagesCmd(): Promise<Action | null> {
-      try {
-        const response = await emitGetMessages(id.unwrap(), 1, 20)
-        if (response.success && response.messages) {
-          return setCurrentMessages(response.messages)
-        }
-        return setMessagesError(response.error ?? "Failed to load messages")
-      } catch (err) {
-        Logger.error(err)
-        return setMessagesError("Failed to load messages")
-      }
-    }
-
+  return _AuthState((state) => {
     return [
       _MessageState(state, {
         currentConversationID: conversationID,
         messagesLoading: true,
         messagesError: null,
       }),
-      cmd(loadMessagesCmd()),
+      cmd(loadMessagesForConversationCmd(conversationID)),
     ]
-  }
+  })
 }
 
 export function setCurrentMessages(messages: Message[]): Action {
@@ -185,7 +220,7 @@ export function setMessagesError(error: string): Action {
 }
 
 export function sendMessage(): Action {
-  return (state: State) => {
+  return _AuthState((state) => {
     const { messageInput, currentConversationID, isLoading } = state.message
 
     if (!messageInput.trim() || currentConversationID == null || isLoading) {
@@ -197,10 +232,6 @@ export function sendMessage(): Action {
 
     async function sendMessageCmd(): Promise<Action | null> {
       try {
-        const isConnected = await waitForSocketConnection(5, 50)
-        if (!isConnected) {
-          return setError("Connection lost. Please check your connection.")
-        }
         const response = await emitSendMessage(
           conversationID.unwrap(),
           messageText,
@@ -219,7 +250,7 @@ export function sendMessage(): Action {
       _MessageState(state, { isLoading: true, error: null }),
       cmd(sendMessageCmd()),
     ]
-  }
+  })
 }
 
 export function addMessageToList(message: Message): Action {
@@ -306,7 +337,10 @@ export function updateNewChatInput(text: string): Action {
 
 export function setNewChatError(error: string | null): Action {
   return (state: State) => {
-    return [_MessageState(state, { newChatError: error }), cmd()]
+    return [
+      _MessageState(state, { newChatError: error, isLoading: false }),
+      cmd(),
+    ]
   }
 }
 
@@ -348,26 +382,131 @@ export function startConversation(): Action {
   }
 }
 
+export function openConversationWithUser(userID: { unwrap(): string }): Action {
+  return openConversationWithParticipant(userID.unwrap(), "USER")
+}
+
+export function openSupportConversation(): Action {
+  return openConversationWithParticipant(
+    SUPPORT_PARTICIPANT_ID,
+    SUPPORT_PARTICIPANT_TYPE,
+  )
+}
+
+export function openConversationWithSeller(sellerID: {
+  unwrap(): string
+}): Action {
+  return openConversationWithParticipant(sellerID.unwrap(), "SELLER")
+}
+
+function openConversationWithParticipant(
+  participantID: string,
+  participantType: "USER" | "SELLER",
+): Action {
+  return _AuthState((state) => {
+    async function startConversationCmd(): Promise<Action | null> {
+      try {
+        const response = await emitStartConversation(
+          participantID,
+          participantType,
+        )
+        if (response.success && response.conversation) {
+          return setNewConversation(response.conversation)
+        }
+
+        return setParticipantOpenError(
+          response.error ?? "Failed to start conversation",
+        )
+      } catch (err) {
+        Logger.error(err)
+        return setParticipantOpenError("Failed to start conversation")
+      }
+    }
+
+    return [
+      _MessageState(state, {
+        isLoading: true,
+        error: null,
+        newChatError: null,
+        isOpen: true,
+      }),
+      cmd(startConversationCmd()),
+    ]
+  })
+}
+
+function setParticipantOpenError(error: string): Action {
+  return (state: State) => {
+    return [
+      _MessageState(state, {
+        isLoading: false,
+        error,
+        newChatError: error,
+        showNewChat: true,
+        isOpen: true,
+      }),
+      cmd(),
+    ]
+  }
+}
+
 function setNewConversation(conversation: Conversation): Action {
   return (state: State) => {
     const exists = state.message.conversations.some(
       (c) => c.id.unwrap() === conversation.id.unwrap(),
     )
     const convs = exists
-      ? state.message.conversations
-      : [conversation, ...state.message.conversations]
+      ? sortConversationsPinned(state.message.conversations)
+      : sortConversationsPinned([conversation, ...state.message.conversations])
     return [
       _MessageState(state, {
         conversations: convs,
         currentConversationID: conversation.id,
+        currentMessages: [],
+        messagesLoading: true,
+        messagesError: null,
         isLoading: false,
+        error: null,
+        isOpen: true,
         newChatInput: "",
         newChatError: null,
         showNewChat: false,
       }),
-      cmd(),
+      // Load messages AND refresh the full conversations list in the background.
+      // Running loadConversationsCmd() HERE (after the conversation exists on the server)
+      // avoids a race condition where the parallel-fetched list would not yet contain
+      // the newly created conversation, causing setConversations to reset currentConversationID.
+      cmd(
+        loadMessagesForConversationCmd(conversation.id),
+        loadConversationsCmd(),
+      ),
     ]
   }
+}
+
+function sortConversationsPinned(
+  conversations: Conversation[],
+): Conversation[] {
+  return [...conversations].sort((a, b) => {
+    const aSupport = isSupportConversation(a)
+    const bSupport = isSupportConversation(b)
+
+    if (aSupport !== bSupport) {
+      return aSupport ? -1 : 1
+    }
+
+    return b.updatedAt.getTime() - a.updatedAt.getTime()
+  })
+}
+
+function isSupportConversation(conversation: Conversation): boolean {
+  const participantID = conversation.participantIDs.unwrap()
+
+  return (
+    participantID === SUPPORT_PARTICIPANT_ID ||
+    participantID === LEGACY_SUPPORT_PARTICIPANT_ID ||
+    conversation.participantName === "Titan Support"
+  )
 }
 
 export function toggleNewChat(): Action {
@@ -379,105 +518,6 @@ export function toggleNewChat(): Action {
         newChatError: null,
       }),
       cmd(),
-    ]
-  }
-}
-
-/**
- * Opens the chatbox and starts (or resumes) a conversation with a seller.
- * Only available to authenticated users (AuthUser).
- */
-export function openConversationWithSeller(sellerID: SellerID): Action {
-  return openConversationWithParticipant(
-    sellerID.unwrap(),
-    "SELLER",
-    "Failed to open chat with seller",
-  )
-}
-
-/**
- * Opens the chatbox and starts (or resumes) a conversation with a buyer.
- * Intended for authenticated sellers.
- */
-export function openConversationWithUser(userID: UserID): Action {
-  return openConversationWithParticipant(
-    userID.unwrap(),
-    "USER",
-    "Failed to open chat with buyer",
-  )
-}
-
-function openConversationWithParticipant(
-  participantID: string,
-  participantType: "USER" | "SELLER",
-  fallbackError: string,
-): Action {
-  return (state: State) => {
-    async function startConversationCmd(): Promise<Action | null> {
-      try {
-        const isConnected = await waitForSocketConnection(20, 100)
-        if (!isConnected) {
-          return setError("Connection timeout. Please try again.")
-        }
-
-        const response = await emitStartConversation(
-          participantID,
-          participantType,
-        )
-        if (response.success && response.conversation) {
-          const conversation = response.conversation
-          const messagesResponse = await emitGetMessages(
-            conversation.id.unwrap(),
-            1,
-            20,
-          )
-          const messages =
-            messagesResponse.success && messagesResponse.messages != null
-              ? messagesResponse.messages
-              : []
-          return setConversationReady(conversation, messages)
-        }
-        return setError(response.error ?? fallbackError)
-      } catch (err) {
-        Logger.error(err)
-        return setError(fallbackError)
-      }
-    }
-
-    return [
-      _MessageState(state, { isOpen: true, isLoading: true, error: null }),
-      cmd(startConversationCmd()),
-    ]
-  }
-}
-
-function setConversationReady(
-  conversation: Conversation,
-  messages: Message[],
-): Action {
-  return (state: State) => {
-    const exists = state.message.conversations.some(
-      (c) => c.id.unwrap() === conversation.id.unwrap(),
-    )
-    const convs = exists
-      ? state.message.conversations
-      : [conversation, ...state.message.conversations]
-
-    messages.forEach((msg) => {
-      if (msg.readAt == null) {
-        emitMessageRead(msg.id.unwrap(), conversation.id.unwrap())
-      }
-    })
-
-    return [
-      _MessageState(state, {
-        conversations: convs,
-        currentConversationID: conversation.id,
-        currentMessages: messages,
-        isLoading: false,
-        messagesLoading: false,
-      }),
-      cmd(scrollToBottomCmd()),
     ]
   }
 }

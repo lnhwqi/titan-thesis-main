@@ -34,7 +34,7 @@ describe("Api/AI/SecurityPolicy", () => {
       isPaid: true,
     }
 
-    const filtered = filterIngestionRow("order_payment", row)
+    const filtered = filterIngestionRow("order_payment", row, 3)
 
     expect(filtered.id).toBe("order-id")
     expect(filtered.userId).toBe("user-id")
@@ -44,11 +44,11 @@ describe("Api/AI/SecurityPolicy", () => {
     expect(filtered.trackingCode).toBeUndefined()
   })
 
-  test("participant private scope allows only participants", () => {
+  test("user private scope allows only matching owner", () => {
     const metadata: VectorDocumentMeta = {
-      scope: "PARTICIPANT_PRIVATE",
-      participantUserIds: ["u-1"],
-      participantSellerIds: ["s-2"],
+      scope: "USER_PRIVATE",
+      ownerId: "u-1",
+      shopId: null,
     }
 
     expect(
@@ -57,17 +57,29 @@ describe("Api/AI/SecurityPolicy", () => {
     expect(
       canActorReadVectorDocument({ role: "USER", userId: "u-2" }, metadata),
     ).toBe(false)
-    expect(
-      canActorReadVectorDocument({ role: "SELLER", sellerId: "s-2" }, metadata),
-    ).toBe(true)
     expect(canActorReadVectorDocument({ role: "GUEST" }, metadata)).toBe(false)
   })
 
-  test("admin internal scope allows only admin", () => {
+  test("seller private scope allows only matching shop", () => {
     const metadata: VectorDocumentMeta = {
-      scope: "ADMIN_INTERNAL",
-      participantUserIds: [],
-      participantSellerIds: [],
+      scope: "SELLER_PRIVATE",
+      ownerId: null,
+      shopId: "s-9",
+    }
+
+    expect(
+      canActorReadVectorDocument({ role: "SELLER", sellerId: "s-9" }, metadata),
+    ).toBe(true)
+    expect(
+      canActorReadVectorDocument({ role: "SELLER", sellerId: "s-2" }, metadata),
+    ).toBe(false)
+  })
+
+  test("admin private scope allows only admin", () => {
+    const metadata: VectorDocumentMeta = {
+      scope: "ADMIN_PRIVATE",
+      ownerId: null,
+      shopId: null,
     }
 
     expect(
@@ -81,10 +93,13 @@ describe("Api/AI/SecurityPolicy", () => {
     ).toBe(false)
   })
 
-  test("enabled table list contains protected participant tables", () => {
-    const tables = getTablesEnabledForVectorIngestion()
-    expect(tables.includes("conversation_message")).toBe(true)
-    expect(tables.includes("order_payment")).toBe(true)
+  test("phase 1 table list keeps ingestion public only", () => {
+    const phaseOneTables = getTablesEnabledForVectorIngestion(1)
+    expect(phaseOneTables.includes("product")).toBe(true)
+    expect(phaseOneTables.includes("order_payment")).toBe(false)
+
+    const phaseThreeTables = getTablesEnabledForVectorIngestion(3)
+    expect(phaseThreeTables.includes("order_payment")).toBe(true)
   })
 
   test("policy lookup returns null for disabled table", () => {

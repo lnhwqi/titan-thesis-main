@@ -21,13 +21,14 @@ import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
 import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
 import * as DeleteCategoryApi from "../Api/Auth/Admin/DeleteCategoryApi"
 import * as CategoryAction from "./Category"
-import { _AdminDashboardState } from "../State/AdminDashboard"
+import {
+  _AdminDashboardState,
+  type AdminDashboardState,
+} from "../State/AdminDashboard"
 import { State } from "../State"
 import { createName } from "../../../Core/App/Category/Name"
 import { slugify } from "../../../Core/App/Category/Slug"
 import { navigateTo, toRoute } from "../Route"
-
-const SUPPORT_HISTORY_LIMIT = 120
 
 export function onEnterRoute(state: State): [State, Cmd] {
   return loadOverview()(
@@ -77,6 +78,8 @@ export function saveReportWindowHours(): Action {
 export function loadOverview(): Action {
   return (state) => {
     const [nextState, pendingCmd] = loadPendingSellers()(state)
+    const historyLimit = state.adminDashboard.supportMonitoringHistoryLimit
+
     return [
       _AdminDashboardState(nextState, {
         adminHomeResponse: RD.loading(),
@@ -95,11 +98,55 @@ export function loadOverview(): Action {
         StatsApi.call().then(onStatsResponse),
         SupportAIMetricsApi.call().then(onSupportMetricsResponse),
         SupportAIMetricsHistoryApi.call({
-          limit: SUPPORT_HISTORY_LIMIT,
+          limit: historyLimit,
         }).then(onSupportMetricsHistoryResponse),
         ReportWindowGetApi.call().then(onReportWindowLoaded),
         ProductRatingReportLimitGetApi.call().then(onRatingReportLimitLoaded),
         SellerTierPolicyGetApi.call().then(onSellerTierPolicyGetResponse),
+      ),
+    ]
+  }
+}
+
+export function onChangeSupportMonitoringRange(
+  range: AdminDashboardState["supportMonitoringRange"],
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      supportMonitoringRange: range,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeSupportMonitoringHistoryLimit(
+  limit: AdminDashboardState["supportMonitoringHistoryLimit"],
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      supportMonitoringHistoryLimit: limit,
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function reloadSupportMonitoringData(): Action {
+  return (state) => {
+    const limit = state.adminDashboard.supportMonitoringHistoryLimit
+
+    return [
+      _AdminDashboardState(state, {
+        supportMetricsResponse: RD.loading(),
+        supportMetricsHistoryResponse: RD.loading(),
+        flashMessage: null,
+      }),
+      cmd(
+        SupportAIMetricsApi.call().then(onSupportMetricsResponse),
+        SupportAIMetricsHistoryApi.call({ limit }).then(
+          onSupportMetricsHistoryResponse,
+        ),
       ),
     ]
   }

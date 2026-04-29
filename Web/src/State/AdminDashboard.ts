@@ -40,6 +40,8 @@ export type AdminDashboardState = {
     ApiError<SupportAIMetricsHistoryApi.ErrorCode>,
     SupportAIMetricsHistoryApi.Payload
   >
+  supportMonitoringRange: "1h" | "24h" | "7d" | "14d" | "all"
+  supportMonitoringHistoryLimit: 60 | 120 | 200
   sellerTierPolicyResponse: RD.RemoteData<
     ApiError<SellerTierPolicyGetApi.ErrorCode>,
     SellerTierPolicyGetApi.Payload
@@ -91,6 +93,8 @@ export function initAdminDashboardState(): AdminDashboardState {
     statsResponse: RD.notAsked(),
     supportMetricsResponse: RD.notAsked(),
     supportMetricsHistoryResponse: RD.notAsked(),
+    supportMonitoringRange: "24h",
+    supportMonitoringHistoryLimit: 120,
     sellerTierPolicyResponse: RD.notAsked(),
     approvingSellerIDs: [],
     sendingVerifyEmailSellerIDs: [],

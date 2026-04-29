@@ -5,6 +5,9 @@ import * as RefreshTokenRow from "../../../Database/RefreshTokenRow"
 import * as Hash from "../../../Data/Hash"
 import * as AccessToken from "../../../App/AccessTokenUser"
 import { toUser } from "../../../App/User"
+import * as ConversationRow from "../../../Database/ConversationRow"
+
+const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
 
 export const contract = API.contract
 const actor_type: RefreshTokenRow.ActorType = "USER"
@@ -29,6 +32,13 @@ export async function handler(
     name,
     hashedPassword,
   })
+
+  // Eagerly create support conversation so it appears immediately in the chat list
+  try {
+    await ConversationRow.create(userRow.id.unwrap(), "USER", SUPPORT_PARTICIPANT_ID, "SELLER")
+  } catch {
+    // Ignore race or duplicate errors
+  }
 
   return ok(await loginPayload(userRow))
 }

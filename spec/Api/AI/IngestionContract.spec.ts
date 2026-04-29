@@ -24,6 +24,7 @@ describe("Api/AI/IngestionContract", () => {
         rowId: "order-1",
         updatedAt: new Date("2026-04-27T10:00:00.000Z"),
       },
+      phase: 3,
       row: {
         id: "order-1",
         userId: "user-1",
@@ -34,15 +35,12 @@ describe("Api/AI/IngestionContract", () => {
         isPaid: true,
         status: "PAID",
       },
-      participants: {
-        participantUserIds: ["user-1", "user-1", ""],
-        participantSellerIds: ["seller-1"],
-      },
     })
 
     expect(draft).not.toBeNull()
-    expect(draft?.access.scope).toBe("PARTICIPANT_PRIVATE")
-    expect(draft?.access.participantUserIds).toEqual(["user-1"])
+    expect(draft?.access.scope).toBe("USER_PRIVATE")
+    expect(draft?.access.ownerId).toBe("user-1")
+    expect(draft?.access.shopId).toBeNull()
     expect(draft?.content.includes("goodsSummary: Headphones")).toBe(true)
     expect(draft?.content.includes("address")).toBe(false)
     expect(draft?.content.includes("trackingCode")).toBe(false)

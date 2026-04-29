@@ -12,6 +12,7 @@ import * as GetWardApi from "../Api/Public/Address/GetWard"
 import { _CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
+import * as MessageAction from "./Message"
 
 export function onEnterRoute(): Action {
   return (state) => {
@@ -428,6 +429,8 @@ function onCreateWalletPaidResponse(
 
     localStorage.setItem("titan_cart", JSON.stringify([]))
 
+    const firstSellerID = response.value.orderPayments[0]?.sellerID
+
     return [
       _CartState(
         _PaymentState(state, {
@@ -441,7 +444,13 @@ function onCreateWalletPaidResponse(
         }),
         { items: [], isOpen: false },
       ),
-      cmd(),
+      cmd(
+        firstSellerID != null
+          ? Promise.resolve(
+              MessageAction.openConversationWithSeller(firstSellerID),
+            )
+          : Promise.resolve(null),
+      ),
     ]
   }
 }

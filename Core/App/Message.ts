@@ -12,7 +12,7 @@ export type MessageID = Opaque<string, typeof messageIDKey>
 export type ConversationID = Opaque<string, typeof conversationIDKey>
 export type MessageText = Opaque<string, typeof messageTextKey>
 
-export type SenderType = "USER" | "SELLER" | "SYSTEM"
+export type SenderType = "USER" | "SELLER" | "GUEST" | "SYSTEM"
 
 export type Message = {
   id: MessageID
@@ -85,6 +85,7 @@ export const messageTextDecoder: JD.Decoder<MessageText> = JD.string
 export const senderTypeDecoder: JD.Decoder<SenderType> = JD.oneOf([
   "USER",
   "SELLER",
+  "GUEST",
   "SYSTEM",
 ])
 
