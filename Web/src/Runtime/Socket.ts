@@ -15,6 +15,31 @@ import Env from "../Env"
 
 let socket: Socket | null = null
 
+// ---------------------------------------------------------------------------
+// Coin Rain payload types
+// ---------------------------------------------------------------------------
+export type CoinRainStartPayload = {
+  campaignId: string
+  duration: number
+  coinPool: { id: string; value: number }[]
+}
+
+export type CoinRainEndPayload = {
+  campaignId: string
+}
+
+const coinRainStartPayloadDecoder: JD.Decoder<CoinRainStartPayload> = JD.object(
+  {
+    campaignId: JD.string,
+    duration: JD.number,
+    coinPool: JD.array(JD.object({ id: JD.string, value: JD.number })),
+  },
+)
+
+const coinRainEndPayloadDecoder: JD.Decoder<CoinRainEndPayload> = JD.object({
+  campaignId: JD.string,
+})
+
 /**
  * Socket event handler types
  */
@@ -29,6 +54,8 @@ export type SocketEventHandlers = {
     status: "online" | "offline"
   }) => void
   onConversationUpdated: (conversationID: ConversationID) => void
+  onCoinRainStart: (payload: CoinRainStartPayload) => void
+  onCoinRainEnd: (payload: CoinRainEndPayload) => void
 }
 
 /**
@@ -137,6 +164,21 @@ function setupMessageListeners(
     }
   })
 
+  // ===== COIN RAIN EVENTS =====
+  socket.on("coin_rain:start", (data: unknown) => {
+    const decoded = coinRainStartPayloadDecoder.decode(data)
+    if (decoded.ok) {
+      handlers.onCoinRainStart(decoded.value)
+    }
+  })
+
+  socket.on("coin_rain:end", (data: unknown) => {
+    const decoded = coinRainEndPayloadDecoder.decode(data)
+    if (decoded.ok) {
+      handlers.onCoinRainEnd(decoded.value)
+    }
+  })
+
   socket.on("error", (err: Error) => {
     Logger.error(err)
   })
@@ -199,6 +241,38 @@ export function emitMessageRead(
   if (!socket || !socket.connected) return
 
   socket.emit("message:read", { messageID, conversationID })
+}
+
+/**
+ * Emit coin pickup event and await server response
+ */
+export function emitCoinPickup(coinId: string): Promise<{
+  success: boolean
+  coinId?: string
+  value?: number
+  newBalance?: number
+  error?: string
+}> {
+  return new Promise((resolve) => {
+    if (!socket || !socket.connected) {
+      resolve({ success: false, error: "Socket not connected" })
+      return
+    }
+
+    socket.emit(
+      "coin_rain:pickup",
+      { coinId },
+      (raw: {
+        success: boolean
+        coinId?: string
+        value?: number
+        newBalance?: number
+        error?: string
+      }) => {
+        resolve(raw)
+      },
+    )
+  })
 }
 
 /**

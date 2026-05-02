@@ -19,6 +19,7 @@ import AdminSellerModerationPage from "./Page/AdminSellerModeration"
 import AdminSettingPage from "./Page/AdminSetting"
 import AdminOrderManagementPage from "./Page/AdminOrderManagement"
 import AdminSupportMonitoringPage from "./Page/AdminSupportMonitoring"
+import AdminCoinRainPage from "./Page/AdminCoinRain"
 import SellerDashboardPage from "./Page/SellerDashboard"
 import SellerProductCreatePage from "./Page/SellerProductCreate"
 import SellerProductEditPage from "./Page/SellerProductEdit"
@@ -38,6 +39,7 @@ import AdminReportsPage from "./Page/AdminReports"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
 import SellerProfilePage from "./Page/SellerProfile"
+import CoinRainOverlay from "./View/CoinRainOverlay"
 
 type Props = { state: State }
 export default function View(props: Props): JSX.Element {
@@ -46,6 +48,15 @@ export default function View(props: Props): JSX.Element {
     return <LoadingLayout />
   }
 
+  return (
+    <>
+      {routeView(state)}
+      <CoinRainOverlay coinRain={state.coinRain} />
+    </>
+  )
+}
+
+function routeView(state: State): JSX.Element {
   switch (state.route._t) {
     case "Home":
       return (
@@ -277,6 +288,14 @@ export default function View(props: Props): JSX.Element {
 
     case "Profile":
       return withAuthLayout(state, ProfilePage)
+
+    case "AdminCoinRain":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminCoinRainPage}
+        />
+      )
   }
 }
 

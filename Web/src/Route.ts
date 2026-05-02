@@ -145,6 +145,11 @@ export type Route =
       params: NoParams
     }
   | {
+      _t: "AdminCoinRain"
+      path: "/admin/coin-rain"
+      params: NoParams
+    }
+  | {
       _t: "ProductDetail"
       path: "/product/:id"
       params: {
@@ -305,6 +310,14 @@ const router: RouteTable = {
     decoder: JD.object({
       _t: JD.always("AdminSupportMonitoring"),
       path: JD.always("/admin/support-monitoring"),
+      params: JD.object({}),
+    }),
+  },
+  AdminCoinRain: {
+    path: "/admin/coin-rain",
+    decoder: JD.object({
+      _t: JD.always("AdminCoinRain"),
+      path: JD.always("/admin/coin-rain"),
       params: JD.object({}),
     }),
   },

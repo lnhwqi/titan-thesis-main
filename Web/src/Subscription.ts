@@ -1,5 +1,6 @@
 import * as ActionRoute from "./Action/Route"
 import * as MessageAction from "./Action/Message"
+import * as CoinRainAction from "./Action/CoinRain"
 import { emit } from "./Runtime/React"
 import {
   initializeSocket,
@@ -43,6 +44,12 @@ const handlers: SocketEventHandlers = {
   },
   onConversationUpdated: (_conversationID: ConversationID) => {
     emit(MessageAction.loadConversations())
+  },
+  onCoinRainStart: (payload) => {
+    emit(CoinRainAction.onCoinRainStart(payload))
+  },
+  onCoinRainEnd: (_payload) => {
+    emit(CoinRainAction.onCoinRainEnd())
   },
 }
 

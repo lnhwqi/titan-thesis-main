@@ -7,6 +7,8 @@ import db from "./Database"
 import * as ConversationRow from "./Database/ConversationRow"
 import * as MessageRow from "./Database/ConversationMessageRow"
 import * as OrderPaymentRow from "./Database/OrderPaymentRow"
+import * as CoinRainRow from "./Database/CoinRainRow"
+import * as CoinRainTx from "./Transaction/CoinRainTx"
 import {
   enqueueSupportAIReply,
   type SupportChatHandlerParams,
@@ -536,6 +538,60 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
           Logger.error(error)
           callback({ success: false, error: "Failed to start conversation" })
         }
+      },
+    )
+
+    // ===== COIN RAIN HANDLERS =====
+
+    // coin_rain:pickup — authenticated users only
+    socket.on(
+      "coin_rain:pickup",
+      async (
+        data: { coinId: string },
+        callback: SocketCallback<
+          | SuccessResponse<{
+              coinId: string
+              value: number
+              newBalance: number
+            }>
+          | ErrorResponse
+        >,
+      ) => {
+        if (user.role !== "USER") {
+          return callback({
+            success: false,
+            error: "Login required to pick up coins",
+          })
+        }
+
+        if (
+          typeof data?.coinId !== "string" ||
+          data.coinId.trim().length === 0
+        ) {
+          return callback({ success: false, error: "coinId is required" })
+        }
+
+        const campaign = await CoinRainRow.findActiveCampaign()
+        if (campaign == null) {
+          return callback({ success: false, error: "EVENT_NOT_ACTIVE" })
+        }
+
+        const result = await CoinRainTx.claimCoin(
+          data.coinId.trim(),
+          user.id,
+          campaign.id,
+        )
+
+        if (!result.success) {
+          return callback({ success: false, error: result.reason })
+        }
+
+        callback({
+          success: true,
+          coinId: result.coinId,
+          value: result.value,
+          newBalance: result.newBalance,
+        })
       },
     )
 

@@ -1,5 +1,5 @@
 import { Pool } from "pg"
-import { Kysely, PostgresDialect } from "kysely"
+import { ColumnType, Kysely, PostgresDialect } from "kysely"
 import ENV from "./Env"
 
 export type Schema = {
@@ -33,6 +33,8 @@ export type Schema = {
   ai_ingestion_checkpoint: AIIngestionCheckpointTable
   ai_ingestion_dead_letter: AIIngestionDeadLetterTable
   ai_support_metrics_snapshot: AISupportMetricsSnapshotTable
+  coin_rain_campaign: CoinRainCampaignTable
+  coin_rain_coin: CoinRainCoinTable
 }
 
 type UserTable = {
@@ -405,6 +407,28 @@ export type AISupportMetricsSnapshotTable = {
   generatedAt: Date
   lastEventAt: Date | null
   snapshot: Record<string, unknown>
+  createdAt: Date
+}
+
+export type CoinEntry = { value: number; quantity: number }
+
+export type CoinRainCampaignTable = {
+  id: string
+  startTime: Date
+  duration: number
+  coinPool: ColumnType<CoinEntry[], string, string>
+  isDefault: boolean
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type CoinRainCoinTable = {
+  id: string
+  campaignId: string
+  value: number
+  claimedByUserId: string | null
+  claimedAt: Date | null
   createdAt: Date
 }
 

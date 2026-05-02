@@ -8,6 +8,7 @@ import { HttpLogger } from "./Logger"
 import { ensureUploadsDir, uploadsRoot } from "./Uploads"
 import { initializeSocketIO } from "./Socket"
 import { startSupportMetricsPersistence } from "./AI/SupportMetricsPersistence"
+import { initCoinRainScheduler } from "./CoinRainScheduler"
 
 const app: Express = express()
 const { APP_PORT, NODE_ENV } = ENV
@@ -41,8 +42,9 @@ routes(app)
 
 // Create HTTP server and initialize Socket.IO
 const server = createServer(app)
-initializeSocketIO(server)
+const io = initializeSocketIO(server)
 startSupportMetricsPersistence()
+initCoinRainScheduler(io).catch(console.error)
 
 server.listen(APP_PORT, () => {
   console.info(`⚡️[server]: Server is running at http://localhost:${APP_PORT}`)

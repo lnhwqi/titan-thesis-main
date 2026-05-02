@@ -51,7 +51,7 @@ export class GeminiAnswerGenerator implements AnswerGenerator {
   constructor(params: { apiKey: string; baseURL?: string; model?: string }) {
     this.apiKey = params.apiKey
     this.baseURL = params.baseURL?.trim() || GEMINI_DEFAULT_BASE_URL
-    this.model = params.model ?? "gemini-2.5-flash-lite"
+    this.model = params.model ?? "gemini-3.1-flash-lite-preview"
   }
 
   async generate(params: {

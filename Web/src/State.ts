@@ -18,6 +18,7 @@ import { ReportState } from "./State/Report"
 import { ProductRatingReportState } from "./State/ProductRatingReport"
 import { ProductRatingState } from "./State/ProductRating"
 import { MessageState } from "./State/Message"
+import { CoinRainState } from "./State/CoinRain"
 
 export type PublicState = {
   _t: "Public" | "LoadingAuth"
@@ -38,6 +39,7 @@ export type PublicState = {
   category: CategoryState
   cart: CartState
   message: MessageState
+  coinRain: CoinRainState
 }
 
 type BaseAuthState = Omit<PublicState, "_t"> & {

@@ -236,8 +236,12 @@ export function sendMessage(): Action {
           conversationID.unwrap(),
           messageText,
         )
-        if (response.success && response.message) {
-          return addMessageToList(response.message)
+        if (response.success) {
+          // The server broadcasts message:received to all room members
+          // including the sender — receiveMessage() will add it to the list.
+          // Only clear loading state here; do NOT add the message directly
+          // or it will appear twice.
+          return clearSendingState()
         }
         return setError(response.error ?? "Failed to send message")
       } catch (err) {
@@ -251,6 +255,15 @@ export function sendMessage(): Action {
       cmd(sendMessageCmd()),
     ]
   })
+}
+
+export function clearSendingState(): Action {
+  return (state: State) => {
+    return [
+      _MessageState(state, { messageInput: "", isLoading: false }),
+      cmd(),
+    ]
+  }
 }
 
 export function addMessageToList(message: Message): Action {
