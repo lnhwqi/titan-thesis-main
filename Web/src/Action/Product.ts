@@ -342,6 +342,13 @@ export function changeRelatedListPage(page: number): Action {
   ]
 }
 
+export function changeSellerListPage(page: number): Action {
+  return (state) => [
+    _ProductState(state, { sellerListPage: page < 1 ? 1 : page }),
+    cmd(),
+  ]
+}
+
 function gotDetailResponse(response: GetOneApi.Response): Action {
   return (state) => [
     _ProductState(state, {

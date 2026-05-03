@@ -50,6 +50,8 @@ export type ProductState = {
 
   relatedListPage: number
   relatedListLimit: number
+  sellerListPage: number
+  sellerListLimit: number
 
   currentImageIndex: number
   selectedVariantSize: string | null
@@ -78,6 +80,8 @@ export function initProductState(): ProductState {
     listSortBy: "newest",
     relatedListPage: 1,
     relatedListLimit: 8,
+    sellerListPage: 1,
+    sellerListLimit: 10,
     currentImageIndex: 0,
     selectedVariantSize: null,
     selectedQuantity: 1,
