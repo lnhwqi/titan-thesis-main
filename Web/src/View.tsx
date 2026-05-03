@@ -39,6 +39,7 @@ import AdminReportsPage from "./Page/AdminReports"
 import SearchPage from "./Page/Search"
 import ProductDetailPage from "./Page/ProductDetail"
 import SellerProfilePage from "./Page/SellerProfile"
+import EventPosterPage from "./Page/EventPoster"
 import CoinRainOverlay from "./View/CoinRainOverlay"
 
 type Props = { state: State }
@@ -283,6 +284,14 @@ function routeView(state: State): JSX.Element {
         <SubHome
           state={state}
           Page={SellerProfilePage}
+        />
+      )
+
+    case "EventPoster":
+      return (
+        <SubHome
+          state={state}
+          Page={EventPosterPage}
         />
       )
 

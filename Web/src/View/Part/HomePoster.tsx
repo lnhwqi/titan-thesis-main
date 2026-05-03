@@ -4,6 +4,8 @@ import { State } from "../../State"
 import { color, font, theme } from "../Theme"
 import { toString as sDateToString } from "../../../../Core/Data/Time/SDate"
 import { Poster } from "../../../../Core/App/Poster"
+import { emit } from "../../Runtime/React"
+import { navigateTo, toRoute } from "../../Route"
 
 type Props = {
   state: State
@@ -54,6 +56,19 @@ export default function HomePoster(props: Props): JSX.Element {
         <article
           className={styles.poster}
           key={poster.id.unwrap()}
+          role="button"
+          tabIndex={0}
+          onClick={() =>
+            emit(navigateTo(toRoute("EventPoster", { id: poster.id.unwrap() })))
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              emit(
+                navigateTo(toRoute("EventPoster", { id: poster.id.unwrap() })),
+              )
+            }
+          }}
         >
           <img
             src={poster.imageUrl.unwrap()}
@@ -101,6 +116,7 @@ const styles = {
     position: "relative",
     width: "100%",
     height: "360px",
+    cursor: "pointer",
     borderRadius: theme.s3,
     overflow: "hidden",
     background: color.neutral100,

@@ -6,6 +6,7 @@ export function toPoster(row: PosterRow): Poster {
     id: row.id,
     name: row.name,
     description: row.description,
+    eventContent: row.eventContent,
     imageUrl: row.imageUrl,
     imageScalePercent: row.imageScalePercent,
     imageOffsetXPercent: row.imageOffsetXPercent,

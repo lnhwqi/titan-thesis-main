@@ -11,6 +11,7 @@ import { RegisterState } from "./State/Register"
 import { AdminDashboardState } from "./State/AdminDashboard"
 import { AdminPosterState } from "./State/AdminPoster"
 import { HomePosterState } from "./State/HomePoster"
+import { EventPosterState } from "./State/EventPoster"
 import { SellerDashboardState } from "./State/SellerDashboard"
 import { VoucherState } from "./State/Voucher"
 import { PaymentState } from "./State/Payment"
@@ -29,6 +30,7 @@ export type PublicState = {
   adminDashboard: AdminDashboardState
   adminPoster: AdminPosterState
   homePoster: HomePosterState
+  eventPoster: EventPosterState
   sellerDashboard: SellerDashboardState
   voucher: VoucherState
   payment: PaymentState

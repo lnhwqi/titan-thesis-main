@@ -26,6 +26,7 @@ export type Contract = AuthApi<
 export type BodyParams = {
   name: PosterName
   description: PosterDescription
+  eventContent: string
   imageUrl: ImageUrl
   imageScalePercent: number
   imageOffsetXPercent: number
@@ -44,6 +45,7 @@ export type Payload = {
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   name: posterNameDecoder,
   description: posterDescriptionDecoder,
+  eventContent: JD.string,
   imageUrl: imageUrlDecoder,
   imageScalePercent: JD.number,
   imageOffsetXPercent: JD.number,

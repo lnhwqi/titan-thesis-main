@@ -11,6 +11,7 @@ export type AdminPosterState = {
   isUploadingImage: boolean
   name: string
   description: string
+  eventContent: string
   imageUrl: string
   imageScalePercent: string
   imageOffsetXPercent: string
@@ -45,6 +46,7 @@ export function initAdminPosterState(): AdminPosterState {
     isUploadingImage: false,
     name: "",
     description: "",
+    eventContent: "",
     imageUrl: "",
     imageScalePercent: "100",
     imageOffsetXPercent: "0",

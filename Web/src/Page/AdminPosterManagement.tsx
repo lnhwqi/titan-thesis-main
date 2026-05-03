@@ -1,10 +1,13 @@
 ﻿import { JSX } from "react"
+import ReactQuill from "react-quill-new"
+import "react-quill-new/dist/quill.snow.css"
 import { css } from "@emotion/css"
 import { State } from "../State"
 import * as AuthToken from "../App/AuthToken"
 import { emit } from "../Runtime/React"
 import * as AdminPosterAction from "../Action/AdminPoster"
 import * as AdminAction from "../Action/Admin"
+import { navigateTo, toRoute } from "../Route"
 import { color, font, theme, bp } from "../View/Theme"
 import * as SDate from "../../../Core/Data/Time/SDate"
 
@@ -106,6 +109,20 @@ export default function AdminPosterManagementPage(props: Props): JSX.Element {
                 )
               }
             />
+          </label>
+
+          <label className={styles.field}>
+            <span className={styles.label}>Event Page Content</span>
+            <div className={styles.quillWrapper}>
+              <ReactQuill
+                theme="snow"
+                value={posterState.eventContent}
+                onChange={(value) =>
+                  emit(AdminPosterAction.onChangeEventContent(value))
+                }
+                placeholder="Add full event details, schedules, rules, and highlights..."
+              />
+            </div>
           </label>
 
           <label className={styles.field}>
@@ -328,6 +345,18 @@ export default function AdminPosterManagementPage(props: Props): JSX.Element {
                     className={styles.secondaryButton}
                     onClick={() =>
                       emit(
+                        navigateTo(
+                          toRoute("EventPoster", { id: poster.id.unwrap() }),
+                        ),
+                      )
+                    }
+                  >
+                    Open Event Page
+                  </button>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() =>
+                      emit(
                         AdminPosterAction.startEditPoster(poster.id.unwrap()),
                       )
                     }
@@ -451,6 +480,20 @@ const styles = {
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
     minHeight: "96px",
+  }),
+  quillWrapper: css({
+    "& .ql-toolbar": {
+      borderColor: color.genz.purple200,
+      borderTopLeftRadius: theme.s2,
+      borderTopRightRadius: theme.s2,
+    },
+    "& .ql-container": {
+      borderColor: color.genz.purple200,
+      borderBottomLeftRadius: theme.s2,
+      borderBottomRightRadius: theme.s2,
+      minHeight: "180px",
+      ...font.regular14,
+    },
   }),
   fileInput: css({
     ...font.regular14,

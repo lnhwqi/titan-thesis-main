@@ -37,6 +37,7 @@ export type PosterRow = {
   id: PosterID
   name: PosterName
   description: PosterDescription
+  eventContent: string
   imageUrl: ImageUrl
   imageScalePercent: number
   imageOffsetXPercent: number
@@ -53,6 +54,7 @@ export const posterRowDecoder: JD.Decoder<PosterRow> = JD.object({
   id: posterIDDecoder,
   name: posterNameDecoder,
   description: posterDescriptionDecoder,
+  eventContent: JD.string,
   imageUrl: imageUrlDecoder,
   imageScalePercent: JD.number,
   imageOffsetXPercent: JD.number,
@@ -80,6 +82,7 @@ export const posterRowDecoder: JD.Decoder<PosterRow> = JD.object({
 export type CreateParams = {
   name: PosterName
   description: PosterDescription
+  eventContent: string
   imageUrl: ImageUrl
   imageScalePercent: number
   imageOffsetXPercent: number
@@ -92,6 +95,7 @@ export type CreateParams = {
 export type UpdateParams = {
   name: PosterName
   description: PosterDescription
+  eventContent: string
   imageUrl: ImageUrl
   imageScalePercent: number
   imageOffsetXPercent: number
@@ -110,6 +114,7 @@ export async function create(params: CreateParams): Promise<PosterRow> {
       id: createPosterID().unwrap(),
       name: params.name.unwrap(),
       description: params.description.unwrap(),
+      eventContent: params.eventContent,
       imageUrl: params.imageUrl.unwrap(),
       imageScalePercent: params.imageScalePercent,
       imageOffsetXPercent: params.imageOffsetXPercent,
@@ -204,6 +209,7 @@ export async function update(
     .set({
       name: params.name.unwrap(),
       description: params.description.unwrap(),
+      eventContent: params.eventContent,
       imageUrl: params.imageUrl.unwrap(),
       imageScalePercent: params.imageScalePercent,
       imageOffsetXPercent: params.imageOffsetXPercent,

@@ -5,6 +5,7 @@ import { _AuthState, _PublicState, State } from "../State"
 import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
 import * as HomePosterAction from "./HomePoster"
+import * as EventPosterAction from "./EventPoster"
 import * as AdminDashboardAction from "./Admin"
 import * as AdminPosterAction from "./AdminPoster"
 import * as SellerDashboardAction from "./SellerDashboard"
@@ -139,6 +140,11 @@ export function onUrlChange(s: State): [State, Cmd] {
       } catch (_e) {
         return withHomePoster([state, cmd()])
       }
+
+    case "EventPoster":
+      return withHomePoster(
+        EventPosterAction.onEnterRoute(route.params.id)(state),
+      )
 
     case "Search": {
       const rawName = route.params.name

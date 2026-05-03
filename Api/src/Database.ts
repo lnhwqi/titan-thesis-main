@@ -221,6 +221,7 @@ export type PosterTable = {
   id: string
   name: string
   description: string
+  eventContent: string
   imageUrl: string
   imageScalePercent: number
   imageOffsetXPercent: number

@@ -26,6 +26,7 @@ export async function handler(
   const updated = await PosterRow.update(params.id, {
     name: params.name,
     description: params.description,
+    eventContent: params.eventContent,
     imageUrl: params.imageUrl,
     imageScalePercent: params.imageScalePercent,
     imageOffsetXPercent: params.imageOffsetXPercent,

@@ -6,7 +6,6 @@ import * as UpdatePosterApi from "../Api/Auth/Admin/UpdatePoster"
 import * as DeletePosterApi from "../Api/Auth/Admin/DeletePoster"
 import * as ListPosterApi from "../Api/Auth/Admin/ListPoster"
 import * as UploadPosterImageApi from "../Api/Auth/Admin/UploadPosterImage"
-import { posterIDDecoder } from "../../../Core/App/Poster/PosterID"
 import * as SDate from "../../../Core/Data/Time/SDate"
 
 const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
@@ -37,6 +36,10 @@ export function onChangeName(value: string): Action {
 
 export function onChangeDescription(value: string): Action {
   return (state) => [_AdminPosterState(state, { description: value }), cmd()]
+}
+
+export function onChangeEventContent(value: string): Action {
+  return (state) => [_AdminPosterState(state, { eventContent: value }), cmd()]
 }
 
 export function onChangeImageUrl(value: string): Action {
@@ -140,6 +143,7 @@ export function startEditPoster(id: string): Action {
         editPosterID: id,
         name: poster.name.unwrap(),
         description: poster.description.unwrap(),
+        eventContent: poster.eventContent,
         imageUrl: poster.imageUrl.unwrap(),
         imageScalePercent: String(poster.imageScalePercent),
         imageOffsetXPercent: String(poster.imageOffsetXPercent),
@@ -161,6 +165,7 @@ export function cancelEditPoster(): Action {
       editPosterID: null,
       name: "",
       description: "",
+      eventContent: "",
       imageUrl: "",
       imageScalePercent: "100",
       imageOffsetXPercent: "0",
@@ -205,9 +210,7 @@ export function submitUpdatePoster(): Action {
       return [state, cmd()]
     }
 
-    const decodedURL = UpdatePosterApi.urlParamsDecoder.decode({
-      id: posterIDDecoder.verify(id),
-    })
+    const decodedURL = UpdatePosterApi.urlParamsDecoder.decode({ id })
     const decodedBody = UpdatePosterApi.bodyParamsDecoder.decode(
       buildBodyInput(state.adminPoster),
     )
@@ -262,9 +265,7 @@ export function confirmDeletePoster(): Action {
       return [state, cmd()]
     }
 
-    const decode = DeletePosterApi.paramsDecoder.decode({
-      id: posterIDDecoder.verify(id),
-    })
+    const decode = DeletePosterApi.paramsDecoder.decode({ id })
 
     if (decode.ok === false) {
       return [
@@ -326,6 +327,7 @@ function onCreateResponse(response: CreatePosterApi.Response): Action {
         flashMessage: "Poster created successfully.",
         name: "",
         description: "",
+        eventContent: "",
         imageUrl: "",
         imageScalePercent: "100",
         imageOffsetXPercent: "0",
@@ -359,6 +361,7 @@ function onUpdateResponse(response: UpdatePosterApi.Response): Action {
         editPosterID: null,
         name: "",
         description: "",
+        eventContent: "",
         imageUrl: "",
         imageScalePercent: "100",
         imageOffsetXPercent: "0",
@@ -457,6 +460,7 @@ function onUploadPosterImageReadFailed(): Action {
 function buildBodyInput(adminPoster: {
   name: string
   description: string
+  eventContent: string
   imageUrl: string
   imageScalePercent: string
   imageOffsetXPercent: string
@@ -467,6 +471,7 @@ function buildBodyInput(adminPoster: {
 }): {
   name: string
   description: string
+  eventContent: string
   imageUrl: string
   imageScalePercent: number
   imageOffsetXPercent: number
@@ -478,6 +483,7 @@ function buildBodyInput(adminPoster: {
   return {
     name: adminPoster.name.trim(),
     description: adminPoster.description.trim(),
+    eventContent: adminPoster.eventContent.trim(),
     imageUrl: adminPoster.imageUrl.trim(),
     imageScalePercent: Number(adminPoster.imageScalePercent),
     imageOffsetXPercent: Number(adminPoster.imageOffsetXPercent),

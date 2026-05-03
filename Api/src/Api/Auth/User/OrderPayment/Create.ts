@@ -377,9 +377,7 @@ async function emitOrderPaymentBriefChatMessages(
   }>,
 ): Promise<void> {
   const io = getSocketIO()
-  const frontendURL = (
-    process.env.FRONTEND_URL ?? "http://localhost:3000"
-  ).replace(/\/$/, "")
+  const frontendURL = (process.env.FRONTEND_URL ?? "").replace(/\/$/, "")
 
   for (const createdOrder of createdOrders) {
     const row = createdOrder.row

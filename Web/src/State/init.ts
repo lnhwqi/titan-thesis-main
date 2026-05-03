@@ -11,6 +11,7 @@ import { initRegisterState } from "./Register"
 import { initAdminDashboardState } from "./AdminDashboard"
 import { initAdminPosterState } from "./AdminPoster"
 import { initHomePosterState } from "./HomePoster"
+import { initEventPosterState } from "./EventPoster"
 import { initSellerDashboardState } from "./SellerDashboard"
 import { initVoucherState } from "./Voucher"
 import { initPaymentState } from "./Payment"
@@ -31,6 +32,7 @@ export function initState(route: Route): State {
     adminDashboard: initAdminDashboardState(),
     adminPoster: initAdminPosterState(),
     homePoster: initHomePosterState(),
+    eventPoster: initEventPosterState(),
     sellerDashboard: initSellerDashboardState(),
     voucher: initVoucherState(),
     payment: initPaymentState(),

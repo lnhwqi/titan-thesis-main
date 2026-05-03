@@ -12,6 +12,7 @@ export type Poster = {
   id: PosterID
   name: PosterName
   description: PosterDescription
+  eventContent: string
   imageUrl: ImageUrl
   imageScalePercent: number
   imageOffsetXPercent: number
@@ -25,6 +26,7 @@ export const posterDecoder: JD.Decoder<Poster> = JD.object({
   id: posterIDDecoder,
   name: posterNameDecoder,
   description: posterDescriptionDecoder,
+  eventContent: JD.string,
   imageUrl: imageUrlDecoder,
   imageScalePercent: JD.number,
   imageOffsetXPercent: JD.number,

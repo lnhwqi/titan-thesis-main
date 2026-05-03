@@ -21,6 +21,7 @@ export async function handler(
   const created = await PosterRow.create({
     name: params.name,
     description: params.description,
+    eventContent: params.eventContent,
     imageUrl: params.imageUrl,
     imageScalePercent: params.imageScalePercent,
     imageOffsetXPercent: params.imageOffsetXPercent,
