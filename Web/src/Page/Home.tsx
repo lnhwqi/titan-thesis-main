@@ -7,6 +7,7 @@ import * as RegisterAction from "../Action/Register"
 import { navigateTo, toRoute } from "../Route"
 import ProductList from "../View/Part/ProductList"
 import { fadeSlideUp } from "../View/Theme/Keyframe"
+
 export type HomePageProps = { state: AuthState | PublicState }
 export default function HomePage(props: HomePageProps): JSX.Element {
   const { state } = props
@@ -18,7 +19,6 @@ export default function HomePage(props: HomePageProps): JSX.Element {
       {hasAnnouncement ? (
         <div className={styles.announcementOverlay}>
           <div className={styles.announcementCard}>
-            <div className={styles.announcementIcon}>✦</div>
             <div className={styles.announcementTitle}>
               Registration Submitted
             </div>
@@ -66,8 +66,6 @@ const styles = {
     ...font.regular14,
     color: color.neutral800,
   }),
-
-  // ── Announcement Modal ──────────────────────────────────────────────────────
   announcementOverlay: css({
     position: "fixed",
     inset: 0,
@@ -93,14 +91,6 @@ const styles = {
     flexDirection: "column",
     gap: theme.s3,
     animation: `${fadeSlideUp} 0.3s ease both`,
-  }),
-  announcementIcon: css({
-    ...font.boldH3_29,
-    background: color.genz.gradientPurplePink,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-    lineHeight: 1,
   }),
   announcementTitle: css({
     ...font.bold17,

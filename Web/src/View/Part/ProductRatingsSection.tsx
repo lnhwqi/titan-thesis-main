@@ -229,12 +229,22 @@ const styles = {
   }),
 
   noRatings: css({
-    padding: `${theme.s6} ${theme.s4}`,
-    textAlign: "center",
-    color: color.neutral600,
-    backgroundColor: color.neutral50,
-    borderRadius: theme.br1,
-    ...font.regular14,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "160px",
+    padding: theme.s8,
+    marginTop: theme.s4,
+    backgroundColor: color.neutral0,
+    border: `2px dashed ${color.neutral200}`,
+    borderRadius: theme.br3,
+    color: color.neutral500,
+    ...font.medium14,
+    transition: "background-color 0.2s",
+    "&:hover": {
+      backgroundColor: color.neutral10,
+    },
   }),
 
   statusMsg: css({

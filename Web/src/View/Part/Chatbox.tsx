@@ -164,7 +164,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
       <div className={styles.chatboxToggleWrap}>
         {!isOpen && (
           <div className={styles.chatboxBubble}>
-            <span className={styles.chatboxBubbleText}>Chat with us!</span>
+            <span className={styles.chatboxBubbleText}>I&apos;m At</span>
             <span className={styles.chatboxBubbleTail} />
           </div>
         )}

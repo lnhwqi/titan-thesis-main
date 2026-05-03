@@ -3,6 +3,7 @@ import * as SearchApi from "../../../Core/Api/Public/Product/Search"
 import * as GetOneApi from "../../../Core/Api/Public/Product/GetOne"
 import * as GetSellerProfileApi from "../../../Core/Api/Public/Seller/GetProfile"
 import * as ListRatingsApi from "../../../Core/Api/Public/Product/ListRatings"
+import { BasicProduct } from "../../../Core/App/ProductBasic"
 
 import * as RD from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
@@ -47,6 +48,9 @@ export type ProductState = {
   listTotalCount: number
   listSortBy: SortByOption
 
+  relatedListPage: number
+  relatedListLimit: number
+
   currentImageIndex: number
   selectedVariantSize: string | null
   selectedQuantity: number
@@ -54,6 +58,8 @@ export type ProductState = {
   stockReminderMessage: string | null
   wishlistProductIDs: string[]
   wishlistBusy: boolean
+  /** All products loaded for the detail page (related/shop-name lookup). Does not affect pagination. */
+  detailProductPool: BasicProduct[]
 }
 
 export function initProductState(): ProductState {
@@ -70,6 +76,8 @@ export function initProductState(): ProductState {
     listLimit: 12,
     listTotalCount: 0,
     listSortBy: "newest",
+    relatedListPage: 1,
+    relatedListLimit: 8,
     currentImageIndex: 0,
     selectedVariantSize: null,
     selectedQuantity: 1,
@@ -77,6 +85,7 @@ export function initProductState(): ProductState {
     stockReminderMessage: null,
     wishlistProductIDs: [],
     wishlistBusy: false,
+    detailProductPool: [],
   }
 }
 

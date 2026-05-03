@@ -1,4 +1,5 @@
 import { User } from "../../Core/App/User"
+import { Wallet } from "../../Core/App/User/Wallet"
 import { LoginState } from "./State/Login"
 import { ProductState } from "./State/Product"
 import { CategoryState } from "./State/Category"
@@ -40,6 +41,7 @@ export type PublicState = {
   cart: CartState
   message: MessageState
   coinRain: CoinRainState
+  userBalance: Wallet | null
 }
 
 type BaseAuthState = Omit<PublicState, "_t"> & {

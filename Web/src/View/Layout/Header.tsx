@@ -30,15 +30,23 @@ export default function Header(props: Props): JSX.Element {
     state._t === "AuthUser" ? state.profile.name.unwrap() : "Guest"
   const userName = rawUserName.trim().split(/\s+/).pop() ?? "Guest"
   const userInitial = userName.trim().charAt(0).toUpperCase() || "G"
+
+  // Prefer the globally-refreshed balance; fall back to the profile snapshot
+  const effectiveWallet =
+    state._t === "AuthUser" ||
+    state._t === "AuthSeller" ||
+    state._t === "AuthAdmin"
+      ? (state.userBalance ?? state.profile.wallet)
+      : null
   const walletRaw =
-    state._t === "AuthUser" ? String(state.profile.wallet.unwrap()) : ""
+    effectiveWallet != null ? String(effectiveWallet.unwrap()) : ""
   const walletBalance =
     walletRaw.length > 4 ? `${walletRaw.slice(0, 4)}...` : walletRaw
   const walletFullValue =
-    state._t === "AuthUser"
+    effectiveWallet != null
       ? new Intl.NumberFormat("en-US", {
           maximumFractionDigits: 0,
-        }).format(state.profile.wallet.unwrap())
+        }).format(effectiveWallet.unwrap())
       : null
 
   const totalCartItems = state.cart.items.reduce(
@@ -222,7 +230,8 @@ const styles = {
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     borderBottom: `1px solid rgba(124, 58, 237, 0.12)`,
-    boxShadow: "0 2px 20px rgba(124, 58, 237, 0.08), 0 1px 3px rgba(0,0,0,0.05)",
+    boxShadow:
+      "0 2px 20px rgba(124, 58, 237, 0.08), 0 1px 3px rgba(0,0,0,0.05)",
     position: "sticky",
     top: 0,
     zIndex: 20,
@@ -442,7 +451,8 @@ const styles = {
     gap: theme.s1,
     padding: `${theme.s1} ${theme.s2}`,
     borderRadius: theme.br5,
-    background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)",
+    background:
+      "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)",
     border: `1px solid rgba(124, 58, 237, 0.2)`,
     boxShadow: "0 1px 4px rgba(124, 58, 237, 0.1)",
   }),
@@ -564,7 +574,8 @@ const styles = {
     padding: `${theme.s2} ${theme.s3}`,
     ...font.medium14,
     color: color.genz.purple,
-    transition: "background-color 0.18s ease, color 0.18s ease, padding-left 0.18s ease",
+    transition:
+      "background-color 0.18s ease, color 0.18s ease, padding-left 0.18s ease",
     "&:hover": {
       backgroundColor: "rgba(124, 58, 237, 0.06)",
       color: color.genz.pink,

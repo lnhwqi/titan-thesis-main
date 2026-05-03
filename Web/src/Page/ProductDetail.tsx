@@ -11,6 +11,7 @@ import {
   IoIosHeart,
   IoIosHeartEmpty,
 } from "react-icons/io"
+import { IoStorefrontOutline } from "react-icons/io5"
 import { ProductCard } from "../View/Part/ProductCard"
 import { ProductRatingsSection } from "../View/Part/ProductRatingsSection"
 import * as AuthToken from "../App/AuthToken"
@@ -31,7 +32,7 @@ export default function ProductDetailPage(
   const selectedSize = state.product.selectedVariantSize
 
   if (detailRD._t === "Loading") {
-    return <div className={styles.statusMsg}>Loading Product</div>
+    return <div className={styles.statusMsg}>Loading Product...</div>
   }
 
   if (detailRD._t === "Failure") {
@@ -107,20 +108,26 @@ export default function ProductDetailPage(
   const requiresVariantSelection = orderedSizes.length > 0
   const canAddToCart = shownStock > 0
 
-  const relatedProducts =
-    state.product.listResponse._t === "Success"
-      ? state.product.listResponse.data.items.filter(
-          (item) =>
-            item.sellerID.unwrap() === product.sellerID.unwrap() &&
-            item.id.unwrap() !== product.id.unwrap(),
-        )
-      : []
-  const productInList =
-    state.product.listResponse._t === "Success"
-      ? state.product.listResponse.data.items.find(
-          (item) => item.id.unwrap() === product.id.unwrap(),
-        )
-      : undefined
+  const relatedLimit = state.product.relatedListLimit
+  const relatedPage = state.product.relatedListPage
+  const allRelatedProducts = state.product.detailProductPool.filter(
+    (item) =>
+      item.sellerID.unwrap() === product.sellerID.unwrap() &&
+      item.id.unwrap() !== product.id.unwrap(),
+  )
+  const relatedTotalCount = allRelatedProducts.length
+  const relatedTotalPages = Math.max(
+    1,
+    Math.ceil(relatedTotalCount / relatedLimit),
+  )
+  const relatedStart = (relatedPage - 1) * relatedLimit
+  const relatedProducts = allRelatedProducts.slice(
+    relatedStart,
+    relatedStart + relatedLimit,
+  )
+  const productInList = state.product.detailProductPool.find(
+    (item) => item.id.unwrap() === product.id.unwrap(),
+  )
   const sellerShopName =
     productInList?.shopName?.unwrap()?.trim() ||
     `Shop ${product.sellerID.unwrap().slice(0, 8)}`
@@ -151,13 +158,13 @@ export default function ProductDetailPage(
                     className={styles.navBtnLeft}
                     onClick={() => changeIndex(currentIndex - 1)}
                   >
-                    <IoIosArrowBack size={24} />
+                    <IoIosArrowBack size={20} />
                   </button>
                   <button
                     className={styles.navBtnRight}
                     onClick={() => changeIndex(currentIndex + 1)}
                   >
-                    <IoIosArrowForward size={24} />
+                    <IoIosArrowForward size={20} />
                   </button>
                 </>
               )}
@@ -173,7 +180,7 @@ export default function ProductDetailPage(
                 >
                   <img
                     src={img.unwrap()}
-                    alt="thumb"
+                    alt={`thumbnail ${index + 1}`}
                     className={styles.thumbImg}
                   />
                 </div>
@@ -182,51 +189,50 @@ export default function ProductDetailPage(
           </div>
 
           <div className={styles.infoWrapper}>
-            {isUser ? (
-              <button
-                className={`${styles.heartButton} ${isSaved ? styles.heartButtonActive : ""}`}
-                disabled={state.product.wishlistBusy}
-                onClick={() =>
-                  emit(
-                    isSaved
-                      ? ProductAction.removeFromWishlist(product.id)
-                      : ProductAction.saveToWishlist(product.id),
-                  )
-                }
-                aria-label={
-                  isSaved ? "Remove from wishlist" : "Add to wishlist"
-                }
-                title={isSaved ? "Remove from wishlist" : "Add to wishlist"}
-              >
-                {isSaved ? (
-                  <IoIosHeart size={24} />
-                ) : (
-                  <IoIosHeartEmpty size={24} />
-                )}
-              </button>
-            ) : null}
+            <div className={styles.titleRow}>
+              <h1 className={styles.productName}>{product.name.unwrap()}</h1>
+              {isUser ? (
+                <button
+                  className={`${styles.heartButton} ${isSaved ? styles.heartButtonActive : ""}`}
+                  disabled={state.product.wishlistBusy}
+                  onClick={() =>
+                    emit(
+                      isSaved
+                        ? ProductAction.removeFromWishlist(product.id)
+                        : ProductAction.saveToWishlist(product.id),
+                    )
+                  }
+                  title={isSaved ? "Remove from wishlist" : "Add to wishlist"}
+                >
+                  {isSaved ? (
+                    <IoIosHeart size={28} />
+                  ) : (
+                    <IoIosHeartEmpty size={28} />
+                  )}
+                </button>
+              ) : null}
+            </div>
 
-            <h1 className={styles.productName}>{product.name.unwrap()}</h1>
-            <div className={styles.priceTag}>
-              <span className={styles.coinBadge}>T</span>
-              <span>
-                {new Intl.NumberFormat("en-US", {
-                  maximumFractionDigits: 0,
-                }).format(shownPrice)}
-              </span>
+            <div className={styles.priceBox}>
+              <div className={styles.priceTag}>
+                <span className={styles.coinBadge}>T</span>
+                <span>
+                  {new Intl.NumberFormat("en-US", {
+                    maximumFractionDigits: 0,
+                  }).format(shownPrice)}
+                </span>
+              </div>
             </div>
 
             {orderedSizes.length > 0 ? (
               <div className={styles.variantSection}>
-                <div className={styles.variantLabel}>
-                  Choose your proper size
+                <div className={styles.sectionLabel}>
+                  Size <span className={styles.requiredStar}>*</span>
                 </div>
                 <div className={styles.variantList}>
                   {orderedSizes.map((size) => {
                     const variant = variantBySize.get(size)
-                    if (variant == null) {
-                      return null
-                    }
+                    if (variant == null) return null
 
                     const stock = variant.stock.unwrap()
                     const isOutOfStock = stock <= 0
@@ -241,7 +247,6 @@ export default function ProductDetailPage(
                         } ${isSelected ? styles.variantChipSelected : ""}`}
                         onClick={() => {
                           emit(ProductAction.setSelectedVariantSize(size))
-
                           const cappedQuantity = Math.max(
                             1,
                             Math.min(state.product.selectedQuantity, stock),
@@ -259,20 +264,24 @@ export default function ProductDetailPage(
                 </div>
               </div>
             ) : null}
-            <div className={styles.stockTag}>Stock: {shownStock}</div>
 
             <div className={styles.quantitySection}>
-              <div className={styles.quantityLabel}>Choose amount of goods</div>
+              <div className={styles.sectionLabel}>
+                Quantity{" "}
+                <span className={styles.stockText}>
+                  ({shownStock} available)
+                </span>
+              </div>
               <div className={styles.qtyControls}>
                 <button
                   type="button"
                   className={styles.qtyButton}
                   disabled={canAddToCart === false || selectedQuantity <= 1}
-                  onClick={() => {
+                  onClick={() =>
                     emit(
                       ProductAction.setSelectedQuantity(selectedQuantity - 1),
                     )
-                  }}
+                  }
                 >
                   -
                 </button>
@@ -285,10 +294,7 @@ export default function ProductDetailPage(
                   disabled={canAddToCart === false}
                   onChange={(e) => {
                     const parsed = Number(e.currentTarget.value)
-                    if (Number.isFinite(parsed) === false) {
-                      return
-                    }
-
+                    if (Number.isFinite(parsed) === false) return
                     if (parsed > shownStock) {
                       emit(
                         ProductAction.showStockReminder(
@@ -296,12 +302,10 @@ export default function ProductDetailPage(
                         ),
                       )
                     }
-
                     const nextQty = Math.max(
                       1,
                       Math.min(Math.floor(parsed), maxSelectableQuantity),
                     )
-
                     emit(ProductAction.setSelectedQuantity(nextQty))
                   }}
                 />
@@ -318,7 +322,6 @@ export default function ProductDetailPage(
                       )
                       return
                     }
-
                     emit(
                       ProductAction.setSelectedQuantity(selectedQuantity + 1),
                     )
@@ -333,15 +336,11 @@ export default function ProductDetailPage(
               className={styles.addToCartBtn}
               disabled={!canAddToCart}
               onClick={() => {
-                if (canAddToCart === false) {
-                  return
-                }
-
+                if (canAddToCart === false) return
                 if (requiresVariantSelection && selectedVariant == null) {
                   emit(ProductAction.showVariantReminder())
                   return
                 }
-
                 if (selectedQuantity > shownStock) {
                   emit(
                     ProductAction.showStockReminder(
@@ -350,7 +349,6 @@ export default function ProductDetailPage(
                   )
                   return
                 }
-
                 emit(ProductAction.clearVariantReminder())
                 emit(ProductAction.clearStockReminder())
 
@@ -381,61 +379,29 @@ export default function ProductDetailPage(
               Add To Cart
             </button>
 
-            {state.product.variantReminderVisible ? (
-              <div className={styles.variantReminderOverlay}>
-                <div className={styles.variantReminderCard}>
-                  <div className={styles.variantReminderTitle}>
-                    Choose a size
-                  </div>
-                  <div className={styles.variantReminderBody}>
-                    Please select a size before adding this product to your
-                    cart.
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.variantReminderClose}
-                    onClick={() => emit(ProductAction.clearVariantReminder())}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            {state.product.stockReminderMessage != null ? (
-              <div className={styles.modalOverlay}>
-                <div className={styles.modalCard}>
-                  <h3 className={styles.modalTitle}>Notice</h3>
-                  <p className={styles.modalText}>
-                    {state.product.stockReminderMessage}
-                  </p>
-                  <button
-                    className={styles.modalBtn}
-                    onClick={() => emit(ProductAction.clearStockReminder())}
-                  >
-                    OK
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
             <Link
               route={toRoute("SellerProfile", {
                 id: product.sellerID.unwrap(),
               })}
               className={styles.sellerProfileLink}
             >
-              <div className={styles.sellerProfileBlock}>
-                <span className={styles.sellerProvidedBy}>Provided by:</span>
-                <span className={styles.sellerAvatar}>{sellerInitial}</span>
-                <span className={styles.sellerName}>{sellerShopName}</span>
+              <div className={styles.sellerProfileCard}>
+                <div className={styles.sellerAvatar}>{sellerInitial}</div>
+                <div className={styles.sellerInfo}>
+                  <span className={styles.sellerProvidedBy}>Sold by</span>
+                  <span className={styles.sellerName}>{sellerShopName}</span>
+                </div>
+                <IoStorefrontOutline
+                  size={24}
+                  className={styles.sellerIcon}
+                />
               </div>
             </Link>
           </div>
         </div>
 
         <div className={styles.descriptionSection}>
-          <div className={styles.descriptionTitle}>Product description:</div>
+          <div className={styles.sectionLabel}>Product Description</div>
           <p className={styles.description}>{product.description.unwrap()}</p>
         </div>
 
@@ -444,22 +410,108 @@ export default function ProductDetailPage(
         />
 
         <div className={styles.otherSection}>
-          <h2 className={styles.otherTitle}>Others Product of this shop</h2>
+          <div className={styles.otherHeader}>
+            <h2 className={styles.otherTitle}>More from this shop</h2>
+            {relatedTotalCount > 0 && (
+              <div className={styles.relatedPaginationInfo}>
+                Showing {relatedStart + 1}–
+                {Math.min(relatedStart + relatedLimit, relatedTotalCount)} of{" "}
+                {relatedTotalCount}
+              </div>
+            )}
+          </div>
           {relatedProducts.length > 0 ? (
-            <div className={styles.relatedGrid}>
-              {relatedProducts.map((related) => (
-                <ProductCard
-                  key={related.id.unwrap()}
-                  product={related}
-                  state={state}
-                />
-              ))}
-            </div>
+            <>
+              <div className={styles.relatedGrid}>
+                {relatedProducts.map((related) => (
+                  <ProductCard
+                    key={related.id.unwrap()}
+                    product={related}
+                    state={state}
+                  />
+                ))}
+              </div>
+              {relatedTotalPages > 1 && (
+                <div className={styles.relatedPaginationControls}>
+                  <button
+                    className={styles.relatedPaginationButton}
+                    onClick={() =>
+                      emit(ProductAction.changeRelatedListPage(relatedPage - 1))
+                    }
+                    disabled={relatedPage === 1}
+                  >
+                    ← Previous
+                  </button>
+                  <div className={styles.relatedPageNumbers}>
+                    {Array.from(
+                      { length: relatedTotalPages },
+                      (_, i) => i + 1,
+                    ).map((p) => (
+                      <button
+                        key={p}
+                        className={`${styles.relatedPageButton} ${p === relatedPage ? styles.relatedPageButtonActive : ""}`}
+                        onClick={() =>
+                          emit(ProductAction.changeRelatedListPage(p))
+                        }
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    className={styles.relatedPaginationButton}
+                    onClick={() =>
+                      emit(ProductAction.changeRelatedListPage(relatedPage + 1))
+                    }
+                    disabled={relatedPage === relatedTotalPages}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
-            <div className={styles.blankArea} />
+            <div className={styles.blankArea}>
+              <p>No other products available.</p>
+            </div>
           )}
         </div>
       </div>
+
+      {state.product.variantReminderVisible ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <div className={styles.modalTitle}>Choose a size</div>
+            <div className={styles.modalBody}>
+              Please select a size before adding this product to your cart.
+            </div>
+            <button
+              type="button"
+              className={styles.modalBtnOutline}
+              onClick={() => emit(ProductAction.clearVariantReminder())}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {state.product.stockReminderMessage != null ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Notice</h3>
+            <p className={styles.modalBody}>
+              {state.product.stockReminderMessage}
+            </p>
+            <button
+              className={styles.modalBtn}
+              onClick={() => emit(ProductAction.clearStockReminder())}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -468,130 +520,207 @@ const styles = {
   container: css({
     display: "flex",
     flexDirection: "column",
-    padding: `${theme.s8} ${theme.s4}`,
-    ...bp.xl({
+    padding: `${theme.s6} ${theme.s4}`,
+    background:
+      "linear-gradient(160deg, rgba(124, 58, 237, 0.04) 0%, rgba(255, 255, 255, 1) 35%, rgba(236, 72, 153, 0.02) 100%)",
+    ...bp.lg({
       padding: `${theme.s10} ${theme.s0}`,
-      maxWidth: "1200px",
       margin: "0 auto",
     }),
   }),
   pageContent: css({
-    ...font.regular14,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s10,
     color: color.neutral800,
+    padding: theme.br5,
   }),
   productGrid: css({
     display: "grid",
     gridTemplateColumns: "1fr",
     gap: theme.s8,
+    alignItems: "start",
     ...bp.lg({
-      gridTemplateColumns: "1fr 1fr",
+      gridTemplateColumns: "minmax(320px, 460px) 1fr",
+      gap: theme.s12,
     }),
   }),
   imageSection: css({
     display: "flex",
     flexDirection: "column",
     gap: theme.s4,
+    position: "sticky",
+    top: "24px",
+    zIndex: 10,
   }),
   mainImageContainer: css({
     position: "relative",
     width: "100%",
-    paddingTop: "100%",
-    backgroundColor: color.neutral50,
-    borderRadius: theme.br2,
+    maxHeight: "500px",
+    aspectRatio: "1/1",
+    backgroundColor: color.neutral10,
+    borderRadius: theme.br3,
+    border: `2px solid ${color.genz.purple100}`,
     overflow: "hidden",
+    boxShadow:
+      "0 8px 32px rgba(124, 58, 237, 0.12), 0 2px 8px rgba(236, 72, 153, 0.08)",
   }),
   image: css({
     position: "absolute",
-    top: 0,
-    left: 0,
+    inset: 0,
     width: "100%",
     height: "100%",
     objectFit: "contain",
   }),
   navBtnLeft: css({
     position: "absolute",
-    left: theme.s2,
+    left: theme.s3,
     top: "50%",
     transform: "translateY(-50%)",
-    background: "rgba(255,255,255,0.8)",
-    border: "none",
-    borderRadius: "50%",
-    padding: theme.s2,
-    cursor: "pointer",
     display: "flex",
-    zIndex: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "rgba(255, 255, 255, 0.9)",
+    border: `1px solid ${color.neutral100}`,
+    color: color.neutral700,
+    boxShadow: theme.elevation.small,
+    cursor: "pointer",
+    userSelect: "none",
+    transition: "transform 0.2s ease, color 0.2s ease, background 0.2s ease",
+    "&:hover": {
+      color: color.genz.purple,
+      transform: "translateY(-50%) scale(1.05)",
+      background: color.neutral0,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.genz.purple}`,
+      outlineOffset: "2px",
+    },
   }),
   navBtnRight: css({
     position: "absolute",
-    right: theme.s2,
+    right: theme.s3,
     top: "50%",
     transform: "translateY(-50%)",
-    background: "rgba(255,255,255,0.8)",
-    border: "none",
-    borderRadius: "50%",
-    padding: theme.s2,
-    cursor: "pointer",
     display: "flex",
-    zIndex: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "rgba(255, 255, 255, 0.9)",
+    border: `1px solid ${color.neutral100}`,
+    color: color.neutral700,
+    boxShadow: theme.elevation.small,
+    cursor: "pointer",
+    userSelect: "none",
+    transition: "transform 0.2s ease, color 0.2s ease, background 0.2s ease",
+    "&:hover": {
+      color: color.genz.purple,
+      transform: "translateY(-50%) scale(1.05)",
+      background: color.neutral0,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.genz.purple}`,
+      outlineOffset: "2px",
+    },
   }),
   thumbnailList: css({
     display: "flex",
-    gap: theme.s2,
+    gap: theme.s3,
     overflowX: "auto",
+    paddingBottom: theme.s2,
+    scrollbarWidth: "thin",
+    scrollbarColor: `${color.neutral200} transparent`,
+    "&::-webkit-scrollbar": { height: "4px" },
+    "&::-webkit-scrollbar-track": { background: "transparent" },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: color.neutral200,
+      borderRadius: "4px",
+    },
   }),
   thumb: css({
-    width: "80px",
-    height: "80px",
-    borderRadius: theme.br1,
-    border: `2px solid ${color.genz.purple100}`,
-    cursor: "pointer",
-    overflow: "hidden",
     flexShrink: 0,
+    width: "72px",
+    height: "72px",
+    borderRadius: theme.br2,
+    border: `2px solid transparent`,
+    backgroundColor: color.neutral10,
+    overflow: "hidden",
+    cursor: "pointer",
+    transition: "opacity 0.2s ease",
+    "&:hover": { opacity: 0.8 },
+    "&:focus-visible": {
+      outline: `2px solid ${color.genz.purple}`,
+    },
   }),
   thumbActive: css({
-    width: "80px",
-    height: "80px",
-    borderRadius: theme.br1,
-    border: `2px solid ${color.genz.pink}`,
-    cursor: "pointer",
-    overflow: "hidden",
     flexShrink: 0,
+    width: "72px",
+    height: "72px",
+    borderRadius: theme.br2,
+    border: `2px solid ${color.genz.purple}`,
+    backgroundColor: color.neutral10,
+    overflow: "hidden",
+    cursor: "default",
+    boxShadow: "0 0 0 3px rgba(124, 58, 237, 0.18)",
   }),
   thumbImg: css({
     width: "100%",
     height: "100%",
-    objectFit: "cover",
+    objectFit: "contain",
+    userSelect: "none",
   }),
   infoWrapper: css({
     display: "flex",
     flexDirection: "column",
+    gap: theme.s6,
+  }),
+  titleRow: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     gap: theme.s4,
-    position: "relative",
-    paddingRight: theme.s12,
+  }),
+  productName: css({
+    ...font.boldH3_29,
+    margin: 0,
+    lineHeight: 1.3,
+    wordBreak: "break-word",
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
   }),
   heartButton: css({
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: "42px",
-    height: "42px",
-    borderRadius: "10%",
-    border: `1px solid ${color.genz.purple200}`,
-    background: color.neutral0,
-    color: color.genz.purple,
+    flexShrink: 0,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
+    width: "48px",
+    height: "48px",
+    borderRadius: "50%",
+    border: `1px solid ${color.neutral200}`,
+    background: color.neutral0,
+    color: color.neutral400,
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      transform: "translateY(-2px)",
-      boxShadow: theme.elevation.medium,
+      borderColor: color.semantics.error.red500,
+      color: color.semantics.error.red500,
+      background: color.semantics.error.red50,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.semantics.error.red500}`,
+      outlineOffset: "2px",
     },
     "&:disabled": {
       cursor: "not-allowed",
-      opacity: 0.7,
-      transform: "none",
+      opacity: 0.5,
+      pointerEvents: "none",
     },
   }),
   heartButtonActive: css({
@@ -599,290 +728,434 @@ const styles = {
     borderColor: color.semantics.error.red500,
     background: color.semantics.error.red50,
   }),
-  productName: css({
-    ...font.boldH1_42,
-    fontSize: "32px",
-    color: color.genz.purple,
-    lineHeight: 1.2,
+  priceBox: css({
+    padding: `${theme.s4} ${theme.s5}`,
+    background:
+      "linear-gradient(135deg, rgba(124, 58, 237, 0.10) 0%, rgba(236, 72, 153, 0.07) 100%)",
+    borderRadius: theme.br2,
+    border: `1.5px solid ${color.genz.purple100}`,
+    borderLeft: `4px solid ${color.genz.purple}`,
+    boxShadow: "0 4px 16px rgba(124, 58, 237, 0.10)",
   }),
   priceTag: css({
-    ...font.bold17,
-    color: color.genz.pink,
-    fontSize: "24px",
-    display: "inline-flex",
+    ...font.boldH2_35,
+    color: color.genz.purple,
+    margin: 0,
+    display: "flex",
     alignItems: "center",
-    gap: theme.s2,
+    gap: theme.s3,
   }),
   coinBadge: css({
-    width: "30px",
-    height: "30px",
-    borderRadius: "50%",
-    backgroundColor: color.genz.pink,
-    color: color.semantics.warning.yellow500,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    ...font.bold17,
-    fontSize: "18px",
-    lineHeight: 1,
-  }),
-  description: css({
-    ...font.regular17,
-    color: color.neutral600,
-    lineHeight: "1.6",
-    margin: 0,
-  }),
-  descriptionTitle: css({
-    ...font.bold14,
-    color: color.genz.purple,
-    marginBottom: theme.s2,
-  }),
-  descriptionSection: css({
-    marginTop: theme.s8,
-    paddingTop: theme.s6,
-    borderTop: `1px solid ${color.genz.purple100}`,
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.s2,
-  }),
-  stockTag: css({
-    ...font.medium14,
-    color: color.neutral700,
-  }),
-  quantitySection: css({
-    display: "grid",
-    gap: theme.s2,
-  }),
-  quantityLabel: css({
-    ...font.bold14,
-    color: color.genz.purple,
-  }),
-  qtyControls: css({
-    display: "flex",
-    alignItems: "center",
-    gap: theme.s1,
-  }),
-  qtyButton: css({
-    width: "30px",
-    height: "30px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
-    border: `1px solid ${color.genz.purple300}`,
-    background: color.neutral0,
-    color: color.genz.purple,
-    cursor: "pointer",
-    ...font.bold14,
-    "&:disabled": {
-      cursor: "not-allowed",
-      opacity: 0.6,
-    },
+    background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)",
+    color: color.neutral0,
+    boxShadow: "0 2px 8px rgba(255, 165, 0, 0.4)",
+    ...font.boldH4_24,
+    userSelect: "none",
   }),
-  qtyInput: css({
-    width: "64px",
-    textAlign: "center",
-    border: `1px solid ${color.genz.purple300}`,
-    borderRadius: theme.s1,
-    padding: `${theme.s1}`,
-    ...font.regular12,
+  sectionLabel: css({
+    ...font.bold14,
+    marginBottom: theme.s3,
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+  }),
+  requiredStar: css({
+    color: color.semantics.error.red500,
+  }),
+  stockText: css({
+    ...font.regular13,
+    color: color.neutral500,
+    marginLeft: theme.s1,
+    textTransform: "none",
+    letterSpacing: "0",
   }),
   variantSection: css({
     display: "flex",
     flexDirection: "column",
-    gap: theme.s2,
-  }),
-  variantLabel: css({
-    ...font.bold14,
-    color: color.genz.purple,
   }),
   variantList: css({
     display: "flex",
     flexWrap: "wrap",
-    gap: theme.s2,
+    gap: theme.s3,
   }),
   variantChip: css({
-    minWidth: "48px",
-    height: "34px",
-    borderRadius: theme.br1,
-    border: `1px solid ${color.genz.purple200}`,
+    height: "40px",
+    padding: `0 ${theme.s5}`,
+    borderRadius: "100px",
+    border: `1px solid ${color.neutral300}`,
     backgroundColor: color.neutral0,
-    color: color.genz.purple,
-    ...font.medium14,
+    color: color.neutral700,
     cursor: "pointer",
+    ...font.medium14,
     transition: "all 0.2s ease",
+    "&:hover:not(:disabled)": {
+      borderColor: color.genz.purple,
+      color: color.genz.purple,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.genz.purple}`,
+      outlineOffset: "2px",
+    },
   }),
   variantChipSelected: css({
-    borderColor: color.genz.pink,
-    backgroundColor: color.genz.purple100,
-    color: color.genz.pink,
+    borderColor: "transparent",
+    background: color.genz.gradientPurplePink,
+    color: color.neutral0,
+    boxShadow: "0 4px 14px rgba(124, 58, 237, 0.35)",
+    "&:hover:not(:disabled)": {
+      borderColor: "transparent",
+      color: color.neutral0,
+      transform: "translateY(-1px)",
+    },
   }),
   variantChipOut: css({
-    borderColor: color.neutral300,
-    backgroundColor: color.neutral200,
-    color: color.neutral600,
+    backgroundColor: color.neutral50,
+    color: color.neutral400,
+    textDecoration: "line-through",
     cursor: "not-allowed",
+    opacity: 0.6,
+  }),
+  quantitySection: css({
+    display: "flex",
+    flexDirection: "column",
+  }),
+  qtyControls: css({
+    display: "flex",
+    alignItems: "center",
+    width: "fit-content",
+    border: `1px solid ${color.neutral300}`,
+    borderRadius: theme.br2,
+    overflow: "hidden",
+  }),
+  qtyButton: css({
+    width: "44px",
+    height: "44px",
+    border: "none",
+    background: color.neutral10,
+    color: color.genz.purple,
+    cursor: "pointer",
+    ...font.regularH4_24,
+    lineHeight: 1,
+    userSelect: "none",
+    fontWeight: 700,
+    transition: "background-color 0.2s ease, color 0.2s ease",
+    "&:hover:not(:disabled)": {
+      backgroundColor: color.genz.purple20,
+    },
+    "&:active:not(:disabled)": {
+      backgroundColor: color.genz.purple100,
+    },
+    "&:disabled": {
+      cursor: "not-allowed",
+      opacity: 0.4,
+    },
+  }),
+  qtyInput: css({
+    width: "56px",
+    height: "44px",
+    textAlign: "center",
+    border: "none",
+    borderLeft: `1px solid ${color.neutral300}`,
+    borderRight: `1px solid ${color.neutral300}`,
+    color: color.neutral900,
+    ...font.medium17,
+    "&:focus": {
+      outline: "none",
+      backgroundColor: color.primary10,
+    },
+    "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button": {
+      WebkitAppearance: "none",
+      margin: 0,
+    },
   }),
   addToCartBtn: css({
-    padding: `${theme.s3} ${theme.s6}`,
-    backgroundColor: color.genz.pink,
+    width: "100%",
+    marginTop: theme.s2,
+    padding: theme.s4,
+    background: color.genz.gradientPurplePink,
     color: color.neutral0,
     border: "none",
     borderRadius: theme.br2,
+    boxShadow: `0 8px 20px ${color.genz.pink200}`,
     cursor: "pointer",
     ...font.bold17,
-    transition: "all 0.2s ease",
-    "&:hover": {
-      backgroundColor: color.genz.purple,
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    "&:hover:not(:disabled)": {
       transform: "translateY(-2px)",
+      boxShadow: `0 12px 24px ${color.genz.pink200}`,
     },
-    "&:active": {
+    "&:active:not(:disabled)": {
       transform: "translateY(0)",
+      boxShadow: `0 4px 10px ${color.genz.pink200}`,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.genz.purple}`,
+      outlineOffset: "4px",
     },
     "&:disabled": {
-      backgroundColor: color.neutral300,
-      color: color.neutral600,
+      background: color.neutral300,
+      color: color.neutral100,
+      boxShadow: "none",
       cursor: "not-allowed",
-      transform: "none",
-    },
-  }),
-  variantReminderOverlay: css({
-    position: "fixed",
-    inset: 0,
-    background: "rgba(18, 24, 38, 0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1200,
-    padding: theme.s4,
-  }),
-  variantReminderCard: css({
-    width: "100%",
-    maxWidth: "360px",
-    border: `1px solid ${color.genz.purple200}`,
-    backgroundColor: color.neutral0,
-    borderRadius: theme.br2,
-    padding: theme.s4,
-    display: "flex",
-    flexDirection: "column",
-    gap: theme.s3,
-    boxShadow: theme.elevation.medium,
-  }),
-  variantReminderTitle: css({
-    ...font.bold14,
-    color: color.genz.purple,
-  }),
-  variantReminderBody: css({
-    ...font.regular13,
-    color: color.neutral700,
-  }),
-  variantReminderClose: css({
-    alignSelf: "center",
-    border: `1px solid ${color.genz.purple300}`,
-    background: color.neutral0,
-    color: color.genz.purple,
-    borderRadius: theme.br1,
-    ...font.medium12,
-    padding: `${theme.s2} ${theme.s4}`,
-    cursor: "pointer",
-    "&:hover": {
-      background: color.genz.purpleDim,
     },
   }),
   sellerProfileLink: css({
+    display: "block",
+    width: "100%",
+    marginTop: theme.s4,
     textDecoration: "none",
-    width: "100%",
   }),
-  sellerProfileBlock: css({
-    marginTop: theme.s3,
+  sellerProfileCard: css({
     display: "flex",
-    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    gap: theme.s2,
-    width: "100%",
-    textAlign: "center",
+    padding: theme.s4,
+    backgroundColor: color.neutral0,
+    border: `1.5px solid ${color.genz.purple100}`,
+    borderRadius: theme.br2,
+    transition: "all 0.2s ease",
+    "&:hover": {
+      background:
+        "linear-gradient(135deg, rgba(124, 58, 237, 0.06) 0%, rgba(236, 72, 153, 0.04) 100%)",
+      borderColor: color.genz.purpleLight,
+      boxShadow: "0 4px 16px rgba(124, 58, 237, 0.15)",
+      transform: "translateY(-1px)",
+    },
   }),
   sellerAvatar: css({
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    display: "inline-flex",
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    ...font.bold17,
+    width: "48px",
+    height: "48px",
+    marginRight: theme.s3,
+    borderRadius: "50%",
+    background: color.genz.gradientPurplePink,
     color: color.neutral0,
-    backgroundColor: color.genz.purple,
-    border: `2px solid ${color.genz.purple200}`,
+    ...font.boldH4_24,
+    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.35)",
+  }),
+  sellerInfo: css({
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
   }),
   sellerProvidedBy: css({
     ...font.regular12,
-    color: color.neutral600,
-    textTransform: "uppercase",
-    letterSpacing: "0.4px",
-    width: "100%",
-    textAlign: "left",
+    color: color.neutral500,
   }),
   sellerName: css({
     ...font.medium14,
-    color: color.genz.purple,
-    maxWidth: "100%",
-    wordBreak: "break-word",
-    textAlign: "center",
+    color: color.neutral900,
+  }),
+  sellerIcon: css({
+    color: color.neutral300,
+  }),
+  descriptionSection: css({
+    paddingTop: theme.s8,
+    borderTop: `2px solid ${color.genz.purple100}`,
+  }),
+  description: css({
+    margin: 0,
+    color: color.neutral700,
+    whiteSpace: "pre-wrap",
+    ...font.regular14,
   }),
   otherSection: css({
-    marginTop: theme.s10,
-    paddingTop: theme.s6,
-    borderTop: `1px solid ${color.genz.purple100}`,
+    paddingTop: theme.s8,
+    borderTop: `2px solid ${color.genz.purple100}`,
+  }),
+  otherHeader: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.s6,
   }),
   otherTitle: css({
-    ...font.bold17,
+    margin: 0,
+    ...font.boldH4_24,
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+  }),
+  relatedPaginationInfo: css({
+    ...font.regular12,
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    whiteSpace: "nowrap",
+    fontWeight: 600,
+  }),
+  relatedPaginationControls: css({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: theme.s2,
+    marginTop: theme.s6,
+    paddingTop: theme.s4,
+    borderTop: `1px solid rgba(124, 58, 237, 0.08)`,
+  }),
+  relatedPaginationButton: css({
+    padding: `${theme.s2} ${theme.s5}`,
+    border: `1.5px solid rgba(124, 58, 237, 0.3)`,
+    borderRadius: "20px",
+    backgroundColor: color.neutral0,
     color: color.genz.purple,
-    marginBottom: theme.s4,
+    fontSize: "13px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    "&:hover:not(:disabled)": {
+      background: color.genz.gradientPurplePink,
+      color: color.neutral0,
+      borderColor: "transparent",
+      transform: "translateY(-1px)",
+      boxShadow: "0 4px 14px rgba(124, 58, 237, 0.35)",
+    },
+    "&:disabled": {
+      borderColor: color.neutral200,
+      color: color.neutral300,
+      cursor: "not-allowed",
+      opacity: 0.5,
+    },
+  }),
+  relatedPageNumbers: css({
+    display: "flex",
+    gap: theme.s1,
+  }),
+  relatedPageButton: css({
+    width: "34px",
+    height: "34px",
+    border: `1px solid rgba(124, 58, 237, 0.15)`,
+    borderRadius: "50%",
+    backgroundColor: color.neutral0,
+    color: color.genz.purple,
+    fontSize: "12px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      borderColor: color.genz.purple,
+      background: "rgba(124, 58, 237, 0.07)",
+      transform: "scale(1.1)",
+    },
+  }),
+  relatedPageButtonActive: css({
+    background: color.genz.gradientPurplePink,
+    borderColor: "transparent",
+    color: color.neutral0,
+    boxShadow: "0 2px 10px rgba(124, 58, 237, 0.4)",
+    "&:hover": {
+      background: color.genz.gradientPurplePink,
+      borderColor: "transparent",
+      color: color.neutral0,
+      transform: "scale(1.1)",
+    },
   }),
   relatedGrid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 220px))",
-    justifyContent: "start",
+    gridTemplateColumns: "repeat(2, 1fr)",
     gap: theme.s4,
+    ...bp.md({ gridTemplateColumns: "repeat(4, 1fr)" }),
+    ...bp.lg({ gridTemplateColumns: "repeat(8, 1fr)" }),
   }),
   blankArea: css({
-    minHeight: "140px",
+    padding: theme.s10,
+    textAlign: "center",
+    background:
+      "linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%)",
     borderRadius: theme.br2,
-    backgroundColor: color.neutral50,
+    border: `1px dashed ${color.genz.purple100}`,
+    color: color.neutral500,
+    ...font.medium14,
   }),
   statusMsg: css({
-    padding: theme.s20,
+    padding: "120px 20px",
     textAlign: "center",
-    ...font.medium14,
-    color: color.neutral500,
+    ...font.medium17,
+    background: color.genz.gradientPurplePink,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
   }),
   modalOverlay: css({
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.4)",
+    zIndex: 1200,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1100,
+    padding: theme.s4,
+    background: "rgba(15, 15, 26, 0.6)",
+    backdropFilter: "blur(4px)",
   }),
   modalCard: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s4,
     width: "100%",
-    maxWidth: "420px",
-    background: color.neutral0,
-    borderRadius: theme.s3,
-    border: `1px solid ${color.genz.purple100}`,
-    padding: theme.s4,
+    maxWidth: "400px",
+    padding: theme.s6,
     textAlign: "center",
-    display: "grid",
-    gap: theme.s2,
+    background: color.neutral0,
+    borderRadius: theme.br3,
+    boxShadow: theme.elevation.medium,
   }),
-  modalTitle: css({ ...font.bold17, margin: 0, color: color.genz.purple }),
-  modalText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
+  modalTitle: css({
+    margin: 0,
+    color: color.neutral900,
+    ...font.bold17,
+  }),
+  modalBody: css({
+    margin: 0,
+    color: color.neutral600,
+    ...font.regular14,
+  }),
   modalBtn: css({
+    width: "100%",
+    padding: theme.s3,
     border: "none",
+    borderRadius: theme.br2,
     background: color.genz.purple,
     color: color.neutral0,
-    borderRadius: theme.s2,
-    padding: `${theme.s2} ${theme.s4}`,
-    ...font.medium14,
     cursor: "pointer",
+    ...font.bold14,
+    transition: "background-color 0.2s ease",
+    "&:hover": {
+      background: color.tertiary.violet500,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.neutral900}`,
+      outlineOffset: "2px",
+    },
+  }),
+  modalBtnOutline: css({
+    width: "100%",
+    padding: theme.s3,
+    border: `1px solid ${color.neutral300}`,
+    borderRadius: theme.br2,
+    background: color.neutral0,
+    color: color.neutral800,
+    cursor: "pointer",
+    ...font.bold14,
+    transition: "background-color 0.2s ease, border-color 0.2s ease",
+    "&:hover": {
+      background: color.neutral50,
+      borderColor: color.neutral400,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${color.genz.purple}`,
+      outlineOffset: "2px",
+    },
   }),
 }

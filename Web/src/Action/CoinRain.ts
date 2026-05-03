@@ -1,7 +1,8 @@
-import { Action, cmd } from "../Action"
+import { Action, cmd, perform } from "../Action"
 import { _CoinRainState, FallingCoin, ToastEntry } from "../State/CoinRain"
 import { emitCoinPickup } from "../Runtime/Socket"
 import * as AuthToken from "../App/AuthToken"
+import * as BalanceAction from "./Balance"
 
 // ---------------------------------------------------------------------------
 // Socket event handlers — called by Subscription.ts
@@ -107,16 +108,18 @@ function onPickupResponse(
 ): Action {
   return (state) => {
     if (result.success && result.value != null) {
-      return [
-        _CoinRainState(state, {
-          toasts: addToast(
-            state.coinRain.toasts,
-            `+${result.value.toLocaleString()} coins added to your wallet!`,
-            "success",
-          ),
-        }),
-        cmd(),
-      ]
+      const newState = _CoinRainState(state, {
+        toasts: addToast(
+          state.coinRain.toasts,
+          `+${result.value.toLocaleString()} coins added to your wallet!`,
+          "success",
+        ),
+      })
+      const balanceCmds =
+        result.newBalance != null
+          ? cmd(perform(BalanceAction.setBalanceFromNumber(result.newBalance)))
+          : cmd()
+      return [newState, balanceCmds]
     }
 
     const message =

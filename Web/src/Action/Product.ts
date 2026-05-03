@@ -335,6 +335,13 @@ export function changeListPage(page: number): Action {
   }
 }
 
+export function changeRelatedListPage(page: number): Action {
+  return (state) => [
+    _ProductState(state, { relatedListPage: page < 1 ? 1 : page }),
+    cmd(),
+  ]
+}
+
 function gotDetailResponse(response: GetOneApi.Response): Action {
   return (state) => [
     _ProductState(state, {
@@ -345,6 +352,21 @@ function gotDetailResponse(response: GetOneApi.Response): Action {
     }),
     cmd(),
   ]
+}
+
+/**
+ * Writes the full product pool into a dedicated state field so the detail page
+ * can find related products and shop names WITHOUT polluting the paginated
+ * `listResponse` used by the Home / category pages.
+ */
+function gotDetailProductPool(response: ListAllApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") return [state, cmd()]
+    return [
+      _ProductState(state, { detailProductPool: response.value.items }),
+      cmd(),
+    ]
+  }
 }
 
 function gotRatingsResponse(response: ListRatingsApi.Response): Action {
@@ -406,6 +428,7 @@ export function loadDetail(id: ProductID): Action {
         currentImageIndex: 0,
         selectedVariantSize: null,
         selectedQuantity: 1,
+        relatedListPage: 1,
         variantReminderVisible: false,
         stockReminderMessage: null,
         wishlistBusy: false,
@@ -430,7 +453,7 @@ export function loadDetail(id: ProductID): Action {
               page: 1,
               limit: 200,
               sortBy: "newest",
-            }).then((res) => gotListResponse(res, "")),
+            }).then(gotDetailProductPool),
           ),
           ...wishlistCmd,
         ]

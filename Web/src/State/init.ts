@@ -43,6 +43,7 @@ export function initState(route: Route): State {
     cart: initCartState(),
     message: initMessageState(),
     coinRain: initialCoinRainState,
+    userBalance: null,
   }
 }
 

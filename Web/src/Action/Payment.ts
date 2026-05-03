@@ -13,6 +13,7 @@ import { _CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
 import * as MessageAction from "./Message"
+import * as BalanceAction from "./Balance"
 
 export function onEnterRoute(): Action {
   return (state) => {
@@ -445,6 +446,7 @@ function onCreateWalletPaidResponse(
         { items: [], isOpen: false },
       ),
       cmd(
+        perform(BalanceAction.refreshBalance()),
         firstSellerID != null
           ? Promise.resolve(
               MessageAction.openConversationWithSeller(firstSellerID),
@@ -507,6 +509,7 @@ function onDepositQueryResponse(
           flashMessage: "Deposit successful. Wallet updated.",
         }),
         profile: response.value.user,
+        userBalance: response.value.user.wallet,
       },
       cmd(),
     ]
