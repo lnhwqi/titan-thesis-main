@@ -14,7 +14,13 @@ import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsH
 //import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
+export type DashboardAnalyticsTab =
+  | "UserGrowth"
+  | "SellerGrowth"
+  | "SupportTrends"
+
 export type AdminDashboardState = {
+  dashboardAnalyticsTab: DashboardAnalyticsTab
   pendingSellersResponse: RD.RemoteData<
     ApiError<ListPendingSellersApi.ErrorCode>,
     ListPendingSellersApi.Payload
@@ -86,6 +92,7 @@ export type AdminDashboardState = {
 
 export function initAdminDashboardState(): AdminDashboardState {
   return {
+    dashboardAnalyticsTab: "UserGrowth",
     pendingSellersResponse: RD.notAsked(),
     allSellersResponse: RD.notAsked(),
     adminHomeResponse: RD.notAsked(),

@@ -120,6 +120,17 @@ export function onChangeSupportMonitoringRange(
   ]
 }
 
+export function onChangeDashboardAnalyticsTab(
+  tab: AdminDashboardState["dashboardAnalyticsTab"],
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      dashboardAnalyticsTab: tab,
+    }),
+    cmd(),
+  ]
+}
+
 export function onChangeSupportMonitoringHistoryLimit(
   limit: AdminDashboardState["supportMonitoringHistoryLimit"],
 ): Action {

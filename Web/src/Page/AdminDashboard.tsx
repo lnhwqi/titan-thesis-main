@@ -70,6 +70,10 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
       ) : null}
 
       <AdminStatsChart
+        activeTab={state.adminDashboard.dashboardAnalyticsTab}
+        onSelectTab={(tab) =>
+          emit(AdminDashboardAction.onChangeDashboardAnalyticsTab(tab))
+        }
         statsResponse={state.adminDashboard.statsResponse}
         supportMetricsResponse={state.adminDashboard.supportMetricsResponse}
         supportMetricsHistoryResponse={
@@ -187,6 +191,20 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
             }
           >
             Open poster manager
+          </button>
+        </article>
+
+        <article className={styles.card}>
+          <h2 className={styles.cardTitle}>Event Page</h2>
+          <p className={styles.cardText}>
+            Manage event activation and coin drop campaign settings from a
+            dedicated event control panel.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(navigateTo(toRoute("AdminCoinRain", {})))}
+          >
+            Open event panel
           </button>
         </article>
       </section>
