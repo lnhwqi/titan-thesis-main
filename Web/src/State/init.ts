@@ -44,6 +44,7 @@ export function initState(route: Route): State {
     message: initMessageState(),
     coinRain: initialCoinRainState,
     userBalance: null,
+    avatarMenuOpen: false,
   }
 }
 

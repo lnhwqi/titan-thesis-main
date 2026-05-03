@@ -42,6 +42,7 @@ export type PublicState = {
   message: MessageState
   coinRain: CoinRainState
   userBalance: Wallet | null
+  avatarMenuOpen: boolean
 }
 
 type BaseAuthState = Omit<PublicState, "_t"> & {
