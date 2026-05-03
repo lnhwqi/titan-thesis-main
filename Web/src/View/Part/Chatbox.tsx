@@ -1,4 +1,6 @@
 import React from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { State } from "../../State"
 import type { ConversationID } from "../../../../Core/App/Message"
 import { emit } from "../../Runtime/React"
@@ -34,6 +36,23 @@ function renderMessageText(text: string): React.ReactNode[] {
   }
   if (lastIndex < text.length) parts.push(text.slice(lastIndex))
   return parts.length > 0 ? parts : [text]
+}
+
+// Hàm chuẩn bị văn bản Markdown để chắc chắn các link tương đối được render thành thẻ <a>
+function prepareMarkdown(text: string): string {
+  return text.replace(
+    /(\/[a-z][a-z0-9/_-]*)/gi,
+    (match, p1, offset, string) => {
+      // Nếu phía trước là '](' tức là AI đã xuất Markdown link chuẩn -> bỏ qua không bọc nữa
+      if (string.slice(offset - 2, offset) === "](") return match
+      // Nếu được bọc trong [] cũng bỏ qua
+      if (string[offset - 1] === "[" && string[offset + match.length] === "]")
+        return match
+
+      // Nếu chưa có, bọc lại thành chuẩn Markdown link
+      return `[${match}](${match})`
+    },
+  )
 }
 
 function getInitials(name: string): string {
@@ -516,9 +535,34 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                               key={msg.id.unwrap()}
                               className={styles.systemMsg}
                             >
-                              <span className={styles.systemMsgPill}>
-                                {renderMessageText(msg.text.unwrap())}
-                              </span>
+                              <div className={styles.systemMsgPill}>
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    a: ({ href, children }) => (
+                                      <a
+                                        href={href}
+                                        className={styles.messageLink}
+                                        target={
+                                          href?.startsWith("http")
+                                            ? "_blank"
+                                            : "_self"
+                                        }
+                                        rel="noopener noreferrer"
+                                      >
+                                        {children}
+                                      </a>
+                                    ),
+                                    p: ({ children }) => (
+                                      <span className={styles.mdPara}>
+                                        {children}
+                                      </span>
+                                    ),
+                                  }}
+                                >
+                                  {prepareMarkdown(msg.text.unwrap())}
+                                </ReactMarkdown>
+                              </div>
                             </div>
                           )
                         }
@@ -547,9 +591,40 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                               <div
                                 className={`${styles.msgBubble} ${isMine ? styles.msgBubbleMine : styles.msgBubbleOther}`}
                               >
-                                <p className={styles.messageText}>
-                                  {renderMessageText(msg.text.unwrap())}
-                                </p>
+                                {isMine ? (
+                                  <p className={styles.messageText}>
+                                    {renderMessageText(msg.text.unwrap())}
+                                  </p>
+                                ) : (
+                                  <div className={styles.messageText}>
+                                    <ReactMarkdown
+                                      remarkPlugins={[remarkGfm]}
+                                      components={{
+                                        a: ({ href, children }) => (
+                                          <a
+                                            href={href}
+                                            className={styles.messageLink}
+                                            target={
+                                              href?.startsWith("http")
+                                                ? "_blank"
+                                                : "_self"
+                                            }
+                                            rel="noopener noreferrer"
+                                          >
+                                            {children}
+                                          </a>
+                                        ),
+                                        p: ({ children }) => (
+                                          <span className={styles.mdPara}>
+                                            {children}
+                                          </span>
+                                        ),
+                                      }}
+                                    >
+                                      {prepareMarkdown(msg.text.unwrap())}
+                                    </ReactMarkdown>
+                                  </div>
+                                )}
                               </div>
                               <div
                                 className={`${styles.msgFooter} ${isMine ? styles.msgFooterMine : ""}`}

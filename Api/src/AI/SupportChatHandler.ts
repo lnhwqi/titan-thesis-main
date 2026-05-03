@@ -14,11 +14,15 @@
 import type { Server as SocketIOServer } from "socket.io"
 import * as MessageRow from "../Database/ConversationMessageRow"
 import * as ConversationRow from "../Database/ConversationRow"
+import * as ProductRow from "../Database/ProductRow"
+import * as ProductVariantRow from "../Database/ProductVariantRow"
 import * as Logger from "../Logger"
 import { answerSupportQuestionRuntime } from "./SupportRuntime"
 import { recordSupportMetric } from "./SupportMetrics"
 import type { ActorContext } from "./SecurityPolicy"
 import type { ConversationTurn } from "./SupportAssistant"
+import { parseProductID } from "../../../Core/App/Product/ProductID"
+import { parseProductVariantID } from "../../../Core/App/ProductVariant/ProductVariantID"
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -116,7 +120,6 @@ async function _handleSupportAIReply(
 
   recordSupportMetric("REQUEST_RECEIVED", {})
 
-  // Prevent duplicate in-flight replies for the same conversation
   if (inFlightSet.has(conversationID)) {
     recordSupportMetric("ANSWER_SKIPPED", { reason: "IN_FLIGHT" })
     return
@@ -146,8 +149,10 @@ async function _handleSupportAIReply(
         reason: result.refusalReason,
         latencyMs,
       })
-      // Still deliver a helpful fallback message so the user gets a response
-      await _deliverAIMessage(io, conversationID, result.answer)
+      const normalizedFallbackAnswer = await _normalizeProductLinksInAnswer(
+        result.answer,
+      )
+      await _deliverAIMessage(io, conversationID, normalizedFallbackAnswer)
       recordSupportMetric("FALLBACK_DELIVERED", {})
       return
     }
@@ -158,21 +163,20 @@ async function _handleSupportAIReply(
       citationsRetrieved: result.usedContextCount,
     })
 
-    await _deliverAIMessage(io, conversationID, result.answer)
+    const normalizedAnswer = await _normalizeProductLinksInAnswer(result.answer)
+
+    await _deliverAIMessage(io, conversationID, normalizedAnswer)
 
     recordSupportMetric("ANSWER_DELIVERED", { latencyMs })
   } catch (err) {
     Logger.error(err)
     recordSupportMetric("ANSWER_FAILED", {})
 
-    // Deliver a graceful error message so the conversation doesn't go silent
     await _deliverAIMessage(
       io,
       conversationID,
       "Sorry, I had trouble processing your question. A human support agent will follow up shortly.",
-    ).catch(() => {
-      /* swallow secondary failure */
-    })
+    ).catch(() => {})
   } finally {
     inFlightSet.delete(conversationID)
   }
@@ -232,4 +236,57 @@ async function _fetchHistory(
   }
 
   return turns
+}
+
+async function _normalizeProductLinksInAnswer(text: string): Promise<string> {
+  const productPathRegex = /\/product\/([0-9a-fA-F-]{36})/g
+  const rawIds = Array.from(text.matchAll(productPathRegex)).map(
+    (m) => m[1] ?? "",
+  )
+
+  if (rawIds.length === 0) return text
+
+  const uniqueIds = Array.from(new Set(rawIds))
+  const replacementMap = new Map<string, string>()
+
+  for (const rawId of uniqueIds) {
+    const resolvedProductId = await _resolveProductID(rawId)
+    if (resolvedProductId != null && resolvedProductId !== rawId) {
+      replacementMap.set(rawId, resolvedProductId)
+    }
+  }
+
+  if (replacementMap.size === 0) return text
+
+  return text.replace(productPathRegex, (full, id) => {
+    const replacement = replacementMap.get(id)
+    if (replacement == null) return full
+    return `/product/${replacement}`
+  })
+}
+
+// Some citations/prompts can leak variant IDs in product URLs.
+// Resolve ID as product first; fallback to variant -> product mapping.
+async function _resolveProductID(rawId: string): Promise<string | null> {
+  try {
+    const productID = parseProductID(rawId)
+    const product = await ProductRow.getByID(productID)
+    if (product != null) {
+      return productID.unwrap()
+    }
+  } catch {
+    // not a valid product ID
+  }
+
+  try {
+    const variantID = parseProductVariantID(rawId)
+    const variant = await ProductVariantRow.getByID(variantID)
+    if (variant != null) {
+      return variant.productID.unwrap()
+    }
+  } catch {
+    // not a valid variant ID
+  }
+
+  return null
 }

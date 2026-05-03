@@ -119,7 +119,9 @@ export default function SellerProfilePage(
               onClick={() =>
                 emit((s) => [
                   s,
-                  cmd(perform(navigateTo(toRoute("Login", { redirect: null })))),
+                  cmd(
+                    perform(navigateTo(toRoute("Login", { redirect: null }))),
+                  ),
                 ])
               }
             >

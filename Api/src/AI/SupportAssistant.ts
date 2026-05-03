@@ -3,7 +3,7 @@ import { EmbeddingProvider } from "./Embedding"
 import { VectorSearchProvider, searchWithPolicyFilter } from "./Retrieval"
 import { ActorContext } from "./SecurityPolicy"
 import {
-  redactPIIPatterns,
+  //redactPIIPatterns,
   sanitizeRetrievedContext,
   stripPromptInjectionDirectives,
 } from "./Safety"
@@ -54,7 +54,9 @@ export async function answerSupportQuestion(params: {
   // history so short follow-ups like "least price" resolve to their topic.
   const searchQuery = _buildSearchQuery(question, params.history)
 
-  const queryEmbeddings = await params.deps.embeddingProvider.embed([searchQuery])
+  const queryEmbeddings = await params.deps.embeddingProvider.embed([
+    searchQuery,
+  ])
   const queryEmbedding = queryEmbeddings[0] ?? []
 
   const matches = await searchWithPolicyFilter({
@@ -117,7 +119,7 @@ export async function answerSupportQuestion(params: {
   })
 
   return {
-    answer: redactPIIPatterns(answer),
+    answer: answer,
     citations: confidentMatches.map((match) => ({
       documentId: match.documentId,
       sourceTable: match.metadata.sourceTable,
@@ -150,7 +152,7 @@ function _resolveScoreThreshold(actor: ActorContext): number {
     return 0.45
   }
 
-  return 0.40
+  return 0.4
 }
 
 // How many characters of the last user message to prepend when the current
@@ -167,9 +169,7 @@ function _buildSearchQuery(
   }
 
   // Find the last user turn before the current one
-  const lastUserTurn = [...history]
-    .reverse()
-    .find((t) => t.role === "user")
+  const lastUserTurn = [...history].reverse().find((t) => t.role === "user")
 
   if (lastUserTurn == null) {
     return question
