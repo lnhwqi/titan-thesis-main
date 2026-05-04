@@ -23,6 +23,8 @@ export async function call(params: BodyParams): Promise<Response> {
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
+      case "PRICE_CHANGED":
+        return "Product prices have changed. Please review your cart and try again."
       case "SELLER_NOT_FOUND":
         return "Seller not found."
       case "ADMIN_NOT_FOUND":

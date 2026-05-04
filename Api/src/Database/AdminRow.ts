@@ -130,6 +130,28 @@ export async function update(
     })
 }
 
+export async function decrementWallet(
+  id: AdminID,
+  amount: number,
+): Promise<Maybe<AdminRow>> {
+  return db
+    .updateTable(tableName)
+    .set((eb) => ({
+      wallet: eb("wallet", "-", amount),
+      updatedAt: toDate(createNow()),
+    }))
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .where("wallet", ">=", amount)
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) => (row == null ? null : adminRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.decrementWallet error ${e}`)
+      throw e
+    })
+}
+
 export async function updateWallet(
   id: AdminID,
   wallet: Wallet,

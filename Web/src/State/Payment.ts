@@ -44,6 +44,7 @@ export type PaymentState = {
   openedCheckoutAppTransID: string | null
   isFinalizing: boolean
   finalizedAppTransIDs: string[]
+  priceChangedVisible: boolean
   flashMessage: string | null
 }
 
@@ -70,6 +71,7 @@ export function initPaymentState(): PaymentState {
     openedCheckoutAppTransID: null,
     isFinalizing: false,
     finalizedAppTransIDs: [],
+    priceChangedVisible: false,
     flashMessage: null,
   }
 }

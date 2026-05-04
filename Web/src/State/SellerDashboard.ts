@@ -14,6 +14,7 @@ export type CreateVariantMode = "PRESET" | "NONE" | "CUSTOM"
 export type CreateCustomVariantRow = {
   name: string
   stock: string
+  price: string
 }
 
 export type EditVariantRow = {
@@ -36,6 +37,7 @@ export type SellerDashboardState = {
   sku: string
   variantMode: CreateVariantMode
   presetVariantStocks: Record<"S" | "M" | "L" | "XL", string>
+  presetVariantPrices: Record<"S" | "M" | "L" | "XL", string>
   singleVariantStock: string
   customVariants: CreateCustomVariantRow[]
   createTouched: {
@@ -114,11 +116,18 @@ export function initSellerDashboardState(): SellerDashboardState {
       L: "",
       XL: "",
     },
+    presetVariantPrices: {
+      S: "",
+      M: "",
+      L: "",
+      XL: "",
+    },
     singleVariantStock: "",
     customVariants: [
       {
         name: "",
         stock: "",
+        price: "",
       },
     ],
     createTouched: initCreateProductTouched(),

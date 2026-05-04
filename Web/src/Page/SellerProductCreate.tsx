@@ -185,10 +185,24 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
                       value={createState.presetVariantStocks[size]}
                       invalid={false}
                       type="number"
-                      placeholder="0"
+                      placeholder="Stock"
                       onChange={(v) =>
                         emit(
                           SellerDashboardAction.onChangePresetVariantStock(
+                            size,
+                            v,
+                          ),
+                        )
+                      }
+                    />
+                    <InputText
+                      value={createState.presetVariantPrices[size]}
+                      invalid={false}
+                      type="number"
+                      placeholder="Price (leave blank to use product price)"
+                      onChange={(v) =>
+                        emit(
+                          SellerDashboardAction.onChangePresetVariantPrice(
                             size,
                             v,
                           ),
@@ -244,6 +258,20 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
                       onChange={(v) =>
                         emit(
                           SellerDashboardAction.onChangeCustomVariantStock(
+                            index,
+                            v,
+                          ),
+                        )
+                      }
+                    />
+                    <InputText
+                      value={variant.price}
+                      invalid={false}
+                      type="number"
+                      placeholder="Price (leave blank to use product price)"
+                      onChange={(v) =>
+                        emit(
+                          SellerDashboardAction.onChangeCustomVariantPrice(
                             index,
                             v,
                           ),

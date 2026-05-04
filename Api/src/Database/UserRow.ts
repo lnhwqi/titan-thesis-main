@@ -190,3 +190,28 @@ export async function update(
       throw e
     })
 }
+
+export async function incrementWallet(
+  id: UserID,
+  amount: number,
+): Promise<Maybe<UserRow>> {
+  if (Number.isFinite(amount) === false || amount <= 0) {
+    return null
+  }
+
+  return db
+    .updateTable(tableName)
+    .set((eb) => ({
+      wallet: eb("wallet", "+", amount),
+      updatedAt: toDate(createNow()),
+    }))
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) => (row ? userRowDecoder.verify(row) : null))
+    .catch((e) => {
+      Logger.error(`#${tableName}.incrementWallet error ${e}`)
+      throw e
+    })
+}

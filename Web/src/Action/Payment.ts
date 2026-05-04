@@ -9,9 +9,12 @@ import * as SellerGetProfileApi from "../Api/Public/Seller/GetProfile"
 import * as GetProvinceApi from "../Api/Public/Address/GetProvince"
 import * as GetDistrictApi from "../Api/Public/Address/GetDistrict"
 import * as GetWardApi from "../Api/Public/Address/GetWard"
+import * as ProductGetOneApi from "../Api/Public/Product/GetOne"
 import { _CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
+import { productIDDecoder } from "../../../Core/App/Product/ProductID"
+import { createPrice } from "../../../Core/App/Product/Price"
 import * as MessageAction from "./Message"
 import * as BalanceAction from "./Balance"
 
@@ -21,10 +24,22 @@ export function onEnterRoute(): Action {
       new Set(state.cart.items.map((item) => item.product.sellerID.unwrap())),
     )
 
+    const uniqueProductIDs = Array.from(
+      new Set(state.cart.items.map((item) => item.product.id.unwrap())),
+    )
+
+    const refreshCmds = uniqueProductIDs.map((rawID) => {
+      const productID = productIDDecoder.verify(rawID)
+      return ProductGetOneApi.call({ id: productID }).then((response) =>
+        onRefreshProductPrice(rawID, response),
+      )
+    })
+
     return [
       _PaymentState(state, {
         mineVouchersResponse: RD.loading(),
         submitResponse: RD.notAsked(),
+        priceChangedVisible: false,
         depositCreateResponse: RD.notAsked(),
         depositStatusResponse: RD.notAsked(),
         depositCheckout: null,
@@ -44,8 +59,50 @@ export function onEnterRoute(): Action {
         VoucherListMineApi.call().then(onMineVouchersResponse),
         loadSellerProfiles(sellerIDs),
         GetProvinceApi.call().then(onProvincesResponse),
+        ...refreshCmds,
       ),
     ]
+  }
+}
+
+function onRefreshProductPrice(
+  rawProductID: string,
+  response: ProductGetOneApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [state, cmd()]
+    }
+
+    const fresh = response.value
+    const updatedItems = state.cart.items.map((item) => {
+      if (item.product.id.unwrap() !== rawProductID) {
+        return item
+      }
+
+      const updatedVariants = item.product.variants.map((variant) => {
+        const freshVariant = fresh.variants.find(
+          (v) => v.id.unwrap() === variant.id.unwrap(),
+        )
+        return freshVariant != null
+          ? { ...variant, price: freshVariant.price, stock: freshVariant.stock }
+          : variant
+      })
+
+      return {
+        ...item,
+        product: {
+          ...item.product,
+          price:
+            (updatedVariants[0] != null
+              ? createPrice(updatedVariants[0].price.unwrap())
+              : null) ?? fresh.price,
+          variants: updatedVariants,
+        },
+      }
+    })
+
+    return [_CartState(state, { items: updatedItems }), cmd()]
   }
 }
 
@@ -179,6 +236,13 @@ export function clearFlashMessage(): Action {
   return (state) => [_PaymentState(state, { flashMessage: null }), cmd()]
 }
 
+export function dismissPriceChanged(): Action {
+  return (state) => [
+    _PaymentState(state, { priceChangedVisible: false }),
+    cmd(),
+  ]
+}
+
 export function showFlashMessage(message: string): Action {
   return (state) => [_PaymentState(state, { flashMessage: message }), cmd()]
 }
@@ -278,7 +342,7 @@ export function submitPayment(): Action {
         ]
       }
 
-      const linePrice = item.product.price.unwrap() * item.quantity
+      const linePrice = firstVariant.price.unwrap() * item.quantity
       if (current == null) {
         grouped.set(key, {
           sellerID: item.product.sellerID,
@@ -418,6 +482,26 @@ function onCreateWalletPaidResponse(
 ): Action {
   return (state) => {
     if (response._t === "Err") {
+      if (response.error === "PRICE_CHANGED") {
+        const uniqueProductIDs = Array.from(
+          new Set(state.cart.items.map((item) => item.product.id.unwrap())),
+        )
+        const refreshCmds = uniqueProductIDs.map((rawID) => {
+          const productID = productIDDecoder.verify(rawID)
+          return ProductGetOneApi.call({ id: productID }).then((res) =>
+            onRefreshProductPrice(rawID, res),
+          )
+        })
+        return [
+          _PaymentState(state, {
+            submitResponse: RD.failure(response.error),
+            isFinalizing: false,
+            priceChangedVisible: true,
+          }),
+          cmd(...refreshCmds),
+        ]
+      }
+
       return [
         _PaymentState(state, {
           submitResponse: RD.failure(response.error),

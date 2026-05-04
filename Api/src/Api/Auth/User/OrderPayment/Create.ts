@@ -71,12 +71,16 @@ export async function handler(
           quantity: number
         }> = []
 
+        let computedPanelPrice = 0
+
         for (const item of panel.items) {
           const productVariant = await trx
             .selectFrom("product_variant")
             .innerJoin("product", "product.id", "product_variant.productId")
             .select([
               "product.name as productName",
+              "product.price as productPrice",
+              "product_variant.price as variantPrice",
               "product_variant.name as variantName",
             ])
             .where("product.id", "=", item.productID.unwrap())
@@ -89,6 +93,9 @@ export async function handler(
           if (productVariant == null) {
             throw new Error("VARIANT_NOT_FOUND")
           } else {
+            const unitPrice =
+              productVariant.variantPrice ?? productVariant.productPrice
+            computedPanelPrice += unitPrice * item.quantity
             goodsSummaryParts.push(
               `${productVariant.productName} (${productVariant.variantName}) x${item.quantity}`,
             )
@@ -104,7 +111,13 @@ export async function handler(
 
         const goodsSummary = goodsSummaryParts.join(", ")
 
-        let payableValue = panel.price.unwrap()
+        let payableValue = computedPanelPrice
+
+        if (
+          Math.round(computedPanelPrice) !== Math.round(panel.price.unwrap())
+        ) {
+          throw new Error("PRICE_CHANGED")
+        }
 
         if (isPaid && panel.voucherID != null) {
           const voucher = await trx
@@ -341,29 +354,39 @@ export async function handler(
       ),
     })
   } catch (e) {
-    if (e instanceof Error) {
-      switch (e.message) {
-        case "SELLER_NOT_FOUND":
-          return err("SELLER_NOT_FOUND")
-        case "ADMIN_NOT_FOUND":
-          return err("ADMIN_NOT_FOUND")
-        case "VARIANT_NOT_FOUND":
-          return err("VARIANT_NOT_FOUND")
-        case "INSUFFICIENT_STOCK":
-          return err("INSUFFICIENT_STOCK")
-        case "INSUFFICIENT_WALLET":
-          return err("INSUFFICIENT_WALLET")
-        case "VOUCHER_NOT_FOUND":
-          return err("VOUCHER_NOT_FOUND")
-        case "VOUCHER_NOT_FOR_SELLER":
-          return err("VOUCHER_NOT_FOR_SELLER")
-        case "VOUCHER_EXPIRED":
-          return err("VOUCHER_EXPIRED")
-        case "VOUCHER_MIN_VALUE_NOT_MET":
-          return err("VOUCHER_MIN_VALUE_NOT_MET")
-        case "VOUCHER_ALREADY_USED":
-          return err("VOUCHER_ALREADY_USED")
-      }
+    const errorMessage =
+      e instanceof Error
+        ? e.message
+        : typeof e === "object" &&
+            e != null &&
+            "message" in e &&
+            typeof (e as { message: unknown }).message === "string"
+          ? (e as { message: string }).message
+          : null
+
+    switch (errorMessage) {
+      case "SELLER_NOT_FOUND":
+        return err("SELLER_NOT_FOUND")
+      case "ADMIN_NOT_FOUND":
+        return err("ADMIN_NOT_FOUND")
+      case "VARIANT_NOT_FOUND":
+        return err("VARIANT_NOT_FOUND")
+      case "INSUFFICIENT_STOCK":
+        return err("INSUFFICIENT_STOCK")
+      case "INSUFFICIENT_WALLET":
+        return err("INSUFFICIENT_WALLET")
+      case "PRICE_CHANGED":
+        return err("PRICE_CHANGED")
+      case "VOUCHER_NOT_FOUND":
+        return err("VOUCHER_NOT_FOUND")
+      case "VOUCHER_NOT_FOR_SELLER":
+        return err("VOUCHER_NOT_FOR_SELLER")
+      case "VOUCHER_EXPIRED":
+        return err("VOUCHER_EXPIRED")
+      case "VOUCHER_MIN_VALUE_NOT_MET":
+        return err("VOUCHER_MIN_VALUE_NOT_MET")
+      case "VOUCHER_ALREADY_USED":
+        return err("VOUCHER_ALREADY_USED")
     }
 
     throw e

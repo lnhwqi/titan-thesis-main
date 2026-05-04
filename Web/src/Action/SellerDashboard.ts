@@ -806,7 +806,7 @@ export function onAddCustomVariant(): Action {
     _SellerDashboardState(state, {
       customVariants: [
         ...state.sellerDashboard.customVariants,
-        { name: "", stock: "" },
+        { name: "", stock: "", price: "" },
       ],
       flashMessage: null,
       createTouched: { ...state.sellerDashboard.createTouched, stock: true },
@@ -824,7 +824,7 @@ export function onRemoveCustomVariant(index: number): Action {
     return [
       _SellerDashboardState(state, {
         customVariants:
-          filtered.length > 0 ? filtered : [{ name: "", stock: "" }],
+          filtered.length > 0 ? filtered : [{ name: "", stock: "", price: "" }],
         flashMessage: null,
         createTouched: { ...state.sellerDashboard.createTouched, stock: true },
       }),
@@ -862,6 +862,38 @@ export function onChangeCustomVariantStock(
       ),
       flashMessage: null,
       createTouched: { ...state.sellerDashboard.createTouched, stock: true },
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeCustomVariantPrice(
+  index: number,
+  value: string,
+): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      customVariants: state.sellerDashboard.customVariants.map(
+        (variant, variantIndex) =>
+          variantIndex === index ? { ...variant, price: value } : variant,
+      ),
+      flashMessage: null,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangePresetVariantPrice(
+  size: PresetVariantSize,
+  value: string,
+): Action {
+  return (state) => [
+    _SellerDashboardState(state, {
+      presetVariantPrices: {
+        ...state.sellerDashboard.presetVariantPrices,
+        [size]: value,
+      },
+      flashMessage: null,
     }),
     cmd(),
   ]
@@ -1134,6 +1166,7 @@ export function submitCreateProduct(): Action {
     const variantResult = buildCreateVariants(
       state.sellerDashboard.variantMode,
       state.sellerDashboard.presetVariantStocks,
+      state.sellerDashboard.presetVariantPrices,
       state.sellerDashboard.singleVariantStock,
       state.sellerDashboard.customVariants,
       state.sellerDashboard.sku,
@@ -1254,8 +1287,14 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
           L: "",
           XL: "",
         },
+        presetVariantPrices: {
+          S: "",
+          M: "",
+          L: "",
+          XL: "",
+        },
         singleVariantStock: "",
-        customVariants: [{ name: "", stock: "" }],
+        customVariants: [{ name: "", stock: "", price: "" }],
         isUploadingImages: false,
         createTouched: initCreateProductTouched(),
       }),
@@ -1280,11 +1319,12 @@ function isInvalidStock(raw: string): boolean {
 function buildCreateVariants(
   mode: CreateVariantMode,
   presetVariantStocks: Record<PresetVariantSize, string>,
+  presetVariantPrices: Record<PresetVariantSize, string>,
   singleVariantStock: string,
-  customVariants: Array<{ name: string; stock: string }>,
+  customVariants: Array<{ name: string; stock: string; price: string }>,
   rawSku: string,
   rawProductName: string,
-  price: number,
+  fallbackPrice: number,
 ):
   | {
       _t: "Ok"
@@ -1313,11 +1353,16 @@ function buildCreateVariants(
           baseSku === "" ? `${size}` : `${baseSku}-${size.toLowerCase()}`
         const resolvedName =
           baseName === "" ? `Size ${size}` : `${baseName} - ${size}`
+        const variantPrice = Number(presetVariantPrices[size])
+        const resolvedPrice =
+          Number.isFinite(variantPrice) && variantPrice > 0
+            ? variantPrice
+            : fallbackPrice
 
         return {
           name: resolvedName,
           sku: resolvedSku,
-          price,
+          price: resolvedPrice,
           stock: Number(presetVariantStocks[size]),
         }
       }),
@@ -1338,7 +1383,7 @@ function buildCreateVariants(
         {
           name: baseName === "" ? "Default" : baseName,
           sku: baseSku === "" ? "default" : baseSku,
-          price,
+          price: fallbackPrice,
           stock: Number(singleVariantStock),
         },
       ],
@@ -1349,6 +1394,7 @@ function buildCreateVariants(
     .map((variant) => ({
       name: variant.name.trim(),
       stock: variant.stock.trim(),
+      price: variant.price.trim(),
     }))
     .filter((variant) => variant.name !== "" || variant.stock !== "")
 
@@ -1394,10 +1440,14 @@ function buildCreateVariants(
       const resolvedName =
         baseName === "" ? variant.name : `${baseName} - ${variant.name}`
 
+      const variantPrice = Number(variant.price)
       return {
         name: resolvedName,
         sku: resolvedSku,
-        price,
+        price:
+          Number.isFinite(variantPrice) && variantPrice > 0
+            ? variantPrice
+            : fallbackPrice,
         stock: Number(variant.stock),
       }
     }),

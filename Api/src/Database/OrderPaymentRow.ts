@@ -239,6 +239,22 @@ export async function updateStatusByReportFlow(
     )
 }
 
+export async function getByID(
+  id: OrderPaymentID,
+): Promise<Maybe<OrderPaymentRow>> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+    .then((row) =>
+      row == null
+        ? null
+        : orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row)),
+    )
+}
+
 export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
   return db
     .selectFrom(tableName)

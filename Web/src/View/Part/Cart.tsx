@@ -14,8 +14,17 @@ export function CartSidebar(props: Props): JSX.Element {
 
   const { items, isOpen } = state.cart
 
+  const getVariantPrice = (item: (typeof items)[number]): number => {
+    const firstVariant = item.product.variants[0]
+    if (firstVariant == null) {
+      return item.product.price.unwrap()
+    }
+
+    return firstVariant.price.unwrap()
+  }
+
   const totalPrice = items.reduce(
-    (sum, item) => sum + item.product.price.unwrap() * item.quantity,
+    (sum, item) => sum + getVariantPrice(item) * item.quantity,
     0,
   )
 
@@ -80,8 +89,8 @@ export function CartSidebar(props: Props): JSX.Element {
                       <div className={styles.itemVariant}>{variantLabel}</div>
                     ) : null}
                     <div className={styles.itemPrice}>
-                      {item.quantity} x{" "}
-                      {item.product.price.unwrap().toLocaleString()}đ
+                      {item.quantity} x {getVariantPrice(item).toLocaleString()}
+                      đ
                     </div>
                     <div className={styles.controls}>
                       <button

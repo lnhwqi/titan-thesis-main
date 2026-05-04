@@ -43,7 +43,10 @@ export default function PaymentPage(props: Props): JSX.Element {
   for (const item of state.cart.items) {
     const sellerKey = item.product.sellerID.unwrap()
     const current = grouped.get(sellerKey)
-    const linePrice = item.product.price.unwrap() * item.quantity
+    const variant = item.product.variants[0]
+    const linePrice =
+      (variant == null ? item.product.price.unwrap() : variant.price.unwrap()) *
+      item.quantity
 
     if (current == null) {
       grouped.set(sellerKey, {
@@ -88,6 +91,25 @@ export default function PaymentPage(props: Props): JSX.Element {
 
   return (
     <div className={styles.page}>
+      {state.payment.priceChangedVisible ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Prices Have Changed</h3>
+            <p className={styles.modalText}>
+              One or more product prices have been updated by the seller. Your
+              cart has been refreshed with the latest prices. Please review your
+              order and try again.
+            </p>
+            <button
+              className={styles.modalBtn}
+              onClick={() => emit(PaymentAction.dismissPriceChanged())}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {state.payment.flashMessage != null ? (
         <div className={styles.modalOverlay}>
           <div className={styles.modalCard}>

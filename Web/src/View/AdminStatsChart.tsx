@@ -193,7 +193,9 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
         {activeTab === "SellerGrowth" ? (
           <>
             {statsUnavailable || stats == null ? (
-              <div className={styles.infoMeta}>Loading seller growth data...</div>
+              <div className={styles.infoMeta}>
+                Loading seller growth data...
+              </div>
             ) : (
               <>
                 <div className={styles.statsGrid}>
@@ -259,7 +261,9 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
         {activeTab === "SupportTrends" ? (
           <>
             {statsUnavailable ? (
-              <div className={styles.infoMeta}>Loading financial overview...</div>
+              <div className={styles.infoMeta}>
+                Loading financial overview...
+              </div>
             ) : (
               <div className={styles.chartCardFull}>
                 <div className={styles.chartHeader}>
@@ -295,7 +299,9 @@ export default function AdminStatsChart(_props: Props): JSX.Element {
                         ...font.regular14,
                         boxShadow: theme.elevation.medium,
                       }}
-                      formatter={(value) => `₫${Number(value).toLocaleString()}`}
+                      formatter={(value) =>
+                        `₫${Number(value).toLocaleString()}`
+                      }
                     />
                     <Legend
                       wrapperStyle={{
@@ -421,7 +427,9 @@ function renderSupportMetrics(
 
       <div className={styles.chartCard}>
         <div className={styles.chartHeader}>
-          <h3 className={styles.chartTitle}>Support Trend - Recent Snapshots</h3>
+          <h3 className={styles.chartTitle}>
+            Support Trend - Recent Snapshots
+          </h3>
         </div>
 
         {trendData.length === 0 ? (

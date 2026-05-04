@@ -177,6 +177,21 @@ export default function SellerProductEditPage(props: Props): JSX.Element {
                         }
                       />
                       <InputText
+                        value={variant.price}
+                        invalid={false}
+                        type="number"
+                        placeholder="Price"
+                        onChange={(v) =>
+                          emit(
+                            SellerDashboardAction.onChangeEditVariant(
+                              index,
+                              "price",
+                              v,
+                            ),
+                          )
+                        }
+                      />
+                      <InputText
                         value={variant.stock}
                         invalid={false}
                         type="number"

@@ -4,6 +4,8 @@ import { AuthAdmin } from "../../../AuthApi"
 import { ReportStatus } from "../../../../../../Core/App/Report"
 import * as ReportRow from "../../../../Database/ReportRow"
 import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
+import * as UserRow from "../../../../Database/UserRow"
+import * as AdminRow from "../../../../Database/AdminRow"
 import { toReport } from "../../../../App/Report"
 
 export const contract = API.contract
@@ -29,6 +31,23 @@ export async function handler(
 
   if (updated == null) {
     return err("REPORT_NOT_FOUND")
+  }
+
+  if (params.status === "CASHBACK_COMPLETED") {
+    const order = await OrderPaymentRow.getByID(updated.orderId)
+    if (order == null) {
+      return err("REPORT_NOT_FOUND")
+    }
+
+    const credited = await UserRow.incrementWallet(
+      updated.userId,
+      order.price.unwrap(),
+    )
+    if (credited == null) {
+      return err("REPORT_NOT_FOUND")
+    }
+
+    await AdminRow.decrementWallet(_admin.id, order.price.unwrap())
   }
 
   await OrderPaymentRow.updateStatusByReportFlow(
@@ -75,7 +94,12 @@ function canTransition(from: ReportStatus, to: ReportStatus): boolean {
   }
 
   if (to === "CASHBACK_COMPLETED") {
-    return from === "REFUND_APPROVED"
+    return (
+      from === "OPEN" ||
+      from === "SELLER_REPLIED" ||
+      from === "UNDER_REVIEW" ||
+      from === "REFUND_APPROVED"
+    )
   }
 
   if (to === "RESOLVED") {
