@@ -216,9 +216,7 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
           </p>
           <button
             className={styles.secondaryButton}
-            onClick={() =>
-              emit(navigateTo(toRoute("AdminUserManagement", {})))
-            }
+            onClick={() => emit(navigateTo(toRoute("AdminUserManagement", {})))}
           >
             Manage Users
           </button>

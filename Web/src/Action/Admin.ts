@@ -1128,7 +1128,10 @@ export function toggleUserActive(userID: string, active: boolean): Action {
     try {
       decodedID = userIDDecoder.verify(userID)
     } catch (_e) {
-      return [_AdminDashboardState(state, { flashMessage: "Invalid user ID." }), cmd()]
+      return [
+        _AdminDashboardState(state, { flashMessage: "Invalid user ID." }),
+        cmd(),
+      ]
     }
 
     const toggling = state.adminDashboard.togglingUserActiveIDs.includes(userID)
@@ -1198,10 +1201,7 @@ function onToggleUserActiveResponse(
   }
 }
 
-export function openSendMessageModal(
-  userID: string,
-  userName: string,
-): Action {
+export function openSendMessageModal(userID: string, userName: string): Action {
   return (state) => [
     _AdminDashboardState(state, {
       sendUserMessageModal: { userID, userName, message: "" },
@@ -1250,7 +1250,10 @@ export function submitUserMessage(): Action {
     try {
       decodedID = userIDDecoder.verify(rawUserID)
     } catch (_e) {
-      return [_AdminDashboardState(state, { flashMessage: "Invalid user ID." }), cmd()]
+      return [
+        _AdminDashboardState(state, { flashMessage: "Invalid user ID." }),
+        cmd(),
+      ]
     }
 
     return [

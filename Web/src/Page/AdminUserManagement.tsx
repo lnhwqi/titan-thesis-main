@@ -84,7 +84,13 @@ export default function AdminUserManagementPage(props: Props): JSX.Element {
           }
         />
         <div className={styles.filterGroup}>
-          {(["all", "active", "inactive"] satisfies ("all" | "active" | "inactive")[]).map((f) => (
+          {(
+            ["all", "active", "inactive"] satisfies (
+              | "all"
+              | "active"
+              | "inactive"
+            )[]
+          ).map((f) => (
             <button
               key={f}
               className={
@@ -123,7 +129,9 @@ export default function AdminUserManagementPage(props: Props): JSX.Element {
             <div className={styles.modalActions}>
               <button
                 className={styles.secondaryButton}
-                onClick={() => emit(AdminDashboardAction.closeSendMessageModal())}
+                onClick={() =>
+                  emit(AdminDashboardAction.closeSendMessageModal())
+                }
               >
                 Cancel
               </button>
@@ -212,7 +220,10 @@ function renderUsers(
             const toggling = togglingIDs.includes(uid)
 
             return (
-              <tr key={uid} className={styles.tr}>
+              <tr
+                key={uid}
+                className={styles.tr}
+              >
                 <td className={styles.td}>{user.name.unwrap()}</td>
                 <td className={styles.td}>{user.email.unwrap()}</td>
                 <td className={styles.td}>{user.tier.unwrap()}</td>
@@ -253,11 +264,7 @@ function renderUsers(
                       )
                     }
                   >
-                    {toggling
-                      ? "..."
-                      : isActive
-                        ? "Deactivate"
-                        : "Activate"}
+                    {toggling ? "..." : isActive ? "Deactivate" : "Activate"}
                   </button>
                 </td>
               </tr>
