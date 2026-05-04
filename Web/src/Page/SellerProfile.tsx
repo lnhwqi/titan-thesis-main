@@ -155,17 +155,22 @@ export default function SellerProfilePage(
         </div>
 
         {state._t !== "AuthUser" ? (
-          <div className={styles.voucherEmpty}>Log in to claim this shop vouchers.</div>
+          <div className={styles.voucherEmpty}>
+            Log in to claim this shop vouchers.
+          </div>
         ) : state.product.sellerVoucherListResponse._t === "Loading" ? (
           <div className={styles.voucherEmpty}>Loading vouchers...</div>
         ) : state.product.sellerVoucherListResponse._t === "Failure" ? (
           <div className={styles.voucherEmpty}>Could not load vouchers.</div>
         ) : sellerVouchers.length === 0 ? (
-          <div className={styles.voucherEmpty}>No available vouchers for this shop.</div>
+          <div className={styles.voucherEmpty}>
+            No available vouchers for this shop.
+          </div>
         ) : (
           <div className={styles.voucherGrid}>
             {sellerVouchers.map((voucher) => {
-              const remaining = voucher.limit.unwrap() - voucher.usedCount.unwrap()
+              const remaining =
+                voucher.limit.unwrap() - voucher.usedCount.unwrap()
               const isClaiming = claimingVoucherID === voucher.id.unwrap()
               const isRecentlyClaimed =
                 recentlyClaimedID === voucher.id.unwrap()
@@ -178,18 +183,31 @@ export default function SellerProfilePage(
                   {isRecentlyClaimed ? (
                     <div className={styles.claimedBadge}>Claimed</div>
                   ) : null}
-                  <div className={styles.voucherCode}>{voucher.code.unwrap()}</div>
-                  <div className={styles.voucherName}>{voucher.name.unwrap()}</div>
+                  <div className={styles.voucherCode}>
+                    {voucher.code.unwrap()}
+                  </div>
+                  <div className={styles.voucherName}>
+                    {voucher.name.unwrap()}
+                  </div>
                   <div className={styles.voucherMeta}>
-                    <div>Discount: {formatCurrency(voucher.discount.unwrap())}</div>
-                    <div>Min order: {formatCurrency(voucher.minOrderValue.unwrap())}</div>
+                    <div>
+                      Discount: {formatCurrency(voucher.discount.unwrap())}
+                    </div>
+                    <div>
+                      Min order:{" "}
+                      {formatCurrency(voucher.minOrderValue.unwrap())}
+                    </div>
                     <div>Remaining: {Math.max(remaining, 0)}</div>
-                    <div>Expire: {formatDate(voucher.expiredDate.unwrap())}</div>
+                    <div>
+                      Expire: {formatDate(voucher.expiredDate.unwrap())}
+                    </div>
                   </div>
                   <button
                     className={styles.claimButton}
                     onClick={() =>
-                      emit(ProductAction.claimSellerVoucher(voucher.id.unwrap()))
+                      emit(
+                        ProductAction.claimSellerVoucher(voucher.id.unwrap()),
+                      )
                     }
                     disabled={isClaiming}
                   >

@@ -207,6 +207,22 @@ export default function AdminDashboardPage(_props: Props): JSX.Element {
             Open event panel
           </button>
         </article>
+
+        <article className={styles.card}>
+          <h2 className={styles.cardTitle}>User Management</h2>
+          <p className={styles.cardText}>
+            View all users, send support messages, and activate or deactivate
+            accounts.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() =>
+              emit(navigateTo(toRoute("AdminUserManagement", {})))
+            }
+          >
+            Manage Users
+          </button>
+        </article>
       </section>
     </div>
   )

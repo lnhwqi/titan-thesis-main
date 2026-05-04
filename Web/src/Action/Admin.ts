@@ -21,6 +21,10 @@ import * as CreateCategoryApi from "../Api/Auth/Admin/CreateCategory"
 import * as UpdateCategoryApi from "../Api/Auth/Admin/UpdateCategory"
 import * as DeleteCategoryApi from "../Api/Auth/Admin/DeleteCategoryApi"
 import * as CategoryAction from "./Category"
+import * as ListAllUsersApi from "../Api/Auth/Admin/ListAllUsers"
+import * as SetUserActiveApi from "../Api/Auth/Admin/SetUserActive"
+import * as SendUserMessageApi from "../Api/Auth/Admin/SendUserMessage"
+import { userIDDecoder } from "../../../Core/App/User/UserID"
 import {
   _AdminDashboardState,
   type AdminDashboardState,
@@ -1066,4 +1070,224 @@ export function goToAdminDashboard(): Action {
     state,
     cmd(perform(navigateTo(toRoute("AdminDashboard", {})))),
   ]
+}
+
+// ─── User Management ─────────────────────────────────────────────────────────
+
+export function onEnterUserManagementRoute(state: State): [State, Cmd] {
+  return loadAllUsers()(
+    _AdminDashboardState(state, {
+      allUsersResponse: RD.loading(),
+      sendUserMessageModal: null,
+      sendUserMessageResponse: RD.notAsked(),
+      togglingUserActiveIDs: [],
+      userMgmtFilter: "all",
+      userMgmtSearch: "",
+    }),
+  )
+}
+
+export function loadAllUsers(): Action {
+  return (state) => [
+    _AdminDashboardState(state, { allUsersResponse: RD.loading() }),
+    cmd(ListAllUsersApi.call().then(onLoadAllUsersResponse)),
+  ]
+}
+
+function onLoadAllUsersResponse(response: ListAllUsersApi.Response): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      allUsersResponse:
+        response._t === "Ok"
+          ? RD.success(response.value)
+          : RD.failure(response.error),
+    }),
+    cmd(),
+  ]
+}
+
+export function changeUserMgmtFilter(
+  filter: "all" | "active" | "inactive",
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, { userMgmtFilter: filter }),
+    cmd(),
+  ]
+}
+
+export function changeUserMgmtSearch(search: string): Action {
+  return (state) => [
+    _AdminDashboardState(state, { userMgmtSearch: search }),
+    cmd(),
+  ]
+}
+
+export function toggleUserActive(userID: string, active: boolean): Action {
+  return (state) => {
+    let decodedID
+    try {
+      decodedID = userIDDecoder.verify(userID)
+    } catch (_e) {
+      return [_AdminDashboardState(state, { flashMessage: "Invalid user ID." }), cmd()]
+    }
+
+    const toggling = state.adminDashboard.togglingUserActiveIDs.includes(userID)
+      ? state.adminDashboard.togglingUserActiveIDs
+      : [...state.adminDashboard.togglingUserActiveIDs, userID]
+
+    return [
+      _AdminDashboardState(state, {
+        togglingUserActiveIDs: toggling,
+        flashMessage: null,
+      }),
+      cmd(
+        SetUserActiveApi.call({ userID: decodedID, active }).then((res) =>
+          onToggleUserActiveResponse(userID, res),
+        ),
+      ),
+    ]
+  }
+}
+
+function onToggleUserActiveResponse(
+  userID: string,
+  response: SetUserActiveApi.Response,
+): Action {
+  return (state) => {
+    const togglingUserActiveIDs =
+      state.adminDashboard.togglingUserActiveIDs.filter((id) => id !== userID)
+
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          togglingUserActiveIDs,
+          flashMessage: SetUserActiveApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    const updatedUser = response.value.user
+    const current = state.adminDashboard.allUsersResponse
+
+    if (current._t !== "Success") {
+      return [
+        _AdminDashboardState(state, {
+          togglingUserActiveIDs,
+          setUserActiveResponse: RD.success(response.value),
+        }),
+        cmd(),
+      ]
+    }
+
+    const updatedUsers = current.data.users.map((u) =>
+      u.id.unwrap() === userID ? updatedUser : u,
+    )
+
+    return [
+      _AdminDashboardState(state, {
+        togglingUserActiveIDs,
+        setUserActiveResponse: RD.success(response.value),
+        allUsersResponse: RD.success({ users: updatedUsers }),
+        flashMessage: updatedUser.active.unwrap()
+          ? "Account activated."
+          : "Account deactivated.",
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function openSendMessageModal(
+  userID: string,
+  userName: string,
+): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      sendUserMessageModal: { userID, userName, message: "" },
+      sendUserMessageResponse: RD.notAsked(),
+    }),
+    cmd(),
+  ]
+}
+
+export function closeSendMessageModal(): Action {
+  return (state) => [
+    _AdminDashboardState(state, { sendUserMessageModal: null }),
+    cmd(),
+  ]
+}
+
+export function onChangeUserMessageText(text: string): Action {
+  return (state) => {
+    const modal = state.adminDashboard.sendUserMessageModal
+    if (modal === null) return [state, cmd()]
+    return [
+      _AdminDashboardState(state, {
+        sendUserMessageModal: { ...modal, message: text },
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function submitUserMessage(): Action {
+  return (state) => {
+    const modal = state.adminDashboard.sendUserMessageModal
+    if (modal === null) return [state, cmd()]
+
+    const { userID: rawUserID, message } = modal
+    if (message.trim() === "") {
+      return [
+        _AdminDashboardState(state, {
+          flashMessage: "Message cannot be empty.",
+        }),
+        cmd(),
+      ]
+    }
+
+    let decodedID
+    try {
+      decodedID = userIDDecoder.verify(rawUserID)
+    } catch (_e) {
+      return [_AdminDashboardState(state, { flashMessage: "Invalid user ID." }), cmd()]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        sendUserMessageResponse: RD.loading(),
+      }),
+      cmd(
+        SendUserMessageApi.call({
+          userID: decodedID,
+          message: message.trim(),
+        }).then(onSendUserMessageResponse),
+      ),
+    ]
+  }
+}
+
+function onSendUserMessageResponse(
+  response: SendUserMessageApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          sendUserMessageResponse: RD.failure(response.error),
+          flashMessage: SendUserMessageApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        sendUserMessageResponse: RD.success(response.value),
+        sendUserMessageModal: null,
+        flashMessage: "Message sent to user's support chat.",
+      }),
+      cmd(),
+    ]
+  }
 }

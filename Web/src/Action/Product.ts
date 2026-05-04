@@ -554,8 +554,10 @@ function gotSellerAvailableVouchersResponse(
 }
 
 export function clearSellerVoucherFlashMessage(): Action {
-  return (state) =>
-    [_ProductState(state, { sellerVoucherFlashMessage: null }), cmd()]
+  return (state) => [
+    _ProductState(state, { sellerVoucherFlashMessage: null }),
+    cmd(),
+  ]
 }
 
 function clearRecentlyClaimedVoucher(voucherID: string): Action {
@@ -574,7 +576,10 @@ function clearRecentlyClaimedVoucher(voucherID: string): Action {
 export function claimSellerVoucher(rawVoucherID: string): Action {
   return (state) => {
     if (state._t !== "AuthUser") {
-      return [state, cmd(perform(navigateTo(toRoute("Login", { redirect: null }))))]
+      return [
+        state,
+        cmd(perform(navigateTo(toRoute("Login", { redirect: null })))),
+      ]
     }
 
     let voucherID
@@ -632,7 +637,9 @@ function onClaimSellerVoucherResponse(
           (voucher) => voucher.id.unwrap() !== claimedVoucherID,
         ),
       }),
-      cmd(sleep(2200).then(() => clearRecentlyClaimedVoucher(claimedVoucherID))),
+      cmd(
+        sleep(2200).then(() => clearRecentlyClaimedVoucher(claimedVoucherID)),
+      ),
     ]
   }
 }

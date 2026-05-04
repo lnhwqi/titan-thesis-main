@@ -215,3 +215,35 @@ export async function incrementWallet(
       throw e
     })
 }
+
+export async function listAll(): Promise<UserRow[]> {
+  return db
+    .selectFrom(tableName)
+    .selectAll()
+    .where("isDeleted", "=", false)
+    .orderBy("createdAt", "desc")
+    .execute()
+    .then((rows) => rows.map((row) => userRowDecoder.verify(row)))
+    .catch((e) => {
+      Logger.error(`#${tableName}.listAll error ${e}`)
+      throw e
+    })
+}
+
+export async function setActive(
+  id: UserID,
+  active: boolean,
+): Promise<Maybe<UserRow>> {
+  return db
+    .updateTable(tableName)
+    .set({ active, updatedAt: toDate(createNow()) })
+    .where("id", "=", id.unwrap())
+    .where("isDeleted", "=", false)
+    .returningAll()
+    .executeTakeFirst()
+    .then((row) => (row ? userRowDecoder.verify(row) : null))
+    .catch((e) => {
+      Logger.error(`#${tableName}.setActive error ${e}`)
+      throw e
+    })
+}

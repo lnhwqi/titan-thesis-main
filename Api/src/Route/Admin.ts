@@ -33,6 +33,9 @@ import * as ProductRatingDelete from "../Api/Auth/Admin/ProductRating/Delete"
 import * as Stats from "../Api/Auth/Admin/Stats"
 import * as SupportAIMetrics from "../Api/Auth/Admin/SupportAIMetrics"
 import * as SupportAIMetricsHistory from "../Api/Auth/Admin/SupportAIMetricsHistory"
+import * as ListAllUsers from "../Api/Auth/Admin/ListAllUsers"
+import * as SetUserActive from "../Api/Auth/Admin/SetUserActive"
+import * as SendUserMessage from "../Api/Auth/Admin/SendUserMessage"
 import { adminAuthApi } from "../Api/AuthApi"
 
 export function adminRoutes(app: Express): void {
@@ -69,4 +72,7 @@ export function adminRoutes(app: Express): void {
   adminAuthApi(app, ProductRatingDelete)
   adminAuthApi(app, SellerTierPolicyGet)
   adminAuthApi(app, SellerTierPolicyUpdate)
+  adminAuthApi(app, ListAllUsers)
+  adminAuthApi(app, SetUserActive)
+  adminAuthApi(app, SendUserMessage)
 }

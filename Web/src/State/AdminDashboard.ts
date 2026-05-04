@@ -12,6 +12,9 @@ import * as StatsApi from "../Api/Auth/Admin/Stats"
 import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
 import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
 //import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
+import * as ListAllUsersApi from "../Api/Auth/Admin/ListAllUsers"
+import * as SetUserActiveApi from "../Api/Auth/Admin/SetUserActive"
+import * as SendUserMessageApi from "../Api/Auth/Admin/SendUserMessage"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 
 export type DashboardAnalyticsTab =
@@ -88,6 +91,26 @@ export type AdminDashboardState = {
     | "profit-low"
     | "none"
   flashMessage: string | null
+  allUsersResponse: RD.RemoteData<
+    ApiError<ListAllUsersApi.ErrorCode>,
+    ListAllUsersApi.Payload
+  >
+  togglingUserActiveIDs: string[]
+  setUserActiveResponse: RD.RemoteData<
+    ApiError<SetUserActiveApi.ErrorCode>,
+    SetUserActiveApi.Payload
+  >
+  sendUserMessageModal: {
+    userID: string
+    userName: string
+    message: string
+  } | null
+  sendUserMessageResponse: RD.RemoteData<
+    ApiError<SendUserMessageApi.ErrorCode>,
+    SendUserMessageApi.Payload
+  >
+  userMgmtFilter: "all" | "active" | "inactive"
+  userMgmtSearch: string
 }
 
 export function initAdminDashboardState(): AdminDashboardState {
@@ -125,6 +148,13 @@ export function initAdminDashboardState(): AdminDashboardState {
     updatingCategoryResponse: RD.notAsked(),
     sellerModerationFilter: "none",
     flashMessage: null,
+    allUsersResponse: RD.notAsked(),
+    togglingUserActiveIDs: [],
+    setUserActiveResponse: RD.notAsked(),
+    sendUserMessageModal: null,
+    sendUserMessageResponse: RD.notAsked(),
+    userMgmtFilter: "all",
+    userMgmtSearch: "",
   }
 }
 

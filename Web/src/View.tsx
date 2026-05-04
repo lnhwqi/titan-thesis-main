@@ -20,6 +20,7 @@ import AdminSettingPage from "./Page/AdminSetting"
 import AdminOrderManagementPage from "./Page/AdminOrderManagement"
 import AdminSupportMonitoringPage from "./Page/AdminSupportMonitoring"
 import AdminCoinRainPage from "./Page/AdminCoinRain"
+import AdminUserManagementPage from "./Page/AdminUserManagement"
 import SellerDashboardPage from "./Page/SellerDashboard"
 import SellerProductCreatePage from "./Page/SellerProductCreate"
 import SellerProductEditPage from "./Page/SellerProductEdit"
@@ -163,6 +164,13 @@ function routeView(state: State): JSX.Element {
         <EmptyLayout
           state={state}
           Page={AdminSellerModerationPage}
+        />
+      )
+    case "AdminUserManagement":
+      return (
+        <EmptyLayout
+          state={state}
+          Page={AdminUserManagementPage}
         />
       )
     case "AdminCategoryManagement":
