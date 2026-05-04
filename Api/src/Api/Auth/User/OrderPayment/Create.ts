@@ -19,6 +19,23 @@ import { getSocketIO } from "../../../../Socket"
 
 export const contract = API.contract
 
+function toErrorMessage(value: unknown): string | null {
+  if (value instanceof Error) {
+    return value.message
+  }
+
+  if (
+    typeof value === "object" &&
+    value != null &&
+    "message" in value &&
+    typeof value.message === "string"
+  ) {
+    return value.message
+  }
+
+  return null
+}
+
 export async function handler(
   user: AuthUser,
   params: API.UrlParams & API.BodyParams,
@@ -354,15 +371,7 @@ export async function handler(
       ),
     })
   } catch (e) {
-    const errorMessage =
-      e instanceof Error
-        ? e.message
-        : typeof e === "object" &&
-            e != null &&
-            "message" in e &&
-            typeof (e as { message: unknown }).message === "string"
-          ? (e as { message: string }).message
-          : null
+    const errorMessage = toErrorMessage(e)
 
     switch (errorMessage) {
       case "SELLER_NOT_FOUND":

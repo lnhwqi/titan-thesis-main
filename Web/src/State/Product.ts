@@ -3,7 +3,10 @@ import * as SearchApi from "../../../Core/Api/Public/Product/Search"
 import * as GetOneApi from "../../../Core/Api/Public/Product/GetOne"
 import * as GetSellerProfileApi from "../../../Core/Api/Public/Seller/GetProfile"
 import * as ListRatingsApi from "../../../Core/Api/Public/Product/ListRatings"
+import * as ListAvailableVoucherApi from "../Api/Auth/User/Voucher/ListAvailable"
+import * as ClaimVoucherApi from "../Api/Auth/User/Voucher/Claim"
 import { BasicProduct } from "../../../Core/App/ProductBasic"
+import { Voucher } from "../../../Core/App/Voucher"
 
 import * as RD from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
@@ -37,6 +40,18 @@ export type ProductState = {
     ApiError<GetListApi.ErrorCode>,
     GetListApi.Payload
   >
+  sellerVoucherListResponse: RD.RemoteData<
+    ApiError<ListAvailableVoucherApi.ErrorCode>,
+    ListAvailableVoucherApi.Payload
+  >
+  sellerAvailableVouchers: Voucher[]
+  sellerVoucherClaimResponse: RD.RemoteData<
+    ApiError<ClaimVoucherApi.ErrorCode>,
+    ClaimVoucherApi.Payload
+  >
+  sellerVoucherClaimingID: string | null
+  sellerVoucherRecentlyClaimedID: string | null
+  sellerVoucherFlashMessage: string | null
 
   searchQuery: string
   currentCategoryId: CategoryID | null
@@ -71,6 +86,12 @@ export function initProductState(): ProductState {
     ratingsResponse: RD.notAsked(),
     sellerProfileResponse: RD.notAsked(),
     sellerProductsResponse: RD.notAsked(),
+    sellerVoucherListResponse: RD.notAsked(),
+    sellerAvailableVouchers: [],
+    sellerVoucherClaimResponse: RD.notAsked(),
+    sellerVoucherClaimingID: null,
+    sellerVoucherRecentlyClaimedID: null,
+    sellerVoucherFlashMessage: null,
     searchQuery: "",
     currentCategoryId: null,
     currentCategoryTree: null,

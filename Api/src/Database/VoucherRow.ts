@@ -259,6 +259,16 @@ export async function claimVoucher(
 
       if (!voucher || getExpirationTime(voucher.expiredDate) <= Date.now())
         return "NOT_FOUND"
+
+      const existingClaim = await trx
+        .selectFrom(userVoucherTable)
+        .select(["id"])
+        .where("userId", "=", userId.unwrap())
+        .where("voucherId", "=", voucherId.unwrap())
+        .executeTakeFirst()
+
+      if (existingClaim != null) return "ALREADY_CLAIMED"
+
       if (voucher.usedCount >= voucher.limit) return "FULLY_CLAIMED"
 
       await trx

@@ -28,7 +28,7 @@ export function errorString(code: ApiError<ErrorCode>): string {
       case "VOUCHER_FULLY_CLAIMED":
         return "Voucher is fully claimed."
       case "VOUCHER_ALREADY_CLAIMED":
-        return "Voucher already claimed."
+        return "You already claimed this voucher. You cannot claim this coupon more than once."
       case "VOUCHER_EXPIRED":
         return "Voucher has expired."
     }

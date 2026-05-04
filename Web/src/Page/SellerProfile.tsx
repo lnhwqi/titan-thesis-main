@@ -1,5 +1,5 @@
 ﻿import { JSX } from "react"
-import { css } from "@emotion/css"
+import { css, keyframes } from "@emotion/css"
 import { AuthState, PublicState } from "../State"
 import { color, font, theme } from "../View/Theme"
 import { ProductCard } from "../View/Part/ProductCard"
@@ -66,6 +66,10 @@ export default function SellerProfilePage(
   const shopDescription = seller.shopDescription.unwrap()
   const shopInitial = shopName.charAt(0).toUpperCase()
   const productCount = products.length
+  const sellerVouchers = state.product.sellerAvailableVouchers
+  const claimingVoucherID = state.product.sellerVoucherClaimingID
+  const recentlyClaimedID = state.product.sellerVoucherRecentlyClaimedID
+  const voucherFlashMessage = state.product.sellerVoucherFlashMessage
 
   // Pagination
   const page = state.product.sellerListPage
@@ -130,6 +134,73 @@ export default function SellerProfilePage(
           )}
         </div>
       </div>
+
+      {voucherFlashMessage != null ? (
+        <div className={styles.noticeRow}>
+          <span>{voucherFlashMessage}</span>
+          <button
+            className={styles.noticeClose}
+            onClick={() => emit(ProductAction.clearSellerVoucherFlashMessage())}
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
+
+      <section className={styles.voucherSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>
+            <span className={styles.sectionTitleGradient}>Shop Vouchers</span>
+          </h2>
+        </div>
+
+        {state._t !== "AuthUser" ? (
+          <div className={styles.voucherEmpty}>Log in to claim this shop vouchers.</div>
+        ) : state.product.sellerVoucherListResponse._t === "Loading" ? (
+          <div className={styles.voucherEmpty}>Loading vouchers...</div>
+        ) : state.product.sellerVoucherListResponse._t === "Failure" ? (
+          <div className={styles.voucherEmpty}>Could not load vouchers.</div>
+        ) : sellerVouchers.length === 0 ? (
+          <div className={styles.voucherEmpty}>No available vouchers for this shop.</div>
+        ) : (
+          <div className={styles.voucherGrid}>
+            {sellerVouchers.map((voucher) => {
+              const remaining = voucher.limit.unwrap() - voucher.usedCount.unwrap()
+              const isClaiming = claimingVoucherID === voucher.id.unwrap()
+              const isRecentlyClaimed =
+                recentlyClaimedID === voucher.id.unwrap()
+
+              return (
+                <article
+                  key={voucher.id.unwrap()}
+                  className={styles.voucherCard}
+                >
+                  {isRecentlyClaimed ? (
+                    <div className={styles.claimedBadge}>Claimed</div>
+                  ) : null}
+                  <div className={styles.voucherCode}>{voucher.code.unwrap()}</div>
+                  <div className={styles.voucherName}>{voucher.name.unwrap()}</div>
+                  <div className={styles.voucherMeta}>
+                    <div>Discount: {formatCurrency(voucher.discount.unwrap())}</div>
+                    <div>Min order: {formatCurrency(voucher.minOrderValue.unwrap())}</div>
+                    <div>Remaining: {Math.max(remaining, 0)}</div>
+                    <div>Expire: {formatDate(voucher.expiredDate.unwrap())}</div>
+                  </div>
+                  <button
+                    className={styles.claimButton}
+                    onClick={() =>
+                      emit(ProductAction.claimSellerVoucher(voucher.id.unwrap()))
+                    }
+                    disabled={isClaiming}
+                  >
+                    {isClaiming ? "Claiming..." : "Claim Voucher"}
+                  </button>
+                </article>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
       {/* ── Products ── */}
       <div className={styles.productsSection}>
@@ -226,6 +297,31 @@ export default function SellerProfilePage(
     </div>
   )
 }
+
+function formatCurrency(value: number): string {
+  return `T ${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(value)}`
+}
+
+function formatDate(ts: number): string {
+  return new Date(ts).toLocaleDateString("en-GB")
+}
+
+const claimPop = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+`
 
 const styles = {
   page: css({
@@ -420,6 +516,96 @@ const styles = {
       boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
     },
     "&:active": { transform: "translateY(0)" },
+  }),
+
+  noticeRow: css({
+    margin: `0 ${theme.s5}`,
+    border: `1px solid ${color.secondary200}`,
+    borderRadius: theme.br2,
+    background: color.secondary50,
+    padding: `${theme.s2} ${theme.s3}`,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: theme.s2,
+    ...font.medium14,
+    color: color.secondary500,
+  }),
+  noticeClose: css({
+    border: "none",
+    background: "transparent",
+    color: color.secondary500,
+    ...font.bold14,
+    cursor: "pointer",
+  }),
+
+  voucherSection: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    padding: `0 ${theme.s5}`,
+  }),
+  voucherGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+    gap: theme.s3,
+  }),
+  voucherCard: css({
+    position: "relative",
+    border: `1px solid ${color.secondary200}`,
+    borderRadius: theme.br2,
+    background: color.neutral0,
+    padding: theme.s3,
+    display: "grid",
+    gap: theme.s2,
+  }),
+  claimedBadge: css({
+    position: "absolute",
+    top: theme.s2,
+    right: theme.s2,
+    padding: "2px 10px",
+    borderRadius: theme.brFull,
+    background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
+    color: color.neutral0,
+    ...font.bold12,
+    animation: `${claimPop} 320ms ease-out`,
+    boxShadow: "0 6px 14px rgba(34,197,94,0.3)",
+  }),
+  voucherCode: css({
+    ...font.bold17,
+    color: color.secondary500,
+    letterSpacing: "0.4px",
+  }),
+  voucherName: css({
+    ...font.medium14,
+    color: color.neutral800,
+  }),
+  voucherMeta: css({
+    ...font.regular12,
+    color: color.neutral600,
+    display: "grid",
+    gap: "4px",
+  }),
+  claimButton: css({
+    border: "none",
+    borderRadius: theme.brFull,
+    padding: `${theme.s2} ${theme.s3}`,
+    background: color.genz.gradientPurplePink,
+    color: color.neutral0,
+    ...font.bold14,
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    "&:disabled": {
+      opacity: 0.6,
+      cursor: "not-allowed",
+    },
+  }),
+  voucherEmpty: css({
+    ...font.medium14,
+    color: color.neutral500,
+    border: `1px dashed ${color.secondary200}`,
+    borderRadius: theme.br2,
+    padding: `${theme.s3} ${theme.s4}`,
   }),
 
   /* ── Products section ── */

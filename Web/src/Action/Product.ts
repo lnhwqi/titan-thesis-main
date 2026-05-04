@@ -6,6 +6,8 @@ import * as GetOneApi from "../Api/Public/Product/GetOne"
 import * as ListRatingsApi from "../Api/Public/Product/ListRatings"
 import * as GetSellerProfileApi from "../Api/Public/Seller/GetProfile"
 import * as CategoryGetOneApi from "../Api/Public/Category/GetOne"
+import * as ListAvailableVoucherApi from "../Api/Auth/User/Voucher/ListAvailable"
+import * as ClaimVoucherApi from "../Api/Auth/User/Voucher/Claim"
 import * as WishlistListApi from "../Api/Auth/User/Wishlist/List"
 import * as WishlistSaveApi from "../Api/Auth/User/Wishlist/Save"
 import * as WishlistRemoveApi from "../Api/Auth/User/Wishlist/Remove"
@@ -15,6 +17,7 @@ import { _ProductState } from "../State/Product"
 import { ProductID } from "../../../Core/App/Product/ProductID"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
 import { SellerID } from "../../../Core/App/Seller/SellerID"
+import { voucherIDDecoder } from "../../../Core/App/Voucher/VoucherID"
 import * as AuthToken from "../App/AuthToken"
 import { sleep } from "../../../Core/Data/Time/Timer"
 import { Category } from "../../../Core/App/Category"
@@ -472,11 +475,22 @@ export function loadDetail(id: ProductID): Action {
 export function loadSellerProfile(sellerID: SellerID): Action {
   return (state) => {
     const sellerIdString = sellerID.unwrap()
+    const shouldLoadVouchers = state._t === "AuthUser"
 
     return [
       _ProductState(state, {
         sellerProfileResponse: RD.loading(),
         sellerProductsResponse: RD.loading(),
+        sellerVoucherListResponse: shouldLoadVouchers
+          ? RD.loading()
+          : RD.notAsked(),
+        sellerVoucherClaimResponse: RD.notAsked(),
+        sellerVoucherClaimingID: null,
+        sellerVoucherRecentlyClaimedID: null,
+        sellerVoucherFlashMessage: null,
+        sellerAvailableVouchers: shouldLoadVouchers
+          ? state.product.sellerAvailableVouchers
+          : [],
       }),
       [
         ...cmd(
@@ -495,7 +509,130 @@ export function loadSellerProfile(sellerID: SellerID): Action {
             gotSellerProductsResponse(response, sellerIdString),
           ),
         ),
+        ...(shouldLoadVouchers
+          ? cmd(
+              ListAvailableVoucherApi.call().then((response) =>
+                gotSellerAvailableVouchersResponse(response, sellerIdString),
+              ),
+            )
+          : cmd()),
       ],
+    ]
+  }
+}
+
+function gotSellerAvailableVouchersResponse(
+  response: ListAvailableVoucherApi.Response,
+  sellerID: string,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _ProductState(state, {
+          sellerVoucherListResponse: RD.failure(response.error),
+          sellerAvailableVouchers: [],
+        }),
+        cmd(),
+      ]
+    }
+
+    const vouchers = response.value.vouchers.filter(
+      (voucher) =>
+        voucher.sellerID.unwrap() === sellerID &&
+        voucher.active.unwrap() &&
+        voucher.usedCount.unwrap() < voucher.limit.unwrap(),
+    )
+
+    return [
+      _ProductState(state, {
+        sellerVoucherListResponse: RD.success(response.value),
+        sellerAvailableVouchers: vouchers,
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function clearSellerVoucherFlashMessage(): Action {
+  return (state) =>
+    [_ProductState(state, { sellerVoucherFlashMessage: null }), cmd()]
+}
+
+function clearRecentlyClaimedVoucher(voucherID: string): Action {
+  return (state) => {
+    if (state.product.sellerVoucherRecentlyClaimedID !== voucherID) {
+      return [state, cmd()]
+    }
+
+    return [
+      _ProductState(state, { sellerVoucherRecentlyClaimedID: null }),
+      cmd(),
+    ]
+  }
+}
+
+export function claimSellerVoucher(rawVoucherID: string): Action {
+  return (state) => {
+    if (state._t !== "AuthUser") {
+      return [state, cmd(perform(navigateTo(toRoute("Login", { redirect: null }))))]
+    }
+
+    let voucherID
+    try {
+      voucherID = voucherIDDecoder.verify(rawVoucherID)
+    } catch (_e) {
+      return [
+        _ProductState(state, {
+          sellerVoucherFlashMessage: "Invalid voucher id.",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _ProductState(state, {
+        sellerVoucherClaimResponse: RD.loading(),
+        sellerVoucherClaimingID: rawVoucherID,
+        sellerVoucherFlashMessage: null,
+      }),
+      cmd(
+        ClaimVoucherApi.call({ voucherID }).then((response) =>
+          onClaimSellerVoucherResponse(response, rawVoucherID),
+        ),
+      ),
+    ]
+  }
+}
+
+function onClaimSellerVoucherResponse(
+  response: ClaimVoucherApi.Response,
+  claimedVoucherID: string,
+): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      return [
+        _ProductState(state, {
+          sellerVoucherClaimResponse: RD.failure(response.error),
+          sellerVoucherClaimingID: null,
+          sellerVoucherFlashMessage: ClaimVoucherApi.errorString(
+            response.error,
+          ),
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _ProductState(state, {
+        sellerVoucherClaimResponse: RD.success(response.value),
+        sellerVoucherClaimingID: null,
+        sellerVoucherRecentlyClaimedID: claimedVoucherID,
+        sellerVoucherFlashMessage: "Voucher claimed successfully.",
+        sellerAvailableVouchers: state.product.sellerAvailableVouchers.filter(
+          (voucher) => voucher.id.unwrap() !== claimedVoucherID,
+        ),
+      }),
+      cmd(sleep(2200).then(() => clearRecentlyClaimedVoucher(claimedVoucherID))),
     ]
   }
 }
