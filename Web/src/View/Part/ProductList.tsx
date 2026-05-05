@@ -245,11 +245,15 @@ const styles = {
     flex: 1,
     display: "flex",
     flexDirection: "column",
-    backgroundColor: color.neutral0,
-    padding: theme.s6,
+    backgroundColor: "var(--app-surface)",
+    padding: `${theme.s5} ${theme.s4} ${theme.s6}`,
     height: "100%",
     overflowY: "auto",
     animation: `${fadeSlideUp} 0.35s ease both`,
+    borderRadius: theme.br4,
+    border: "1px solid var(--app-border)",
+    boxShadow: theme.elevation.small,
+    backdropFilter: "blur(16px)",
   }),
 
   header: css({
@@ -259,40 +263,23 @@ const styles = {
 
   title: css({
     ...font.boldH3_29,
-    background: color.genz.gradientPurplePink,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    color: color.neutral900,
     marginBottom: theme.s3,
-    letterSpacing: "-0.5px",
+    letterSpacing: "-0.03em",
     display: "inline-block",
   }),
 
   divider: css({
     width: "64px",
-    height: "4px",
-    background: color.genz.gradientPurplePink,
+    height: "3px",
+    background:
+      "linear-gradient(90deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
     borderRadius: theme.brFull,
-    position: "relative",
-    overflow: "hidden",
-    "&::after": {
-      content: '""',
-      position: "absolute",
-      inset: 0,
-      background:
-        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
-      backgroundSize: "200% 100%",
-      animation: "shimmerDiv 2s linear infinite",
-    },
-    "@keyframes shimmerDiv": {
-      from: { backgroundPosition: "200% center" },
-      to: { backgroundPosition: "-200% center" },
-    },
   }),
 
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(185px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
     gap: theme.s4,
     paddingBottom: theme.s10,
   }),
@@ -312,9 +299,9 @@ const styles = {
     textAlign: "center",
     marginTop: theme.s10,
     padding: `${theme.s10} ${theme.s6}`,
-    background: "rgba(124,58,237,0.03)",
+    background: "var(--app-brand-20)",
     borderRadius: theme.br3,
-    border: `1px dashed rgba(124,58,237,0.15)`,
+    border: "1px dashed var(--app-border)",
   }),
 
   errorBox: css({
@@ -322,19 +309,20 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     padding: theme.s10,
-    background: "rgba(124, 58, 237, 0.05)",
-    border: `1px solid rgba(124, 58, 237, 0.15)`,
+    background: "var(--app-brand-20)",
+    border: "1px solid var(--app-border)",
     borderRadius: theme.br3,
-    color: color.genz.purple,
+    color: "var(--app-accent)",
     gap: theme.s2,
     ...font.medium14,
+    boxShadow: theme.elevation.xsmall,
   }),
 
   spinner: css({
     width: "32px",
     height: "32px",
-    border: `3px solid rgba(124, 58, 237, 0.15)`,
-    borderTopColor: color.genz.purple,
+    border: "3px solid rgba(0, 82, 156, 0.14)",
+    borderTopColor: "var(--app-brand-500)",
     borderRadius: "50%",
     animation: "spin 0.8s linear infinite",
     "@keyframes spin": {
@@ -344,7 +332,7 @@ const styles = {
 
   skeletonGrid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(185px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
     gap: theme.s4,
     paddingBottom: theme.s10,
   }),
@@ -352,14 +340,14 @@ const styles = {
   skeletonCard: css({
     borderRadius: theme.br3,
     overflow: "hidden",
-    border: `1.5px solid rgba(124, 58, 237, 0.08)`,
-    backgroundColor: color.neutral0,
+    border: "1px solid var(--app-border)",
+    backgroundColor: "rgba(255,255,255,0.76)",
   }),
 
   skeletonImage: css({
     width: "100%",
     paddingTop: "100%",
-    background: `linear-gradient(90deg, rgba(124,58,237,0.06) 25%, rgba(236,72,153,0.04) 50%, rgba(124,58,237,0.06) 75%)`,
+    background: "linear-gradient(90deg, rgba(0,82,156,0.06) 25%, rgba(237,28,36,0.05) 50%, rgba(0,82,156,0.06) 75%)",
     backgroundSize: "200% 100%",
     animation: "shimmer 1.4s infinite linear",
     "@keyframes shimmer": {
@@ -376,7 +364,7 @@ const styles = {
 
   skeletonLine: css({
     borderRadius: "4px",
-    background: `linear-gradient(90deg, rgba(124,58,237,0.07) 25%, rgba(236,72,153,0.04) 50%, rgba(124,58,237,0.07) 75%)`,
+    background: "linear-gradient(90deg, rgba(0,82,156,0.07) 25%, rgba(237,28,36,0.05) 50%, rgba(0,82,156,0.07) 75%)",
     backgroundSize: "200% 100%",
     animation: "shimmer 1.4s infinite linear",
   }),
@@ -386,13 +374,14 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: theme.s5,
-    padding: `${theme.s3} ${theme.s4}`,
-    background: "rgba(255,255,255,0.8)",
+    padding: `${theme.s4} ${theme.s5}`,
+    background: "var(--app-surface-strong)",
     backdropFilter: "blur(12px)",
-    borderRadius: theme.br3,
-    border: `1px solid rgba(124, 58, 237, 0.12)`,
-    boxShadow: "0 2px 12px rgba(124,58,237,0.06)",
+    borderRadius: theme.br4,
+    border: "1px solid var(--app-border)",
+    boxShadow: theme.elevation.xsmall,
     gap: theme.s3,
+    flexWrap: "wrap",
   }),
 
   sortControl: css({
@@ -403,38 +392,36 @@ const styles = {
 
   label: css({
     ...font.bold12,
-    color: color.genz.purple,
+    color: "var(--app-accent)",
     whiteSpace: "nowrap",
     letterSpacing: "0.04em",
   }),
 
   select: css({
-    padding: `${theme.s1} ${theme.s3}`,
-    border: `1.5px solid rgba(124, 58, 237, 0.25)`,
-    borderRadius: "20px",
+    minHeight: theme.s10,
+    padding: `${theme.s2} ${theme.s4}`,
+    border: "1px solid var(--app-border)",
+    borderRadius: theme.brFull,
     backgroundColor: color.neutral0,
-    color: color.genz.purple,
-    fontSize: "13px",
+    color: "var(--app-accent)",
+    fontSize: "14px",
     fontWeight: "600",
     cursor: "pointer",
     outline: "none",
     transition: "border-color 0.18s ease, box-shadow 0.18s ease",
     "&:hover": {
-      borderColor: color.genz.purple,
-      boxShadow: "0 0 0 3px rgba(124, 58, 237, 0.1)",
+      borderColor: "var(--app-brand-400)",
+      boxShadow: "0 0 0 3px rgba(0, 82, 156, 0.12)",
     },
     "&:focus": {
-      borderColor: color.genz.pink,
-      boxShadow: "0 0 0 3px rgba(236, 72, 153, 0.12)",
+      borderColor: "var(--app-secondary-400)",
+      boxShadow: "0 0 0 3px rgba(237, 28, 36, 0.12)",
     },
   }),
 
   paginationInfo: css({
     ...font.regular12,
-    background: color.genz.gradientPurplePink,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    color: color.neutral600,
     whiteSpace: "nowrap",
     fontWeight: 600,
   }),
@@ -446,25 +433,27 @@ const styles = {
     gap: theme.s2,
     marginTop: theme.s6,
     paddingTop: theme.s4,
-    borderTop: `1px solid rgba(124, 58, 237, 0.08)`,
+    borderTop: "1px solid var(--app-border)",
+    flexWrap: "wrap",
   }),
 
   paginationButton: css({
+    minHeight: theme.s10,
     padding: `${theme.s2} ${theme.s5}`,
-    border: `1.5px solid rgba(124, 58, 237, 0.3)`,
-    borderRadius: "20px",
+    border: "1px solid var(--app-border)",
+    borderRadius: theme.brFull,
     backgroundColor: color.neutral0,
-    color: color.genz.purple,
-    fontSize: "13px",
+    color: "var(--app-accent)",
+    fontSize: "14px",
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover:not(:disabled)": {
-      background: color.genz.gradientPurplePink,
+      background: "var(--app-brand-500)",
       color: color.neutral0,
-      borderColor: "transparent",
+      borderColor: "var(--app-brand-500)",
       transform: "translateY(-1px)",
-      boxShadow: "0 4px 14px rgba(124, 58, 237, 0.35)",
+      boxShadow: theme.elevation.small,
     },
     "&:disabled": {
       borderColor: color.neutral200,
@@ -480,30 +469,32 @@ const styles = {
   }),
 
   pageButton: css({
-    width: "34px",
-    height: "34px",
-    border: `1px solid rgba(124, 58, 237, 0.15)`,
+    width: theme.s10,
+    height: theme.s10,
+    border: "1px solid var(--app-border)",
     borderRadius: "50%",
     backgroundColor: color.neutral0,
-    color: color.genz.purple,
+    color: "var(--app-accent)",
     fontSize: "12px",
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover": {
-      borderColor: color.genz.purple,
-      background: "rgba(124, 58, 237, 0.07)",
+      borderColor: "var(--app-brand-400)",
+      background: "var(--app-brand-20)",
       transform: "scale(1.1)",
     },
   }),
 
   pageButtonActive: css({
-    background: color.genz.gradientPurplePink,
+    background:
+      "linear-gradient(135deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
     borderColor: "transparent",
     color: color.neutral0,
-    boxShadow: "0 2px 10px rgba(124, 58, 237, 0.4)",
+    boxShadow: theme.elevation.small,
     "&:hover": {
-      background: color.genz.gradientPurplePink,
+      background:
+        "linear-gradient(135deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
       borderColor: "transparent",
       color: color.neutral0,
       transform: "scale(1.1)",

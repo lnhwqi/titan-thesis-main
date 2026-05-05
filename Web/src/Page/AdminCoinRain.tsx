@@ -38,7 +38,7 @@ const styles = {
   }),
   kicker: css({
     ...font.medium14,
-    color: color.genz.purple,
+    color: "var(--app-accent)",
     textTransform: "uppercase",
     letterSpacing: "0.08em",
     margin: `0 0 ${theme.s2}`,
@@ -46,7 +46,7 @@ const styles = {
   title: css({
     ...font.boldH1_42,
     margin: `0 0 ${theme.s2}`,
-    background: "linear-gradient(135deg, #7C3AED 0%, #F59E0B 100%)",
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.primary500} 100%)`,
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
   }),
@@ -66,16 +66,16 @@ const styles = {
   card: css({
     background: color.neutral0,
     borderRadius: theme.s4,
-    border: `1px solid ${color.genz.purple100}`,
-    boxShadow: "0 1px 4px rgba(124,58,237,0.07)",
+    border: "1px solid var(--app-border)",
+    boxShadow: theme.elevation.xsmall,
     padding: theme.s6,
     marginBottom: theme.s4,
   }),
   cardAccent: css({
-    background: `linear-gradient(135deg, rgba(124,58,237,0.04) 0%, rgba(245,158,11,0.04) 100%)`,
+    background: `linear-gradient(135deg, rgba(0,82,156,0.04) 0%, rgba(237,28,36,0.04) 100%)`,
     borderRadius: theme.s4,
-    border: `1px solid ${color.genz.purple100}`,
-    boxShadow: "0 1px 4px rgba(124,58,237,0.07)",
+    border: "1px solid var(--app-border)",
+    boxShadow: theme.elevation.xsmall,
     padding: theme.s6,
     marginBottom: theme.s4,
   }),
@@ -137,7 +137,7 @@ const styles = {
     marginTop: `-${theme.s1}`,
   }),
   input: css({
-    border: `1px solid ${color.genz.purple200}`,
+    border: "1px solid var(--app-border-strong)",
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -148,8 +148,8 @@ const styles = {
     transition: "border-color 0.15s",
     "&:focus": {
       outline: "none",
-      borderColor: color.genz.purple,
-      boxShadow: `0 0 0 3px ${color.genz.purple100}`,
+      borderColor: "var(--app-brand-400)",
+      boxShadow: "0 0 0 3px rgba(0, 82, 156, 0.12)",
     },
   }),
 
@@ -159,7 +159,7 @@ const styles = {
     gridTemplateColumns: "32px 1fr 1fr",
     gap: theme.s3,
     padding: `0 ${theme.s2} ${theme.s2}`,
-    borderBottom: `1px solid ${color.genz.purple100}`,
+    borderBottom: "1px solid var(--app-border)",
     marginBottom: theme.s3,
   }),
   poolHeaderLabel: css({
@@ -176,7 +176,7 @@ const styles = {
     padding: `${theme.s2} ${theme.s2}`,
     borderRadius: theme.s2,
     "&:nth-child(odd)": {
-      background: `rgba(124,58,237,0.02)`,
+      background: "var(--app-brand-20)",
     },
   }),
   tierBadge: (tier: "bronze" | "silver" | "gold") =>
@@ -202,7 +202,7 @@ const styles = {
     gap: theme.s2,
   }),
   poolInput: css({
-    border: `1px solid ${color.genz.purple200}`,
+    border: "1px solid var(--app-border-strong)",
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
     ...font.regular14,
@@ -212,8 +212,8 @@ const styles = {
     boxSizing: "border-box",
     "&:focus": {
       outline: "none",
-      borderColor: color.genz.purple,
-      boxShadow: `0 0 0 3px ${color.genz.purple100}`,
+      borderColor: "var(--app-brand-400)",
+      boxShadow: "0 0 0 3px rgba(0, 82, 156, 0.12)",
     },
   }),
   poolUnit: css({

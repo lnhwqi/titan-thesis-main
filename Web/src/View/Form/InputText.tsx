@@ -51,16 +51,25 @@ const styles = {
       gap: theme.s2,
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: theme.br2,
-      padding: theme.s2,
+      minHeight: theme.s11,
+      borderRadius: theme.br3,
+      padding: `${theme.s2} ${theme.s3}`,
       background: disabled ? color.neutral20 : color.neutral0,
-      border: `1px solid ${invalid ? color.semantics.error.red500 : changed ? color.semantics.warning.yellow500 : color.neutral100}`,
+      border: `1px solid ${invalid ? color.semantics.error.red500 : changed ? color.semantics.warning.yellow500 : color.genz.purple100}`,
+      boxShadow: invalid ? "none" : theme.elevation.xsmall,
       boxSizing: "border-box",
+      backdropFilter: "blur(10px)",
+      transition: "border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
+      "&:focus-within": {
+        borderColor: invalid ? color.semantics.error.red500 : color.genz.purple,
+        boxShadow: `0 0 0 4px ${color.genz.purple100}`,
+      },
     }),
   input: (disabled: boolean, invalid: boolean) =>
     css({
       ...font.regular14,
       width: "100%",
+      minHeight: theme.s6,
       border: "none",
       background: "none",
       outline: "none",
@@ -70,7 +79,7 @@ const styles = {
           ? color.neutral300
           : color.neutral900,
       "::placeholder": {
-        color: invalid ? color.semantics.error.red500 : color.neutral300,
+        color: invalid ? color.semantics.error.red500 : color.neutral400,
       },
     }),
 }

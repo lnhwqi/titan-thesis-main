@@ -4,6 +4,13 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
+  --chat-accent: var(--app-brand-500, #00529c);
+  --chat-accent-strong: var(--app-secondary-500, #ed1c24);
+  --chat-accent-soft: var(--app-brand-20, rgba(0, 82, 156, 0.05));
+  --chat-surface: var(--app-surface-strong, #ffffff);
+  --chat-border: var(--app-border, rgba(0, 82, 156, 0.14));
+  --chat-text: var(--app-text, #1a1a1a);
+  --chat-text-soft: var(--app-text-soft, #4d4d4d);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   z-index: 9999;
@@ -19,12 +26,12 @@
 
 .chatboxBubble {
   position: relative;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--app-surface-strong, rgba(255, 255, 255, 0.95));
   backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(124, 58, 237, 0.2);
+  border: 1px solid var(--app-border, rgba(0, 82, 156, 0.16));
   border-radius: 14px;
   padding: 6px 14px;
-  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.14);
+  box-shadow: var(--app-shadow-sm, 0 10px 24px rgba(0, 82, 156, 0.12));
   white-space: nowrap;
   animation: floatY 4s ease-in-out infinite;
 }
@@ -32,7 +39,11 @@
 .chatboxBubbleText {
   font-size: 12px;
   font-weight: 700;
-  background: linear-gradient(90deg, #7c3aed, #ec4899);
+  background: linear-gradient(
+    90deg,
+    var(--app-brand-500, #00529c),
+    var(--app-secondary-500, #ed1c24)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -45,7 +56,7 @@
   transform: translateX(-50%);
   width: 12px;
   height: 8px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--app-surface-strong, rgba(255, 255, 255, 0.95));
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
@@ -53,10 +64,14 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  background: linear-gradient(
+    135deg,
+    var(--app-brand-500, #00529c),
+    var(--app-secondary-500, #ed1c24)
+  );
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 82, 156, 0.24);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,8 +88,8 @@
   border-radius: 50%;
   background: linear-gradient(
     135deg,
-    rgba(124, 58, 237, 0.3),
-    rgba(236, 72, 153, 0.2)
+    rgba(0, 82, 156, 0.18),
+    rgba(237, 28, 36, 0.14)
   );
   filter: blur(8px);
   z-index: -1;
@@ -92,14 +107,14 @@
 .chatboxToggleOpen {
   animation: none;
   box-shadow:
-    0 0 0 3px rgba(124, 58, 237, 0.3),
-    0 4px 20px rgba(124, 58, 237, 0.25);
+    0 0 0 3px rgba(0, 82, 156, 0.2),
+    0 4px 20px rgba(0, 82, 156, 0.2);
   transform: scale(0.95);
 }
 
 .chatboxToggle:hover:not(.chatboxToggleOpen) {
   transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 8px 28px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 10px 28px rgba(0, 82, 156, 0.3);
 }
 
 .chatboxToggle:active {
@@ -136,7 +151,7 @@
   right: 0;
   width: 380px;
   height: 580px;
-  background: #ffffff;
+  background: var(--app-surface-strong, #ffffff);
   border-radius: 16px;
   box-shadow:
     0 8px 48px rgba(0, 0, 0, 0.18),
@@ -145,7 +160,7 @@
   flex-direction: column;
   overflow: hidden;
   animation: slideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 1px solid rgba(124, 58, 237, 0.12);
+  border: 1px solid var(--app-border, rgba(0, 82, 156, 0.12));
 }
 
 @keyframes slideUp {
@@ -163,7 +178,11 @@
 
 .header {
   padding: 14px 16px;
-  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  background: linear-gradient(
+    135deg,
+    var(--app-brand-500, #00529c) 0%,
+    var(--app-secondary-500, #ed1c24) 100%
+  );
   color: white;
   display: flex;
   align-items: center;
@@ -253,15 +272,15 @@
 
 .newChatPanel {
   padding: 10px 14px;
-  background: rgba(124, 58, 237, 0.05);
-  border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+  background: var(--app-brand-20, rgba(0, 82, 156, 0.05));
+  border-bottom: 1px solid var(--app-border, rgba(0, 82, 156, 0.12));
   flex-shrink: 0;
 }
 
 .newChatLabel {
   margin: 0 0 6px 0;
   font-size: 11px;
-  color: #7c3aed;
+  color: var(--app-accent, #00529c);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -275,21 +294,27 @@
 .newChatInput {
   flex: 1;
   padding: 7px 10px;
-  border: 1.5px solid rgba(124, 58, 237, 0.35);
+  border: 1px solid var(--app-border-strong, rgba(0, 82, 156, 0.24));
   border-radius: 8px;
   font-size: 13px;
+  color: var(--chat-text);
+  background: var(--chat-surface);
   outline: none;
   transition: border-color 0.2s;
 }
 
 .newChatInput:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: var(--app-brand-400, #3375b0);
+  box-shadow: 0 0 0 3px rgba(0, 82, 156, 0.1);
 }
 
 .newChatStartBtn {
   padding: 7px 14px;
-  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  background: linear-gradient(
+    135deg,
+    var(--app-brand-500, #00529c),
+    var(--app-secondary-500, #ed1c24)
+  );
   color: white;
   border: none;
   border-radius: 8px;
@@ -327,7 +352,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(124, 58, 237, 0.07);
+  background: var(--chat-accent-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -337,13 +362,13 @@
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #111827;
+  color: var(--chat-text);
 }
 
 .guestPromptText {
   margin: 0;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--chat-text-soft);
   line-height: 1.55;
 }
 
@@ -355,7 +380,7 @@
 
 .guestLoginBtn {
   padding: 10px 28px;
-  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-strong));
   color: white;
   border: none;
   border-radius: 10px;
@@ -374,9 +399,9 @@
 
 .guestRegisterBtn {
   padding: 10px 28px;
-  background: white;
-  color: #7c3aed;
-  border: 2px solid #7c3aed;
+  background: var(--chat-surface);
+  color: var(--chat-accent);
+  border: 1px solid var(--chat-border);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
@@ -387,7 +412,7 @@
 }
 
 .guestRegisterBtn:hover {
-  background: rgba(124, 58, 237, 0.05);
+  background: var(--chat-accent-soft);
   transform: translateY(-1px);
 }
 
@@ -413,7 +438,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-strong));
   animation: bounce 1.2s infinite;
 }
 
@@ -467,11 +492,11 @@
 }
 
 .convItem:hover {
-  background: rgba(124, 58, 237, 0.04);
+  background: var(--chat-accent-soft);
 }
 
 .convItemActive {
-  background: rgba(124, 58, 237, 0.07);
+  background: rgba(0, 82, 156, 0.08);
 }
 
 .convAvatar {

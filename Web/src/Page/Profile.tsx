@@ -1,9 +1,9 @@
-﻿import { JSX } from "react"
+import { JSX } from "react"
 import { css } from "@emotion/css"
-import { AuthState } from "../State"
+import { State } from "../State"
 import { RemoteData } from "../../../Core/Data/RemoteData"
 import { ApiError } from "../Api"
-import { bp, color, font, theme } from "../View/Theme"
+import { color, font, theme, bp } from "../View/Theme"
 import * as UpdateProfileApi from "../Api/Auth/User/UpdateProfile"
 import * as UpdateProfileAction from "../Action/UpdateProfile"
 import { emit } from "../Runtime/React"
@@ -12,10 +12,28 @@ import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
 import { parseNotValidate } from "../State/UpdateProfile"
 import { navigateTo, toRoute } from "../Route"
+import {
+  AuthPageShell,
+  AuthPageHeader,
+  AuthPageCard,
+  AuthGateCard,
+} from "../View/Part/AuthPageShell"
 
-export type Props = { authState: AuthState }
+export type Props = { state: State }
 export default function ProfilePage(props: Props): JSX.Element {
-  const { updateProfile, profile } = props.authState
+  if (props.state._t !== "AuthUser") {
+    return (
+      <AuthPageShell>
+        <AuthGateCard
+          title="Profile"
+          message="Please login to view and update your profile information."
+          loginRedirect="/profile"
+        />
+      </AuthPageShell>
+    )
+  }
+
+  const { updateProfile, profile } = props.state
   const {
     name,
     email,
@@ -28,119 +46,125 @@ export default function ProfilePage(props: Props): JSX.Element {
   const isSubmitting = updateResponse._t === "Loading"
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>Profile</h1>
-      <div className={styles.orderButtonWrap}>
-        <Button
-          theme_={"Blue"}
-          size={"M"}
-          label={"View My Orders"}
-          onClick={() => emit(navigateTo(toRoute("UserOrders", {})))}
+    <AuthPageShell>
+      <div className={styles.pageHeader}>
+        <AuthPageHeader
+          title="Profile"
+          subtitle="Manage your account information and password."
         />
-      </div>
-
-      <form
-        className={styles.form}
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (isSubmitting == false && updateProfileParams != null) {
-            emit(UpdateProfileAction.onSubmit(updateProfileParams))
-          }
-        }}
-      >
-        <div className={styles.formInformation}>
-          <div className={styles.fieldGroup}>
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Name*</span>
-              <InputText
-                value={name.unwrap()}
-                invalid={FieldString.error(name) != null}
-                changed={name.unwrap() !== profile.name.unwrap()}
-                placeholder="Enter name"
-                onChange={(value) =>
-                  emit(UpdateProfileAction.onChangeName(value))
-                }
-              />
-            </div>
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Email*</span>
-              <InputText
-                value={email.unwrap()}
-                invalid={FieldString.error(email) != null}
-                changed={email.unwrap() !== profile.email.unwrap()}
-                type="email"
-                placeholder="Enter email"
-                onChange={(value) =>
-                  emit(UpdateProfileAction.onChangeEmail(value))
-                }
-              />
-            </div>
-          </div>
-          <div className={styles.fieldGroup}>
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>New password</span>
-              <InputText
-                value={newPassword.unwrap()}
-                invalid={
-                  newPassword.unwrap() !== "" &&
-                  FieldString.error(newPassword) != null
-                }
-                changed={newPassword.unwrap() !== ""}
-                type="password"
-                placeholder="Enter password"
-                onChange={(value) =>
-                  emit(UpdateProfileAction.onChangeNewPassword(value))
-                }
-              />
-            </div>
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Confirmation password</span>
-              <InputText
-                value={confirmPassword.unwrap()}
-                invalid={
-                  newPassword.unwrap() !== "" &&
-                  (FieldString.error(confirmPassword) != null ||
-                    newPassword.unwrap() !== confirmPassword.unwrap())
-                }
-                changed={confirmPassword.unwrap() !== ""}
-                type="password"
-                placeholder="Enter confirmation password"
-                onChange={(value) =>
-                  emit(UpdateProfileAction.onChangeConfirmPassword(value))
-                }
-              />
-            </div>
-          </div>
-        </div>
-        <div className={styles.fieldCurrentPassword}>
-          <span className={styles.fieldLabel}>Current password</span>
-          <InputText
-            value={currentPassword.unwrap()}
-            invalid={FieldString.error(currentPassword) != null}
-            changed={currentPassword.unwrap() !== ""}
-            type="password"
-            placeholder="Enter password"
-            onChange={(value) =>
-              emit(UpdateProfileAction.onChangeCurrentPassword(value))
-            }
-          />
-        </div>
-        {responseMessage(updateResponse)}
-        <div className={styles.button}>
+        <div className={styles.orderButtonWrap}>
           <Button
-            theme_={"Red"}
+            theme_={"Blue"}
             size={"M"}
-            label={isSubmitting ? "Submitting..." : "Submit"}
-            onClick={() => {
-              if (isSubmitting == false && updateProfileParams != null) {
-                emit(UpdateProfileAction.onSubmit(updateProfileParams))
-              }
-            }}
-            disabled={isSubmitting === true || updateProfileParams == null}
+            label={"View My Orders"}
+            onClick={() => emit(navigateTo(toRoute("UserOrders", {})))}
           />
         </div>
-      </form>
-    </div>
+      </div>
+      <AuthPageCard>
+        <form
+          className={styles.form}
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (isSubmitting == false && updateProfileParams != null) {
+              emit(UpdateProfileAction.onSubmit(updateProfileParams))
+            }
+          }}
+        >
+          <div className={styles.formInformation}>
+            <div className={styles.fieldGroup}>
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Name*</span>
+                <InputText
+                  value={name.unwrap()}
+                  invalid={FieldString.error(name) != null}
+                  changed={name.unwrap() !== profile.name.unwrap()}
+                  placeholder="Enter name"
+                  onChange={(value) =>
+                    emit(UpdateProfileAction.onChangeName(value))
+                  }
+                />
+              </div>
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Email*</span>
+                <InputText
+                  value={email.unwrap()}
+                  invalid={FieldString.error(email) != null}
+                  changed={email.unwrap() !== profile.email.unwrap()}
+                  type="email"
+                  placeholder="Enter email"
+                  onChange={(value) =>
+                    emit(UpdateProfileAction.onChangeEmail(value))
+                  }
+                />
+              </div>
+            </div>
+            <div className={styles.fieldGroup}>
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>New password</span>
+                <InputText
+                  value={newPassword.unwrap()}
+                  invalid={
+                    newPassword.unwrap() !== "" &&
+                    FieldString.error(newPassword) != null
+                  }
+                  changed={newPassword.unwrap() !== ""}
+                  type="password"
+                  placeholder="Enter password"
+                  onChange={(value) =>
+                    emit(UpdateProfileAction.onChangeNewPassword(value))
+                  }
+                />
+              </div>
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>Confirmation password</span>
+                <InputText
+                  value={confirmPassword.unwrap()}
+                  invalid={
+                    newPassword.unwrap() !== "" &&
+                    (FieldString.error(confirmPassword) != null ||
+                      newPassword.unwrap() !== confirmPassword.unwrap())
+                  }
+                  changed={confirmPassword.unwrap() !== ""}
+                  type="password"
+                  placeholder="Enter confirmation password"
+                  onChange={(value) =>
+                    emit(UpdateProfileAction.onChangeConfirmPassword(value))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+          <div className={styles.fieldCurrentPassword}>
+            <span className={styles.fieldLabel}>Current password</span>
+            <InputText
+              value={currentPassword.unwrap()}
+              invalid={FieldString.error(currentPassword) != null}
+              changed={currentPassword.unwrap() !== ""}
+              type="password"
+              placeholder="Enter password"
+              onChange={(value) =>
+                emit(UpdateProfileAction.onChangeCurrentPassword(value))
+              }
+            />
+          </div>
+          {responseMessage(updateResponse)}
+          <div className={styles.button}>
+            <Button
+              theme_={"Red"}
+              size={"M"}
+              label={isSubmitting ? "Submitting..." : "Submit"}
+              onClick={() => {
+                if (isSubmitting == false && updateProfileParams != null) {
+                  emit(UpdateProfileAction.onSubmit(updateProfileParams))
+                }
+              }}
+              disabled={isSubmitting === true || updateProfileParams == null}
+            />
+          </div>
+        </form>
+      </AuthPageCard>
+    </AuthPageShell>
   )
 }
 
@@ -173,17 +197,16 @@ function responseMessage(
 }
 
 const styles = {
-  container: css({
+  pageHeader: css({
     display: "flex",
-    flexDirection: "column",
-    padding: `${theme.s0} ${theme.s4}`,
-    ...bp.xl({
-      padding: theme.s0,
-    }),
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: theme.s4,
+    flexWrap: "wrap",
   }),
-  pageTitle: css({
-    ...font.boldH1_42,
-    color: color.genz.purple,
+  orderButtonWrap: css({
+    flexShrink: 0,
+    paddingTop: theme.s1,
   }),
   responseError: css({
     ...font.medium14,
@@ -220,7 +243,7 @@ const styles = {
     gap: theme.s4,
     padding: theme.s6,
     borderRadius: theme.br2,
-    backgroundColor: color.genz.purple100,
+    backgroundColor: color.secondary20,
     ...bp.md({
       width: "100%",
     }),
@@ -231,7 +254,7 @@ const styles = {
     gap: theme.s1,
     padding: theme.s6,
     borderRadius: theme.br2,
-    backgroundColor: color.genz.purple100,
+    backgroundColor: color.secondary20,
   }),
   field: css({
     width: "100%",
@@ -241,6 +264,7 @@ const styles = {
   }),
   fieldLabel: css({
     ...font.regular14,
+    color: color.neutral700,
   }),
   button: css({
     width: "100%",
@@ -250,11 +274,5 @@ const styles = {
     ...bp.md({
       maxWidth: theme.s82,
     }),
-  }),
-  orderButtonWrap: css({
-    width: "100%",
-    display: "flex",
-    justifyContent: "flex-end",
-    marginBottom: theme.s3,
   }),
 }

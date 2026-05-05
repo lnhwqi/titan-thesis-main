@@ -55,8 +55,11 @@ export default function LoginPage(props: Props): JSX.Element {
         </div>
 
         <div className={styles.pageTitle}>Login</div>
+        <p className={styles.pageSubtitle}>Titan Ecommercial Platform</p>
 
-        {responseMessage(loginResponse)}
+        <div className={styles.responseSlot}>
+          {responseMessage(loginResponse)}
+        </div>
 
         <form
           className={styles.form}
@@ -76,11 +79,11 @@ export default function LoginPage(props: Props): JSX.Element {
               placeholder="Enter email"
               onChange={(value) => emit(LoginAction.onChangeEmail(value))}
             />
-            {emailError != null ? (
-              <span className={styles.fieldError}>
-                {emailErrorMessage(emailError)}
-              </span>
-            ) : null}
+            <span
+              className={`${styles.fieldError} ${emailError == null ? styles.fieldErrorGhost : ""}`}
+            >
+              {emailError != null ? emailErrorMessage(emailError) : "\u00A0"}
+            </span>
           </div>
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Password</span>
@@ -91,11 +94,13 @@ export default function LoginPage(props: Props): JSX.Element {
               placeholder="Enter password"
               onChange={(value) => emit(LoginAction.onChangePassword(value))}
             />
-            {passwordError != null ? (
-              <span className={styles.fieldError}>
-                {passwordErrorString(passwordError)}
-              </span>
-            ) : null}
+            <span
+              className={`${styles.fieldError} ${passwordError == null ? styles.fieldErrorGhost : ""}`}
+            >
+              {passwordError != null
+                ? passwordErrorString(passwordError)
+                : "\u00A0"}
+            </span>
           </div>
           <Button
             theme_={"Red"}
@@ -124,7 +129,7 @@ export default function LoginPage(props: Props): JSX.Element {
             className={styles.sellerLink}
             onClick={() => emit(navigateTo(toRoute("SellerLogin", {})))}
           >
-            Seller? Login here
+            Login As Seller
           </button>
         </form>
       </div>
@@ -163,13 +168,15 @@ const styles = {
   container: css({
     width: "100%",
     maxWidth: "100%",
-    height: "100dvh",
+    minHeight: "100dvh",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "stretch",
+    alignItems: "center",
     overflowX: "hidden",
-    background: `linear-gradient(-45deg, #0F0F1A, #1A1A2E, #7C3AED, #EC4899, #0F0F1A)`,
+    padding: `${theme.s4} ${theme.s3}`,
+    boxSizing: "border-box",
+    background: `linear-gradient(-45deg, ${color.secondary500}, ${color.secondary400}, ${color.primary400}, ${color.primary500}, ${color.secondary500})`,
     backgroundSize: `400% 400%`,
     animation: `${gradient} 12s ease infinite`,
     position: "relative",
@@ -178,45 +185,56 @@ const styles = {
       position: "absolute",
       inset: 0,
       background:
-        "radial-gradient(circle at 30% 60%, rgba(124, 58, 237, 0.3) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(236, 72, 153, 0.2) 0%, transparent 45%)",
+        "radial-gradient(circle at 30% 60%, rgba(255, 255, 255, 0.14) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(241, 248, 255, 0.18) 0%, transparent 45%)",
       pointerEvents: "none",
     },
     ...bp.sm({
-      alignItems: "center",
+      padding: `${theme.s6} ${theme.s5}`,
     }),
   }),
   wrapper: css({
-    height: "100%",
+    width: "100%",
+    maxWidth: "460px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "stretch",
     gap: theme.s4,
-    padding: `${theme.s0} ${theme.s6}`,
-    background: "rgba(255, 255, 255, 0.06)",
+    padding: `${theme.s6} ${theme.s4}`,
+    borderRadius: theme.s5,
+    border: `1px solid rgba(255, 255, 255, 0.18)`,
+    background: "rgba(255, 255, 255, 0.10)",
     backdropFilter: "blur(24px)",
     WebkitBackdropFilter: "blur(24px)",
+    boxShadow:
+      "0 24px 64px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.12)",
     position: "relative",
     zIndex: 1,
     ...bp.sm({
-      height: "auto",
-      padding: `${theme.s12} ${theme.s20}`,
-      borderRadius: theme.s6,
-      border: `1px solid rgba(255, 255, 255, 0.15)`,
-      boxShadow:
-        "0 24px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+      maxWidth: "500px",
+      padding: `${theme.s7} ${theme.s6}`,
     }),
   }),
   pageTitle: css({
     ...font.boldH3_29,
     color: color.neutral0,
+    margin: 0,
+    textAlign: "center",
     letterSpacing: "-0.5px",
-    textShadow: "0 2px 12px rgba(124, 58, 237, 0.4)",
+    textShadow: "0 2px 12px rgba(0, 82, 156, 0.22)",
+  }),
+  pageSubtitle: css({
+    ...font.regular14,
+    margin: 0,
+    marginTop: `-${theme.s2}`,
+    textAlign: "center",
+    color: "rgba(255,255,255,0.82)",
+    lineHeight: 1.6,
   }),
   logoRow: css({
     display: "flex",
     justifyContent: "center",
-    marginBottom: theme.s2,
+    marginBottom: theme.s1,
   }),
   logoImg: css({
     width: "64px",
@@ -224,8 +242,15 @@ const styles = {
     objectFit: "contain",
     borderRadius: "50%",
     border: `2px solid rgba(255, 255, 255, 0.3)`,
-    boxShadow: "0 4px 20px rgba(124, 58, 237, 0.5)",
+    boxShadow: "0 8px 24px rgba(0, 82, 156, 0.28)",
     animation: `${glowPulse} 3s ease-in-out infinite`,
+  }),
+  responseSlot: css({
+    minHeight: theme.s12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   }),
   responseError: css({
     ...font.medium14,
@@ -234,14 +259,18 @@ const styles = {
     padding: `${theme.s2} ${theme.s3}`,
     borderRadius: theme.br2,
     border: `1px solid rgba(255, 107, 107, 0.3)`,
+    textAlign: "center",
+    width: "100%",
   }),
   responseLoading: css({
     ...font.medium14,
     color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
   }),
   responseSuccess: css({
     ...font.medium14,
     color: color.genz.lime,
+    textAlign: "center",
   }),
   announcementCard: css({
     width: "100%",
@@ -277,14 +306,16 @@ const styles = {
     },
   }),
   form: css({
+    width: "100%",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "stretch",
     gap: theme.s4,
   }),
   field: css({
-    minWidth: theme.s82,
+    width: "100%",
+    minWidth: 0,
     display: "flex",
     flexDirection: "column",
     gap: theme.s1,
@@ -296,21 +327,27 @@ const styles = {
   fieldError: css({
     ...font.regular12,
     color: color.genz.coral,
+    minHeight: theme.s4,
+    display: "block",
+    lineHeight: 1.4,
+  }),
+  fieldErrorGhost: css({
+    visibility: "hidden",
   }),
   registerLink: css({
-    border: "none",
+    border: `1px solid rgba(255,255,255,0.24)`,
+    borderRadius: theme.br2,
+    background: "rgba(255,255,255,0.08)",
     cursor: "pointer",
     ...font.medium14,
-    background: color.genz.gradientPurplePink,
     color: color.neutral0,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
     textDecoration: "none",
-    padding: 0,
-    transition: "opacity 0.2s ease",
+    padding: `${theme.s2} ${theme.s3}`,
+    transition: "opacity 0.2s ease, background 0.2s ease, transform 0.2s ease",
     "&:hover": {
-      opacity: 0.8,
+      opacity: 1,
+      transform: "translateY(-1px)",
+      background: "rgba(255,255,255,0.16)",
     },
   }),
   divider: css({
@@ -320,15 +357,15 @@ const styles = {
   }),
   sellerLink: css({
     border: "none",
-    background: "none",
+    background: "transparent",
     cursor: "pointer",
     ...font.regular14,
-    color: "rgba(255,255,255,0.5)",
+    color: "rgba(255,255,255,0.74)",
     textDecoration: "underline",
     padding: 0,
     transition: "color 0.2s ease",
     "&:hover": {
-      color: "rgba(255,255,255,0.8)",
+      color: "rgba(255,255,255,0.96)",
     },
   }),
 }

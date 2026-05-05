@@ -270,6 +270,40 @@ export async function getByUserID(userId: UserID): Promise<OrderPaymentRow[]> {
     )
 }
 
+export async function getUserTotals(
+  userId: UserID,
+): Promise<{ totalMoneyPaid: number; totalProducts: number }> {
+  const moneyResult = await db
+    .selectFrom(tableName)
+    .select((eb) => eb.fn.sum<number>("price").as("totalMoneyPaid"))
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+
+  const orderIDs = await db
+    .selectFrom(tableName)
+    .select("id")
+    .where("userId", "=", userId.unwrap())
+    .where("isDeleted", "=", false)
+    .execute()
+    .then((rows) => rows.map((r) => r.id))
+
+  let totalProducts = 0
+  if (orderIDs.length > 0) {
+    const productsResult = await db
+      .selectFrom("order_payment_item")
+      .select((eb) => eb.fn.sum<number>("quantity").as("totalProducts"))
+      .where("orderPaymentId", "in", orderIDs)
+      .executeTakeFirst()
+    totalProducts = Number(productsResult?.totalProducts ?? 0)
+  }
+
+  return {
+    totalMoneyPaid: Number(moneyResult?.totalMoneyPaid ?? 0),
+    totalProducts,
+  }
+}
+
 export async function getByUserIDPaginated(
   userId: UserID,
   limit: number,

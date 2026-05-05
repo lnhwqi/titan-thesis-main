@@ -16,13 +16,21 @@ export default function AdminLoginPage(props: Props): JSX.Element {
   const { email, password, loginResponse } = props.state.login
   const adminParams = parseAdminParams(props.state.login)
   const isSubmitting = loginResponse._t === "Loading"
+  const emailError =
+    FieldString.error(email) != null ? "Enter a valid email address." : null
+  const passwordError =
+    FieldString.error(password) != null
+      ? "Password must meet the required format."
+      : null
 
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
         <div className={styles.badge}>Admin Console</div>
         <h1 className={styles.pageTitle}>Admin Login</h1>
-        {responseMessage(loginResponse)}
+        <div className={styles.responseSlot}>
+          {responseMessage(loginResponse)}
+        </div>
 
         <form
           className={styles.form}
@@ -42,6 +50,11 @@ export default function AdminLoginPage(props: Props): JSX.Element {
               placeholder="Email"
               onChange={(value) => emit(LoginAction.onChangeEmail(value))}
             />
+            <span
+              className={`${styles.fieldError} ${emailError == null ? styles.fieldErrorGhost : ""}`}
+            >
+              {emailError ?? "\u00A0"}
+            </span>
           </div>
 
           <div className={styles.field}>
@@ -53,6 +66,11 @@ export default function AdminLoginPage(props: Props): JSX.Element {
               placeholder="Password"
               onChange={(value) => emit(LoginAction.onChangePassword(value))}
             />
+            <span
+              className={`${styles.fieldError} ${passwordError == null ? styles.fieldErrorGhost : ""}`}
+            >
+              {passwordError ?? "\u00A0"}
+            </span>
           </div>
 
           <Button
@@ -164,6 +182,22 @@ const styles = {
   fieldLabel: css({
     ...font.regular14,
     color: color.neutral700,
+  }),
+  fieldError: css({
+    ...font.regular12,
+    color: color.semantics.error.red500,
+    minHeight: theme.s4,
+    display: "block",
+    lineHeight: 1.4,
+  }),
+  fieldErrorGhost: css({
+    visibility: "hidden",
+  }),
+  responseSlot: css({
+    minHeight: theme.s10,
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
   }),
   responseError: css({
     ...font.medium14,

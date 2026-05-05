@@ -1,6 +1,7 @@
 import { Action, cmd } from "../Action"
 import { State, _MessageState, _AuthState } from "../State"
 import * as Logger from "../Logger"
+import * as AuthToken from "../App/AuthToken"
 import {
   Message,
   Conversation,
@@ -96,7 +97,9 @@ export function setError(error: string | null): Action {
 }
 
 export function loadConversations(): Action {
-  return _AuthState((state) => {
+  return (state) => {
+    if (AuthToken.get() == null) return [state, cmd()]
+
     async function loadConversationsCmd(): Promise<Action | null> {
       try {
         const response = await emitGetConversations()
@@ -119,7 +122,7 @@ export function loadConversations(): Action {
       }),
       cmd(loadConversationsCmd()),
     ]
-  })
+  }
 }
 
 export function setConversations(conversations: Conversation[]): Action {
@@ -178,7 +181,8 @@ export function closeConversation(): Action {
 }
 
 export function openConversation(conversationID: ConversationID): Action {
-  return _AuthState((state) => {
+  return (state: State) => {
+    if (AuthToken.get() == null) return [state, cmd()]
     return [
       _MessageState(state, {
         currentConversationID: conversationID,
@@ -187,7 +191,7 @@ export function openConversation(conversationID: ConversationID): Action {
       }),
       cmd(loadMessagesForConversationCmd(conversationID)),
     ]
-  })
+  }
 }
 
 export function setCurrentMessages(messages: Message[]): Action {
@@ -220,7 +224,8 @@ export function setMessagesError(error: string): Action {
 }
 
 export function sendMessage(): Action {
-  return _AuthState((state) => {
+  return (state: State) => {
+    if (AuthToken.get() == null) return [state, cmd()]
     const { messageInput, currentConversationID, isLoading } = state.message
 
     if (!messageInput.trim() || currentConversationID == null || isLoading) {
@@ -254,7 +259,7 @@ export function sendMessage(): Action {
       _MessageState(state, { isLoading: true, error: null }),
       cmd(sendMessageCmd()),
     ]
-  })
+  }
 }
 
 export function clearSendingState(): Action {
@@ -416,7 +421,8 @@ function openConversationWithParticipant(
   participantID: string,
   participantType: "USER" | "SELLER",
 ): Action {
-  return _AuthState((state) => {
+  return (state: State) => {
+    if (AuthToken.get() == null) return [state, cmd()]
     async function startConversationCmd(): Promise<Action | null> {
       try {
         const response = await emitStartConversation(
@@ -445,7 +451,7 @@ function openConversationWithParticipant(
       }),
       cmd(startConversationCmd()),
     ]
-  })
+  }
 }
 
 function setParticipantOpenError(error: string): Action {

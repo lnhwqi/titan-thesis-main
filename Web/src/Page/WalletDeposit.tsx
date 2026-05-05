@@ -7,6 +7,12 @@ import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
 import * as PaymentAction from "../Action/Payment"
 import { navigateTo, toRoute } from "../Route"
+import {
+  AuthPageShell,
+  AuthPageHeader,
+  AuthPageCard,
+  AuthGateCard,
+} from "../View/Part/AuthPageShell"
 
 type Props = { state: State }
 
@@ -14,37 +20,61 @@ export default function WalletDepositPage(props: Props): JSX.Element {
   const { state } = props
 
   if (state._t !== "AuthUser") {
-    return <div className={styles.info}>Please login as user first.</div>
+    return (
+      <AuthPageShell>
+        <AuthGateCard
+          title="Wallet Deposit"
+          message="Please login to access wallet deposit."
+          loginRedirect="/wallet/deposit"
+        />
+      </AuthPageShell>
+    )
   }
 
   return (
-    <div className={styles.page}>
+    <AuthPageShell>
       <div className={styles.headerRow}>
-        <h1 className={styles.title}>Wallet Deposit</h1>
-        <button
-          className={styles.secondaryButton}
+        <AuthPageHeader
+          title="Wallet Deposit"
+          subtitle="Top up your wallet balance."
+        />
+        <Button
+          theme_={"Blue"}
+          size={"M"}
+          label={"Back to Payment"}
           onClick={() => emit(navigateTo(toRoute("Payment", {})))}
-        >
-          Back Payment
-        </button>
+        />
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.row}>
-          Current Wallet: {formatT(state.profile.wallet.unwrap())}
+      <AuthPageCard>
+        <div className={styles.infoGrid}>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Current Balance</span>
+            <span className={styles.infoValue}>
+              {formatT(state.profile.wallet.unwrap())}
+            </span>
+          </div>
+
+          {state.payment.depositCheckout != null ? (
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>Deposit Session</span>
+              <span className={styles.infoValue}>
+                {state.payment.depositCheckout.appTransID}
+              </span>
+            </div>
+          ) : null}
+
+          {state.payment.depositStatusResponse._t === "Success" ? (
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>Status</span>
+              <span className={styles.infoValue}>
+                {state.payment.depositStatusResponse.data.status}
+              </span>
+            </div>
+          ) : null}
         </div>
 
-        {state.payment.depositCheckout != null ? (
-          <div className={styles.row}>
-            Deposit Session: {state.payment.depositCheckout.appTransID}
-          </div>
-        ) : null}
-
-        {state.payment.depositStatusResponse._t === "Success" ? (
-          <div className={styles.row}>
-            Status: {state.payment.depositStatusResponse.data.status}
-          </div>
-        ) : null}
+        <div className={styles.divider} />
 
         <div className={styles.field}>
           <span className={styles.label}>Deposit Amount</span>
@@ -59,33 +89,35 @@ export default function WalletDepositPage(props: Props): JSX.Element {
           />
         </div>
 
-        <Button
-          theme_={"Red"}
-          size={"M"}
-          label={
-            state.payment.depositCreateResponse._t === "Loading"
-              ? "Creating Session..."
-              : "Deposit"
-          }
-          onClick={() => emit(PaymentAction.submitDeposit())}
-          disabled={state.payment.depositCreateResponse._t === "Loading"}
-        />
-
-        {state.payment.depositCheckout != null ? (
+        <div className={styles.actions}>
           <Button
-            theme_={"Blue"}
+            theme_={"Red"}
             size={"M"}
             label={
-              state.payment.depositStatusResponse._t === "Loading"
-                ? "Checking..."
-                : "Check Deposit Status"
+              state.payment.depositCreateResponse._t === "Loading"
+                ? "Creating Session..."
+                : "Deposit"
             }
-            onClick={() => emit(PaymentAction.pollDepositStatus())}
-            disabled={state.payment.depositStatusResponse._t === "Loading"}
+            onClick={() => emit(PaymentAction.submitDeposit())}
+            disabled={state.payment.depositCreateResponse._t === "Loading"}
           />
-        ) : null}
-      </div>
-    </div>
+
+          {state.payment.depositCheckout != null ? (
+            <Button
+              theme_={"Blue"}
+              size={"M"}
+              label={
+                state.payment.depositStatusResponse._t === "Loading"
+                  ? "Checking..."
+                  : "Check Deposit Status"
+              }
+              onClick={() => emit(PaymentAction.pollDepositStatus())}
+              disabled={state.payment.depositStatusResponse._t === "Loading"}
+            />
+          ) : null}
+        </div>
+      </AuthPageCard>
+    </AuthPageShell>
   )
 }
 
@@ -96,47 +128,49 @@ function formatT(value: number): string {
 }
 
 const styles = {
-  page: css({
-    minHeight: "100dvh",
-    padding: theme.s6,
-    background:
-      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
-      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
-      `${color.neutral0}`,
-  }),
-  title: css({ ...font.boldH4_24, margin: 0 }),
   headerRow: css({
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.s4,
-    gap: theme.s3,
+    alignItems: "flex-start",
+    gap: theme.s4,
     flexWrap: "wrap",
   }),
-  card: css({
+  infoGrid: css({
     display: "grid",
+    gap: theme.s2,
+  }),
+  infoRow: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     gap: theme.s3,
-    border: `1px solid ${color.genz.purple100}`,
-    borderRadius: theme.s2,
-    background: color.neutral0,
-    padding: theme.s4,
-    maxWidth: "520px",
   }),
-  field: css({ display: "grid", gap: theme.s1 }),
-  label: css({ ...font.medium14, color: color.genz.purple }),
-  row: css({ ...font.regular14, color: color.neutral700 }),
-  info: css({
+  infoLabel: css({
     ...font.regular14,
-    color: color.neutral700,
-    textAlign: "center",
+    color: color.neutral600,
   }),
-  secondaryButton: css({
-    border: `1px solid ${color.genz.purple300}`,
-    background: color.neutral0,
-    color: color.genz.purple,
-    borderRadius: theme.s2,
-    padding: `${theme.s2} ${theme.s4}`,
+  infoValue: css({
     ...font.medium14,
-    cursor: "pointer",
+    color: color.neutral800,
+  }),
+  divider: css({
+    height: "1px",
+    background: color.secondary100,
+    margin: `${theme.s4} 0`,
+  }),
+  field: css({
+    display: "grid",
+    gap: theme.s1,
+    maxWidth: "480px",
+  }),
+  label: css({
+    ...font.medium14,
+    color: color.secondary500,
+  }),
+  actions: css({
+    display: "flex",
+    gap: theme.s3,
+    flexWrap: "wrap",
+    marginTop: theme.s2,
   }),
 }

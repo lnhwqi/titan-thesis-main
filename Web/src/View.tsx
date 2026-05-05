@@ -1,8 +1,8 @@
 import { JSX } from "react"
-import { AuthState, State } from "./State"
+import { State } from "./State"
 import { LoadingLayout } from "./View/Layout/Loading"
 import { EmptyLayout } from "./View/Layout/Empty"
-import { AuthLayout } from "./View/Layout/Auth"
+// import { AuthLayout } from "./View/Layout/Auth"
 import { HomeLayout } from "./View/Layout/Home"
 import { SubHome } from "./View/Layout/SubHome"
 import ProfilePage from "./Page/Profile"
@@ -304,7 +304,12 @@ function routeView(state: State): JSX.Element {
       )
 
     case "Profile":
-      return withAuthLayout(state, ProfilePage)
+      return (
+        <SubHome
+          state={state}
+          Page={ProfilePage}
+        />
+      )
 
     case "AdminCoinRain":
       return (
@@ -313,22 +318,29 @@ function routeView(state: State): JSX.Element {
           Page={AdminCoinRainPage}
         />
       )
+    default:
+      return (
+        <EmptyLayout
+          state={state}
+          Page={NotFoundPage}
+        />
+      )
   }
 }
 
-function withAuthLayout(
-  state: State,
-  Page: React.FC<{ authState: AuthState }>,
-): JSX.Element {
-  return state._t !== "AuthUser" ? (
-    <EmptyLayout
-      state={state}
-      Page={LoginPage}
-    />
-  ) : (
-    <AuthLayout
-      authState={state}
-      Page={Page}
-    />
-  )
-}
+// function withAuthLayout(
+//   state: State,
+//   Page: React.FC<{ authState: AuthState }>,
+// ): JSX.Element {
+//   return state._t !== "AuthUser" ? (
+//     <EmptyLayout
+//       state={state}
+//       Page={LoginPage}
+//     />
+//   ) : (
+//     <AuthLayout
+//       authState={state}
+//       Page={Page}
+//     />
+//   )
+// }

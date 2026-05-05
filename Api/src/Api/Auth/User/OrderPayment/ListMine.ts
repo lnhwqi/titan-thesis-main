@@ -20,11 +20,11 @@ export async function handler(
   const limit = Math.max(1, Math.min(100, Math.floor(params.limit)))
   const offset = (page - 1) * limit
 
-  const { rows, totalCount } = await OrderPaymentRow.getByUserIDPaginated(
-    user.id,
-    limit,
-    offset,
-  )
+  const [{ rows, totalCount }, { totalMoneyPaid, totalProducts }] =
+    await Promise.all([
+      OrderPaymentRow.getByUserIDPaginated(user.id, limit, offset),
+      OrderPaymentRow.getUserTotals(user.id),
+    ])
 
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentIDs(
     rows.map((row) => row.id),
@@ -52,6 +52,8 @@ export async function handler(
       ),
     ),
     totalCount,
+    totalMoneyPaid,
+    totalProducts,
     page,
     limit,
   })

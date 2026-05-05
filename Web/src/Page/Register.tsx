@@ -74,9 +74,11 @@ export default function RegisterPage(props: Props): JSX.Element {
               placeholder={isSeller ? "Owner name" : "Your full name"}
               onChange={(v) => emit(RegisterAction.onChangeName(v))}
             />
-            {showError("name") ? (
-              <span className={styles.fieldError}>{errors.name}</span>
-            ) : null}
+            <span
+              className={`${styles.fieldError} ${showError("name") ? "" : styles.fieldErrorGhost}`}
+            >
+              {showError("name") ? errors.name : "\u00A0"}
+            </span>
           </div>
 
           <div className={styles.field}>
@@ -88,9 +90,11 @@ export default function RegisterPage(props: Props): JSX.Element {
               placeholder="you@example.com"
               onChange={(v) => emit(RegisterAction.onChangeEmail(v))}
             />
-            {showError("email") ? (
-              <span className={styles.fieldError}>{errors.email}</span>
-            ) : null}
+            <span
+              className={`${styles.fieldError} ${showError("email") ? "" : styles.fieldErrorGhost}`}
+            >
+              {showError("email") ? errors.email : "\u00A0"}
+            </span>
           </div>
 
           <div className={styles.field}>
@@ -102,9 +106,11 @@ export default function RegisterPage(props: Props): JSX.Element {
               placeholder="Min 8 chars"
               onChange={(v) => emit(RegisterAction.onChangePassword(v))}
             />
-            {showError("password") ? (
-              <span className={styles.fieldError}>{errors.password}</span>
-            ) : null}
+            <span
+              className={`${styles.fieldError} ${showError("password") ? "" : styles.fieldErrorGhost}`}
+            >
+              {showError("password") ? errors.password : "\u00A0"}
+            </span>
           </div>
 
           {isSeller ? (
@@ -117,13 +123,17 @@ export default function RegisterPage(props: Props): JSX.Element {
                 placeholder="Your shop brand"
                 onChange={(v) => emit(RegisterAction.onChangeShopName(v))}
               />
-              {showError("shopName") ? (
-                <span className={styles.fieldError}>{errors.shopName}</span>
-              ) : null}
+              <span
+                className={`${styles.fieldError} ${showError("shopName") ? "" : styles.fieldErrorGhost}`}
+              >
+                {showError("shopName") ? errors.shopName : "\u00A0"}
+              </span>
             </div>
           ) : null}
 
-          {renderStatus(register.status)}
+          <div className={styles.responseSlot}>
+            {renderStatus(register.status)}
+          </div>
 
           <Button
             theme_={"Red"}
@@ -295,6 +305,12 @@ const styles = {
   fieldLabel: css({
     ...font.regular14,
   }),
+  responseSlot: css({
+    minHeight: theme.s10,
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+  }),
   errorText: css({
     ...font.medium14,
     color: color.semantics.error.red500,
@@ -302,6 +318,12 @@ const styles = {
   fieldError: css({
     ...font.regular12,
     color: color.semantics.error.red500,
+    minHeight: theme.s4,
+    display: "block",
+    lineHeight: 1.4,
+  }),
+  fieldErrorGhost: css({
+    visibility: "hidden",
   }),
   successText: css({
     ...font.medium14,

@@ -28,38 +28,56 @@ function containerStyle(size: Props["size"]) {
   switch (size) {
     case "L":
       return {
-        height: theme.s13,
+        minHeight: theme.s14,
         gap: theme.s2,
-        borderRadius: theme.br4,
-        padding: `0 ${theme.s5}`,
+        borderRadius: theme.br3,
+        padding: `${theme.s2} ${theme.s6}`,
       }
     case "M":
       return {
-        height: theme.s10,
+        minHeight: theme.s12,
         gap: theme.s2,
         borderRadius: theme.br3,
-        padding: `0 ${theme.s4}`,
+        padding: `${theme.s2} ${theme.s5}`,
       }
     case "S":
       return {
-        height: theme.s8,
+        minHeight: theme.s10,
         gap: theme.s1,
         borderRadius: theme.br2,
-        padding: `0 ${theme.s4}`,
+        padding: `${theme.s1} ${theme.s4}`,
       }
   }
 }
 
 function containerColor(theme_: Props["theme_"], disabled: boolean) {
-  if (disabled) return { backgroundColor: color.neutral50 }
+  if (disabled)
+    return {
+      backgroundColor: "var(--app-border)",
+      boxShadow: "none",
+      border: "1px solid var(--app-border)",
+    }
 
   switch (theme_) {
     case "Blue":
-      return { backgroundColor: color.genz.purple }
+      return {
+        background:
+          "linear-gradient(135deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
+        boxShadow: theme.elevation.small,
+        border: "1px solid var(--app-brand-100)",
+      }
     case "Red":
-      return { backgroundColor: color.semantics.error.red500 }
+      return {
+        background: color.semantics.error.red500,
+        boxShadow: theme.elevation.small,
+        border: `1px solid ${color.semantics.error.red50}`,
+      }
     case "Green":
-      return { backgroundColor: color.semantics.success.green500 }
+      return {
+        background: color.semantics.success.green500,
+        boxShadow: theme.elevation.small,
+        border: `1px solid ${color.semantics.success.green50}`,
+      }
   }
 }
 
@@ -95,21 +113,36 @@ const styles = {
   ) =>
     css({
       width: "100%",
-      background: "none",
-      border: "none",
       boxSizing: "border-box",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       cursor: disabled ? "unset" : "pointer",
+      backdropFilter: "blur(10px)",
+      transform: "translateY(0)",
+      transition:
+        "transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease, filter 180ms ease",
       ...containerStyle(size),
       ...containerColor(theme_, disabled),
+      "&:hover": disabled
+        ? undefined
+        : {
+            transform: "translateY(-1px)",
+            filter: "brightness(1.02)",
+            boxShadow: theme.elevation.medium,
+          },
+      "&:active": disabled
+        ? undefined
+        : {
+            transform: "translateY(0)",
+            boxShadow: theme.elevation.small,
+          },
     }),
   label: (size: Props["size"], theme_: Props["theme_"], disabled: boolean) =>
     css({
       ...labelFont(size),
       ...labelColor(theme_, disabled),
-      lineHeight: "100%",
+      lineHeight: 1.1,
       whiteSpace: "nowrap",
     }),
 }

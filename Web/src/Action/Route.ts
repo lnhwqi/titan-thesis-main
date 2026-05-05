@@ -71,7 +71,8 @@ export function onUrlChange(s: State): [State, Cmd] {
         ReportAction.onEnterSellerReportsRoute()(nextState)
       return [reportState, [...orderCmd, ...reportCmd]]
     }
-
+    case "Profile":
+      return withHomePoster(_AuthState(ProfileAction.onEnterRoute)(state))
     case "SellerReports":
       return ReportAction.onEnterSellerReportsRoute()(state)
 
@@ -124,9 +125,6 @@ export function onUrlChange(s: State): [State, Cmd] {
 
     case "AdminPosterManagement":
       return AdminPosterAction.onEnterRoute()(state)
-
-    case "Profile":
-      return _AuthState(ProfileAction.onEnterRoute)(state)
 
     case "ProductDetail":
       try {

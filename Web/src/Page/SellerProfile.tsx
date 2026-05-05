@@ -363,8 +363,7 @@ const styles = {
   heroBg: css({
     position: "absolute",
     inset: 0,
-    background:
-      "linear-gradient(135deg, #3b1f6e 0%, #6b21a8 35%, #9333ea 60%, #ec4899 85%, #f97316 100%)",
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.secondary400} 40%, ${color.primary400} 100%)`,
     backgroundSize: "300% 300%",
     animation: `${shimmer} 8s ease infinite`,
     "&::after": {
@@ -608,7 +607,7 @@ const styles = {
     border: "none",
     borderRadius: theme.brFull,
     padding: `${theme.s2} ${theme.s3}`,
-    background: color.genz.gradientPurplePink,
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.primary500} 100%)`,
     color: color.neutral0,
     ...font.bold14,
     cursor: "pointer",
@@ -646,16 +645,13 @@ const styles = {
     lineHeight: 1,
   }),
   sectionTitleGradient: css({
-    background: color.genz.gradientPurplePink,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    color: "var(--app-accent)",
   }),
   sectionCount: css({
     ...font.medium12,
     color: color.neutral500,
-    background: "rgba(124, 58, 237, 0.07)",
-    border: "1px solid rgba(124, 58, 237, 0.15)",
+    background: "var(--app-brand-20)",
+    border: "1px solid var(--app-border)",
     borderRadius: "20px",
     padding: "3px 10px",
   }),
@@ -685,18 +681,18 @@ const styles = {
   pageNavBtn: css({
     padding: `${theme.s2} ${theme.s4}`,
     borderRadius: theme.brFull,
-    border: "1.5px solid rgba(124, 58, 237, 0.25)",
-    background: "rgba(124, 58, 237, 0.05)",
-    color: color.genz.purple,
+    border: "1px solid var(--app-border)",
+    background: "var(--app-brand-20)",
+    color: "var(--app-accent)",
     ...font.medium14,
     cursor: "pointer",
     transition: "all 0.2s ease",
     "&:hover:not(:disabled)": {
-      background: color.genz.gradientPurplePink,
+      background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.primary500} 100%)`,
       borderColor: "transparent",
       color: color.neutral0,
       transform: "translateY(-1px)",
-      boxShadow: "0 4px 12px rgba(124, 58, 237, 0.28)",
+      boxShadow: theme.elevation.small,
     },
     "&:disabled": {
       opacity: 0.35,
@@ -713,7 +709,7 @@ const styles = {
     width: "34px",
     height: "34px",
     borderRadius: "50%",
-    border: "1.5px solid rgba(124, 58, 237, 0.2)",
+    border: "1px solid var(--app-border)",
     background: "transparent",
     color: color.genz.purple,
     ...font.medium14,
@@ -723,17 +719,17 @@ const styles = {
     justifyContent: "center",
     transition: "all 0.18s ease",
     "&:hover": {
-      background: "rgba(124, 58, 237, 0.08)",
+      background: "var(--app-brand-20)",
       borderColor: color.genz.purple,
     },
   }),
   pageNumActive: css({
-    background: color.genz.gradientPurplePink,
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.primary500} 100%)`,
     borderColor: "transparent",
     color: color.neutral0,
-    boxShadow: "0 3px 10px rgba(124, 58, 237, 0.35)",
+    boxShadow: theme.elevation.small,
     "&:hover": {
-      background: color.genz.gradientPurplePink,
+      background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.primary500} 100%)`,
     },
   }),
 
@@ -751,7 +747,7 @@ const styles = {
     height: "260px",
     borderRadius: `0 0 28px 28px`,
     background:
-      "linear-gradient(90deg, rgba(124,58,237,0.08) 25%, rgba(168,85,247,0.12) 50%, rgba(124,58,237,0.08) 75%)",
+      "linear-gradient(90deg, rgba(0,82,156,0.08) 25%, rgba(237,28,36,0.10) 50%, rgba(0,82,156,0.08) 75%)",
     backgroundSize: "200% 100%",
     animation: `${shimmer} 1.5s infinite`,
   }),
@@ -765,7 +761,7 @@ const styles = {
     height: "280px",
     borderRadius: theme.br2,
     background:
-      "linear-gradient(90deg, rgba(124,58,237,0.06) 25%, rgba(168,85,247,0.1) 50%, rgba(124,58,237,0.06) 75%)",
+      "linear-gradient(90deg, rgba(0,82,156,0.06) 25%, rgba(237,28,36,0.09) 50%, rgba(0,82,156,0.06) 75%)",
     backgroundSize: "200% 100%",
     animation: `${shimmer} 1.5s infinite`,
   }),
@@ -778,8 +774,8 @@ const styles = {
     gap: theme.s3,
     padding: `${theme.s8} ${theme.s4}`,
     borderRadius: theme.br2,
-    border: "1.5px dashed rgba(124,58,237,0.2)",
-    background: "rgba(124,58,237,0.03)",
+    border: "1px dashed var(--app-border)",
+    background: "var(--app-brand-20)",
   }),
   emptyEmoji: css({ fontSize: "40px" }),
   emptyText: css({

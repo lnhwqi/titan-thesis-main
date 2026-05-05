@@ -12,7 +12,24 @@ export default function UserReportsPage(props: Props): JSX.Element {
   const { state } = props
 
   if (state._t !== "AuthUser") {
-    return <div className={styles.info}>Please login as user first.</div>
+    return (
+      <div className={styles.gate}>
+        <div className={styles.gateCard}>
+          <h1 className={styles.gateTitle}>Authentication Required</h1>
+          <p className={styles.gateText}>Please login to view your reports.</p>
+          <div className={styles.gateActions}>
+            <button
+              className={styles.secondaryButton}
+              onClick={() =>
+                emit(navigateTo(toRoute("Login", { redirect: "/reports" })))
+              }
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const reports = state.report.userReports
@@ -129,5 +146,41 @@ const styles = {
     padding: `${theme.s2} ${theme.s3}`,
     ...font.medium14,
     cursor: "pointer",
+  }),
+  gate: css({
+    minHeight: "100dvh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s6,
+    background:
+      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
+      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
+      `${color.neutral0}`,
+  }),
+  gateCard: css({
+    width: "100%",
+    maxWidth: "480px",
+    border: `1px solid ${color.genz.purple100}`,
+    borderRadius: theme.s4,
+    padding: theme.s6,
+    background: color.neutral0,
+    boxShadow: "0 12px 36px rgba(0, 0, 0, 0.08)",
+    display: "grid",
+    gap: theme.s2,
+  }),
+  gateTitle: css({
+    ...font.boldH5_20,
+    margin: 0,
+    color: color.genz.purple,
+  }),
+  gateText: css({
+    ...font.regular14,
+    margin: 0,
+    color: color.neutral700,
+  }),
+  gateActions: css({
+    marginTop: theme.s1,
+    display: "flex",
   }),
 }

@@ -1,7 +1,7 @@
 ﻿import { css } from "@emotion/css"
 import { State } from "../../State"
 import { JSX } from "react"
-import { color, font } from "../Theme"
+import { appThemeClass, color, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as CategoryAction from "../../Action/Category"
 import Header from "./Header"
@@ -27,7 +27,7 @@ export function SubHome(props: Props): JSX.Element {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${appThemeClass} ${styles.container}`}>
       <Header state={state} />
       <SubHeader state={state} />
 
@@ -77,15 +77,14 @@ const styles = {
     position: "relative",
     zIndex: 1,
     background:
-      `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
-      `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
-      `${color.neutral0}`,
+      "linear-gradient(180deg, rgba(72,85,106,0.03) 0%, transparent 160px)",
   }),
 
   body: css({
     display: "grid",
     gridTemplateColumns: "max-content max-content minmax(0, 1fr)",
     flex: 1,
+    minHeight: 0,
   }),
 
   sidebarOpen: css({
@@ -97,7 +96,8 @@ const styles = {
     opacity: 1,
     visibility: "visible",
     borderRight: `1px solid ${color.genz.purple100}`,
-    backgroundColor: color.neutral0,
+    backgroundColor: "rgba(255,255,255,0.62)",
+    backdropFilter: "blur(18px)",
     overflow: "hidden",
     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
     willChange: "width, opacity",
@@ -139,7 +139,8 @@ const styles = {
     opacity: 1,
     visibility: "visible",
     borderRight: `1px solid ${color.genz.purple100}`,
-    backgroundColor: color.neutral0,
+    backgroundColor: "rgba(255,255,255,0.52)",
+    backdropFilter: "blur(18px)",
     overflow: "auto",
     scrollbarWidth: "none",
     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1) , opacity 0.3s ease",
@@ -160,8 +161,8 @@ const styles = {
   }),
 
   posterWrapper: css({
-    margin: "20px",
-    width: "calc(100% - 40px)",
+    margin: theme.s4,
+    width: `calc(100% - ${theme.s8})`,
     height: "auto",
     display: "flex",
     flexDirection: "column",
@@ -173,7 +174,9 @@ const styles = {
   posterCard: css({
     width: "100%",
     height: "auto",
-    borderRadius: "8px",
+    borderRadius: theme.br3,
+    overflow: "hidden",
+    boxShadow: theme.elevation.small,
 
     "&& > section": {
       display: "flex",
@@ -213,7 +216,7 @@ const styles = {
 
   mainContent: css({
     height: "auto",
-    padding: "0 10px",
+    padding: `${theme.s4} ${theme.s4} ${theme.s6}`,
     position: "relative",
   }),
 }

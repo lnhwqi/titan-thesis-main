@@ -18,7 +18,7 @@ export { noBodyParamsDecoder }
 export type Contract = AuthApi<
   AuthUser,
   "GET",
-  "/user/order-payments/mine",
+  "/user/order-payments/mine?page=:page&limit=:limit",
   UrlParams,
   NoBodyParams,
   ErrorCode,
@@ -30,6 +30,8 @@ export type ErrorCode = "INVALID_REQUEST"
 export type Payload = {
   orders: OrderPayment[]
   totalCount: number
+  totalMoneyPaid: number
+  totalProducts: number
   page: number
   limit: number
 }
@@ -50,6 +52,8 @@ export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
   orders: JD.array(orderPaymentDecoder),
   totalCount: JD.number,
+  totalMoneyPaid: JD.number,
+  totalProducts: JD.number,
   page: JD.number,
   limit: JD.number,
 })
@@ -60,7 +64,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
 
 export const contract: Contract = {
   method: "GET",
-  route: "/user/order-payments/mine",
+  route: "/user/order-payments/mine?page=:page&limit=:limit",
   urlDecoder: urlParamsDecoder,
   bodyDecoder: noBodyParamsDecoder,
   responseDecoder: authResponseDecoder(errorCodeDecoder, payloadDecoder),

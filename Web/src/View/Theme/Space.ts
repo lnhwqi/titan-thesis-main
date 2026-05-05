@@ -84,10 +84,9 @@ export const Space = {
   opacity7: "rgba(0, 0, 0, 0.7)",
   opacity8: "rgba(0, 0, 0, 0.8)",
   elevation: {
-    xsmall: "0px 1px 4px 0px rgba(0, 32, 92, 0.06)",
-    small: "0px 2px 8px 0px rgba(0, 32, 92, 0.06)",
-    medium: "0px 4px 16px 0px rgba(0, 32, 92, 0.08)",
-    large:
-      "0px 8px 24px -4px rgba(0, 32, 92, 0.08), 0px 8px 8px -4px rgba(0, 32, 92, 0.03) ",
+    xsmall: "var(--app-shadow-xs)",
+    small: "var(--app-shadow-sm)",
+    medium: "var(--app-shadow-md)",
+    large: "var(--app-shadow-lg)",
   },
 }

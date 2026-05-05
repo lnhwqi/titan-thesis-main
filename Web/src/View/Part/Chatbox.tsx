@@ -6,6 +6,7 @@ import type { ConversationID } from "../../../../Core/App/Message"
 import { emit } from "../../Runtime/React"
 import * as MessageAction from "../../Action/Message"
 import { navigateTo, toRoute } from "../../Route"
+import * as AuthToken from "../../App/AuthToken"
 import styles from "./Chatbox.module.css"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -124,7 +125,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
   } = state.message
 
   const isAdmin = state._t === "AuthAdmin"
-  const isGuest = state._t === "Public" || state._t === "LoadingAuth"
+  const isGuest = AuthToken.get() == null && (state._t === "Public" || state._t === "LoadingAuth")
 
   function getProfileID(): string | null {
     if (state._t === "AuthUser") return state.profile.id.unwrap()

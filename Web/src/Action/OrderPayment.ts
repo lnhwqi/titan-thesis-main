@@ -166,6 +166,8 @@ function onUserListResponse(response: UserListApi.Response): Action {
         userOrdersResponse: RD.success(response.value),
         userOrdersPage: response.value.page,
         userOrdersTotalCount: response.value.totalCount,
+        userOrdersTotalMoneyPaid: response.value.totalMoneyPaid,
+        userOrdersTotalProducts: response.value.totalProducts,
       }),
       cmd(),
     ]

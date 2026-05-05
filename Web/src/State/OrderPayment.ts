@@ -30,6 +30,8 @@ export type OrderPaymentState = {
   userOrdersPage: number
   userOrdersLimit: number
   userOrdersTotalCount: number
+  userOrdersTotalMoneyPaid: number
+  userOrdersTotalProducts: number
   statusDraftByOrderID: Record<string, OrderPaymentStatus>
   trackingDraftByOrderID: Record<string, string>
   flashMessage: string | null
@@ -46,6 +48,8 @@ export function initOrderPaymentState(): OrderPaymentState {
     userOrdersPage: 1,
     userOrdersLimit: 5,
     userOrdersTotalCount: 0,
+    userOrdersTotalMoneyPaid: 0,
+    userOrdersTotalProducts: 0,
     statusDraftByOrderID: {},
     trackingDraftByOrderID: {},
     flashMessage: null,
