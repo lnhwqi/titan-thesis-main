@@ -27,8 +27,6 @@ const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
 const LEGACY_SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
 const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
 const GUEST_ID_PREFIX = "guest_"
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 let socketIOInstance: SocketIOServer | null = null
 
@@ -111,11 +109,10 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
   })
   socketIOInstance = io
 
-  // Authentication middleware (async — resolves user from DB, or accepts guest)
+  // Authentication middleware (async — resolves authenticated user from DB)
   io.use(async (socket: Socket, next: (err?: Error) => void) => {
     const auth: Record<string, unknown> = socket.handshake.auth
     const token = auth.token
-    const guestID = auth.guestID
 
     // Authenticated user: verify JWT and look up DB
     if (typeof token === "string" && token.length > 0) {
@@ -129,23 +126,6 @@ export function initializeSocketIO(server: HTTPServer): SocketIOServer {
       } catch {
         return next(new Error("Authentication failed"))
       }
-    }
-
-    // Guest user: require a valid UUID guestID
-    if (typeof guestID === "string" && guestID.length > 0) {
-      const normalizedGuestID = guestID.trim().toLowerCase()
-      if (!isValidGuestID(normalizedGuestID)) {
-        return next(new Error("Invalid guestID"))
-      }
-
-      const guest: AuthUser = {
-        id: `${GUEST_ID_PREFIX}${normalizedGuestID}`,
-        role: "GUEST",
-        email: "",
-        name: "Guest",
-      }
-      socketUsers.set(socket, guest)
-      return next()
     }
 
     return next(new Error("Authentication required"))
@@ -811,10 +791,6 @@ function sortConversationsPinned(
 
     return b.updatedAt.getTime() - a.updatedAt.getTime()
   })
-}
-
-function isValidGuestID(value: string): boolean {
-  return UUID_PATTERN.test(value)
 }
 
 /**

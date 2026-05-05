@@ -212,7 +212,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
       <div className={styles.chatboxToggleWrap}>
         {!isOpen && (
           <div className={styles.chatboxBubble}>
-            <span className={styles.chatboxBubbleText}>I&apos;m At</span>
+            <span className={styles.chatboxBubbleText}>Chatbox Supporting</span>
             <span className={styles.chatboxBubbleTail} />
           </div>
         )}
@@ -535,6 +535,27 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                   )}
                   {!messagesLoading && (
                     <div className={styles.messagesList}>
+                      {typingUsers.size > 0 && (
+                        <div className={styles.typingRow}>
+                          <div
+                            className={styles.msgAvatar}
+                            style={{
+                              background: getAvatarColor(
+                                Array.from(typingUsers)[0] ?? "",
+                              ),
+                            }}
+                          >
+                            {getInitials(Array.from(typingUsers)[0] ?? "?")}
+                          </div>
+                          <div className={styles.typingBubble}>
+                            <span className={styles.dots}>
+                              <span />
+                              <span />
+                              <span />
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       {currentMessages.length === 0 && (
                         <div className={styles.noMessages}>
                           <svg
@@ -550,7 +571,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                           <p>No messages yet. Say hello! 👋</p>
                         </div>
                       )}
-                      {currentMessages.map((msg) => {
+                      {[...currentMessages].reverse().map((msg) => {
                         const isSystem = msg.senderType === "SYSTEM"
                         const isMine =
                           !isSystem &&
@@ -671,28 +692,6 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                           </div>
                         )
                       })}
-                      {typingUsers.size > 0 && (
-                        <div className={styles.typingRow}>
-                          <div
-                            className={styles.msgAvatar}
-                            style={{
-                              background: getAvatarColor(
-                                Array.from(typingUsers)[0] ?? "",
-                              ),
-                            }}
-                          >
-                            {getInitials(Array.from(typingUsers)[0] ?? "?")}
-                          </div>
-                          <div className={styles.typingBubble}>
-                            <span className={styles.dots}>
-                              <span />
-                              <span />
-                              <span />
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div id="chatbox-messages-end" />
                     </div>
                   )}
 
@@ -1163,9 +1162,8 @@ const styles = {
     overflowY: "auto",
     padding: "16px 14px",
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column-reverse",
     gap: "4px",
-    scrollBehavior: "smooth",
   }),
   noMessages: css({
     display: "flex",

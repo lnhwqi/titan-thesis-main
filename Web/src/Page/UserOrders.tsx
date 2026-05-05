@@ -201,18 +201,6 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                         {formatT(order.price.unwrap())}
                       </div>
                     </div>
-                    <div className={styles.detailItem}>
-                      <div className={styles.detailLabel}>Platform Fee</div>
-                      <div className={styles.detailValueFee}>
-                        -{formatT(order.fee.unwrap())}
-                      </div>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <div className={styles.detailLabel}>Seller Profit</div>
-                      <div className={styles.detailValueProfit}>
-                        {formatT(order.profit.unwrap())}
-                      </div>
-                    </div>
                     <div className={styles.detailItemFull}>
                       <div className={styles.detailLabel}>Shipping Address</div>
                       <div className={styles.detailValue}>

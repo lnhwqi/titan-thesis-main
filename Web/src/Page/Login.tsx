@@ -10,7 +10,7 @@ import * as LoginAction from "../Action/Login"
 import * as RegisterAction from "../Action/Register"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 import InputText from "../View/Form/InputText"
-import { gradient, glowPulse } from "../View/Theme/Keyframe"
+import { fadeSlideUp } from "../View/Theme/Keyframe"
 import Button from "../View/Form/Button"
 import { parseNotValidate } from "../State/Login"
 import { navigateTo, toRoute } from "../Route"
@@ -29,109 +29,133 @@ export default function LoginPage(props: Props): JSX.Element {
   const passwordError = FieldString.error(password)
 
   return (
-    <div className={styles.container}>
-      <div className={styles.wrapper}>
-        {hasAnnouncement ? (
-          <div className={styles.announcementCard}>
-            <div className={styles.announcementTitle}>Notice</div>
-            <div className={styles.announcementBody}>
-              {registerStatus.message}
-            </div>
-            <button
-              className={styles.announcementClose}
-              onClick={() => emit(RegisterAction.clearStatus())}
-            >
-              Dismiss
-            </button>
-          </div>
-        ) : null}
-
-        <div className={styles.logoRow}>
+    <div className={styles.page}>
+      {/* ── Left: Brand hero ── */}
+      <div className={styles.brand}>
+        <div className={styles.brandBadge}>
+          <span className={styles.brandBadgeText}>TITAN</span>
+        </div>
+        <div className={styles.brandGrid} />
+        <div className={styles.brandContent}>
           <img
             src={localImage.logo.unwrap()}
-            alt="Titan Logo"
-            className={styles.logoImg}
+            alt="Titan logo"
+            className={styles.brandLogoImg}
           />
         </div>
+      </div>
 
-        <div className={styles.pageTitle}>Login</div>
-        <p className={styles.pageSubtitle}>Titan Ecommercial Platform</p>
+      {/* ── Right: Auth form ── */}
+      <div className={styles.auth}>
+        <div className={styles.authInner}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={() => emit(navigateTo(toRoute("Home", {})))}
+          >
+            X
+          </button>
 
-        <div className={styles.responseSlot}>
-          {responseMessage(loginResponse)}
-        </div>
+          {hasAnnouncement ? (
+            <div className={styles.announcementCard}>
+              <span className={styles.announcementTitle}>Notice</span>
+              <span className={styles.announcementBody}>
+                {registerStatus.message}
+              </span>
+              <button
+                className={styles.announcementClose}
+                onClick={() => emit(RegisterAction.clearStatus())}
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
 
-        <form
-          className={styles.form}
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (isSubmitting == false && loginParams != null) {
-              emit(LoginAction.onSubmit(loginParams))
-            }
-          }}
-        >
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Email</span>
-            <InputText
-              value={email.unwrap()}
-              invalid={emailError != null}
-              type="email"
-              placeholder="Enter email"
-              onChange={(value) => emit(LoginAction.onChangeEmail(value))}
-            />
-            <span
-              className={`${styles.fieldError} ${emailError == null ? styles.fieldErrorGhost : ""}`}
-            >
-              {emailError != null ? emailErrorMessage(emailError) : "\u00A0"}
-            </span>
+          <div className={styles.formHeader}>
+            <span className={styles.formBadge}>User Portal</span>
+            <h2 className={styles.formTitle}>Sign In</h2>
           </div>
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Password</span>
-            <InputText
-              value={password.unwrap()}
-              invalid={passwordError != null}
-              type="password"
-              placeholder="Enter password"
-              onChange={(value) => emit(LoginAction.onChangePassword(value))}
-            />
-            <span
-              className={`${styles.fieldError} ${passwordError == null ? styles.fieldErrorGhost : ""}`}
-            >
-              {passwordError != null
-                ? passwordErrorString(passwordError)
-                : "\u00A0"}
-            </span>
-          </div>
-          <Button
-            theme_={"Red"}
-            size={"M"}
-            label={isSubmitting ? "Submitting..." : "Submit"}
-            onClick={() => {
+
+          {loginResponse._t !== "NotAsked" ? (
+            <div className={styles.responseSlot}>
+              {responseMessage(loginResponse)}
+            </div>
+          ) : null}
+
+          <form
+            className={styles.form}
+            onSubmit={(e) => {
+              e.preventDefault()
               if (isSubmitting == false && loginParams != null) {
                 emit(LoginAction.onSubmit(loginParams))
               }
             }}
-            disabled={isSubmitting === true || loginParams == null}
-          />
-
-          <button
-            type="button"
-            className={styles.registerLink}
-            onClick={() => emit(navigateTo(toRoute("Register", {})))}
           >
-            New here? Create account
-          </button>
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Email address</label>
+              <InputText
+                value={email.unwrap()}
+                invalid={emailError != null}
+                type="email"
+                placeholder="you@example.com"
+                onChange={(value) => emit(LoginAction.onChangeEmail(value))}
+              />
+              <span
+                className={`${styles.fieldError} ${emailError == null ? styles.fieldErrorGhost : ""}`}
+              >
+                {emailError != null ? emailErrorMessage(emailError) : "\u00A0"}
+              </span>
+            </div>
 
-          <div className={styles.divider} />
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Password</label>
+              <InputText
+                value={password.unwrap()}
+                invalid={passwordError != null}
+                type="password"
+                placeholder="••••••••"
+                onChange={(value) => emit(LoginAction.onChangePassword(value))}
+              />
+              <span
+                className={`${styles.fieldError} ${passwordError == null ? styles.fieldErrorGhost : ""}`}
+              >
+                {passwordError != null
+                  ? passwordErrorString(passwordError)
+                  : "\u00A0"}
+              </span>
+            </div>
 
-          <button
-            type="button"
-            className={styles.sellerLink}
-            onClick={() => emit(navigateTo(toRoute("SellerLogin", {})))}
-          >
-            Login As Seller
-          </button>
-        </form>
+            <Button
+              theme_={"Red"}
+              size={"M"}
+              label={isSubmitting ? "Signing in..." : "Sign In"}
+              onClick={() => {
+                if (isSubmitting == false && loginParams != null) {
+                  emit(LoginAction.onSubmit(loginParams))
+                }
+              }}
+              disabled={isSubmitting === true || loginParams == null}
+            />
+          </form>
+
+          <div className={styles.footerLinks}>
+            <button
+              type="button"
+              className={styles.textLink}
+              onClick={() => emit(navigateTo(toRoute("Register", {})))}
+            >
+              Create New Account
+            </button>
+            <span className={styles.footerDot}>·</span>
+            <button
+              type="button"
+              className={styles.textLink}
+              onClick={() => emit(navigateTo(toRoute("SellerLogin", {})))}
+            >
+              Login as Seller
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -144,7 +168,7 @@ function responseMessage(
     case "NotAsked":
       return <></>
     case "Loading":
-      return <div className={styles.responseLoading}>Logging you in...</div>
+      return <div className={styles.responseLoading}>Signing you in...</div>
     case "Failure":
       return (
         <div className={styles.responseError}>
@@ -154,7 +178,7 @@ function responseMessage(
     case "Success":
       return (
         <div className={styles.responseSuccess}>
-          Login Success! Redirecting you now...
+          Login successful! Redirecting...
         </div>
       )
   }
@@ -165,207 +189,297 @@ function emailErrorMessage(_error: ErrorEmail): string {
 }
 
 const styles = {
-  container: css({
-    width: "100%",
-    maxWidth: "100%",
-    minHeight: "100dvh",
+  page: css({
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    overflowX: "hidden",
-    padding: `${theme.s4} ${theme.s3}`,
-    boxSizing: "border-box",
-    background: `linear-gradient(-45deg, ${color.secondary500}, ${color.secondary400}, ${color.primary400}, ${color.primary500}, ${color.secondary500})`,
-    backgroundSize: `400% 400%`,
-    animation: `${gradient} 12s ease infinite`,
-    position: "relative",
-    "&::before": {
-      content: '""',
-      position: "absolute",
-      inset: 0,
-      background:
-        "radial-gradient(circle at 30% 60%, rgba(255, 255, 255, 0.14) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(241, 248, 255, 0.18) 0%, transparent 45%)",
-      pointerEvents: "none",
-    },
-    ...bp.sm({
-      padding: `${theme.s6} ${theme.s5}`,
+    minHeight: "100dvh",
+    ...bp.md({
+      flexDirection: "row",
     }),
   }),
-  wrapper: css({
-    width: "100%",
-    maxWidth: "460px",
+
+  // ── Left brand panel ──────────────────────────────────────────
+  brand: css({
+    position: "relative",
+    overflow: "hidden",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "stretch",
-    gap: theme.s4,
-    padding: `${theme.s6} ${theme.s4}`,
-    borderRadius: theme.s5,
-    border: `1px solid rgba(255, 255, 255, 0.18)`,
-    background: "rgba(255, 255, 255, 0.10)",
-    backdropFilter: "blur(24px)",
-    WebkitBackdropFilter: "blur(24px)",
-    boxShadow:
-      "0 24px 64px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.12)",
+    padding: `${theme.s10} ${theme.s8}`,
+    background:
+      "linear-gradient(145deg, #0F172A 0%, #1E3A5F 55%, #0F172A 100%)",
+    minHeight: "220px",
+    ...bp.md({
+      flex: "0 0 60%",
+      minHeight: "100dvh",
+      padding: `${theme.s16} ${theme.s14}`,
+    }),
+  }),
+  brandGrid: css({
+    position: "absolute",
+    inset: 0,
+    backgroundImage: [
+      "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)",
+      "linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+    ].join(", "),
+    backgroundSize: "48px 48px",
+    pointerEvents: "none",
+  }),
+  brandBadge: css({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 3,
+    width: "180px",
+    height: "72px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)",
+    clipPath: "polygon(0 0, 100% 0, 84% 100%, 0 100%)",
+    boxShadow: "0 0 24px rgba(124,58,237,0.45)",
+  }),
+  brandBadgeText: css({
+    ...font.bold14,
+    color: color.neutral0,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    transform: "skewX(-8deg)",
+  }),
+  brandContent: css({
     position: "relative",
     zIndex: 1,
-    ...bp.sm({
-      maxWidth: "500px",
-      padding: `${theme.s7} ${theme.s6}`,
-    }),
-  }),
-  pageTitle: css({
-    ...font.boldH3_29,
-    color: color.neutral0,
-    margin: 0,
-    textAlign: "center",
-    letterSpacing: "-0.5px",
-    textShadow: "0 2px 12px rgba(0, 82, 156, 0.22)",
-  }),
-  pageSubtitle: css({
-    ...font.regular14,
-    margin: 0,
-    marginTop: `-${theme.s2}`,
-    textAlign: "center",
-    color: "rgba(255,255,255,0.82)",
-    lineHeight: 1.6,
-  }),
-  logoRow: css({
-    display: "flex",
-    justifyContent: "center",
-    marginBottom: theme.s1,
-  }),
-  logoImg: css({
-    width: "64px",
-    height: "64px",
-    objectFit: "contain",
-    borderRadius: "50%",
-    border: `2px solid rgba(255, 255, 255, 0.3)`,
-    boxShadow: "0 8px 24px rgba(0, 82, 156, 0.28)",
-    animation: `${glowPulse} 3s ease-in-out infinite`,
-  }),
-  responseSlot: css({
-    minHeight: theme.s12,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    height: "100%",
+    ...bp.md({
+      alignItems: "center",
+    }),
+  }),
+  brandLogoImg: css({
     width: "100%",
+    maxWidth: "520px",
+    minWidth: "120px",
+    aspectRatio: "1 / 1",
+    objectFit: "contain",
+    borderRadius: "50%",
+    border: "3px solid rgba(255,255,255,0.35)",
+    background: "rgba(255,255,255,0.08)",
+    padding: theme.s4,
+    flexShrink: 0,
   }),
-  responseError: css({
-    ...font.medium14,
-    color: color.genz.coral,
-    background: "rgba(255, 107, 107, 0.15)",
-    padding: `${theme.s2} ${theme.s3}`,
-    borderRadius: theme.br2,
-    border: `1px solid rgba(255, 107, 107, 0.3)`,
-    textAlign: "center",
+  brandWordmark: css({
+    fontSize: "clamp(2.4rem, 5vw, 4rem)",
+    fontFamily: 'var(--font-sans, "SF Pro Display", "Inter", sans-serif)',
+    fontWeight: 800,
+    letterSpacing: "-0.05em",
+    lineHeight: 1,
+    background:
+      "linear-gradient(135deg, #FFFFFF 0%, rgba(255,255,255,0.65) 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+  }),
+  brandTagline: css({
+    margin: 0,
+    ...font.regular17,
+    color: "rgba(255,255,255,0.50)",
+    letterSpacing: "0.01em",
+    maxWidth: "360px",
+  }),
+  brandFeatures: css({
+    margin: 0,
+    padding: 0,
+    listStyle: "none",
+    display: "none",
+    flexDirection: "column",
+    gap: theme.s3,
+    ...bp.md({
+      display: "flex",
+    }),
+    "& li": {
+      ...font.regular13,
+      color: "rgba(255,255,255,0.55)",
+      paddingLeft: "22px",
+      position: "relative",
+      "&::before": {
+        content: '"✦"',
+        position: "absolute",
+        left: 0,
+        color: color.secondary300,
+        fontSize: "9px",
+        top: "5px",
+      },
+    },
+  }),
+  brandFootnote: css({
+    position: "relative",
+    zIndex: 1,
+    margin: 0,
+    ...font.regular12,
+    color: "rgba(255,255,255,0.20)",
+    display: "none",
+    ...bp.md({
+      display: "block",
+    }),
+  }),
+
+  // ── Right auth panel ──────────────────────────────────────────
+  auth: css({
+    flex: "0 0 40%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: color.neutral0,
+    padding: `${theme.s10} ${theme.s8}`,
+    ...bp.md({
+      overflowY: "auto",
+      minHeight: "100dvh",
+    }),
+  }),
+  authInner: css({
+    position: "relative",
     width: "100%",
+    maxWidth: "380px",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s6,
+    paddingTop: theme.s7,
+    animation: `${fadeSlideUp} 0.45s ease both`,
   }),
-  responseLoading: css({
-    ...font.medium14,
-    color: "rgba(255,255,255,0.7)",
-    textAlign: "center",
+  closeButton: css({
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    border: `1px solid ${color.neutral200}`,
+    background: color.neutral0,
+    color: color.neutral700,
+    ...font.bold12,
+    cursor: "pointer",
+    "&:hover": {
+      background: color.neutral50,
+      borderColor: color.neutral300,
+    },
   }),
-  responseSuccess: css({
-    ...font.medium14,
-    color: color.genz.lime,
-    textAlign: "center",
-  }),
-  announcementCard: css({
-    width: "100%",
+  formHeader: css({
     display: "flex",
     flexDirection: "column",
     gap: theme.s2,
-    padding: theme.s3,
-    borderRadius: theme.s2,
-    border: `1px solid rgba(255,255,255,0.15)`,
-    background: "rgba(255,255,255,0.08)",
   }),
-  announcementTitle: css({
-    ...font.bold14,
-    color: color.neutral0,
+  formBadge: css({
+    ...font.bold12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: color.secondary500,
   }),
-  announcementBody: css({
-    ...font.regular14,
-    color: "rgba(255,255,255,0.8)",
+  formTitle: css({
+    margin: 0,
+    ...font.boldH2_35,
+    color: color.neutral900,
   }),
-  announcementClose: css({
-    width: "fit-content",
-    border: `1px solid rgba(255,255,255,0.3)`,
-    borderRadius: theme.s2,
-    background: "rgba(255,255,255,0.1)",
-    color: color.neutral0,
-    ...font.medium12,
-    padding: `${theme.s1} ${theme.s3}`,
-    cursor: "pointer",
-    backdropFilter: "blur(4px)",
-    transition: "background 0.18s ease",
-    "&:hover": {
-      background: "rgba(255,255,255,0.2)",
-    },
+  formSubtitle: css({
+    margin: 0,
+    ...font.regular13,
+    color: color.neutral500,
+  }),
+  responseSlot: css({
+    width: "100%",
+  }),
+  responseError: css({
+    ...font.regular13,
+    color: color.semantics.error.red500,
+    background: color.semantics.error.red50,
+    border: `1px solid rgba(237,28,36,0.15)`,
+    borderRadius: "8px",
+    padding: `${theme.s2} ${theme.s3}`,
+  }),
+  responseLoading: css({
+    ...font.regular13,
+    color: color.neutral500,
+    textAlign: "center",
+  }),
+  responseSuccess: css({
+    ...font.regular13,
+    color: color.semantics.success.green500,
+    background: color.semantics.success.green50,
+    borderRadius: "8px",
+    padding: `${theme.s2} ${theme.s3}`,
   }),
   form: css({
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "stretch",
-    gap: theme.s4,
-  }),
-  field: css({
-    width: "100%",
-    minWidth: 0,
     display: "flex",
     flexDirection: "column",
     gap: theme.s1,
   }),
+  field: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    marginBottom: theme.s2,
+  }),
   fieldLabel: css({
-    ...font.regular14,
-    color: "rgba(255,255,255,0.9)",
+    ...font.medium14,
+    color: color.neutral700,
   }),
   fieldError: css({
     ...font.regular12,
-    color: color.genz.coral,
-    minHeight: theme.s4,
-    display: "block",
+    color: color.semantics.error.red500,
+    minHeight: "18px",
     lineHeight: 1.4,
   }),
   fieldErrorGhost: css({
     visibility: "hidden",
   }),
-  registerLink: css({
-    border: `1px solid rgba(255,255,255,0.24)`,
-    borderRadius: theme.br2,
-    background: "rgba(255,255,255,0.08)",
-    cursor: "pointer",
-    ...font.medium14,
-    color: color.neutral0,
-    textDecoration: "none",
-    padding: `${theme.s2} ${theme.s3}`,
-    transition: "opacity 0.2s ease, background 0.2s ease, transform 0.2s ease",
-    "&:hover": {
-      opacity: 1,
-      transform: "translateY(-1px)",
-      background: "rgba(255,255,255,0.16)",
-    },
+  footerLinks: css({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: theme.s2,
   }),
-  divider: css({
-    width: "100%",
-    height: "1px",
-    background: "rgba(255,255,255,0.12)",
+  footerDot: css({
+    color: color.neutral300,
+    fontSize: "16px",
   }),
-  sellerLink: css({
+  textLink: css({
     border: "none",
-    background: "transparent",
+    background: "none",
     cursor: "pointer",
-    ...font.regular14,
-    color: "rgba(255,255,255,0.74)",
-    textDecoration: "underline",
+    ...font.regular13,
+    color: color.secondary500,
     padding: 0,
-    transition: "color 0.2s ease",
     "&:hover": {
-      color: "rgba(255,255,255,0.96)",
+      textDecoration: "underline",
     },
+  }),
+  announcementCard: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s1,
+    padding: `${theme.s3} ${theme.s3}`,
+    borderRadius: "10px",
+    border: `1px solid ${color.semantics.success.green50}`,
+    background: color.semantics.success.green50,
+  }),
+  announcementTitle: css({
+    ...font.bold12,
+    color: color.semantics.success.green500,
+  }),
+  announcementBody: css({
+    ...font.regular13,
+    color: color.neutral700,
+  }),
+  announcementClose: css({
+    width: "fit-content",
+    border: `1px solid rgba(43,165,48,0.3)`,
+    borderRadius: "6px",
+    background: "none",
+    color: color.semantics.success.green500,
+    ...font.medium12,
+    padding: `${theme.s1} ${theme.s2}`,
+    cursor: "pointer",
+    marginTop: theme.s1,
   }),
 }

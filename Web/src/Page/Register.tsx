@@ -7,6 +7,7 @@ import { navigateTo, toRoute } from "../Route"
 import Button from "../View/Form/Button"
 import InputText from "../View/Form/InputText"
 import * as RegisterAction from "../Action/Register"
+import { fadeSlideUp } from "../View/Theme/Keyframe"
 import {
   createNameE as createUserNameE,
   ErrorName as ErrorUserName,
@@ -20,6 +21,7 @@ import {
   createShopNameE,
   ErrorShopName,
 } from "../../../Core/App/Seller/ShopName"
+import { localImage } from "../View/ImageLocalSrc"
 
 export type Props = { state: State }
 
@@ -34,128 +36,159 @@ export default function RegisterPage(props: Props): JSX.Element {
   const canSubmit = !isLoading && hasErrors === false
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Create Account</h1>
-        <p className={styles.subtitle}>
-          Register as a user or seller. Seller accounts require admin approval.
-        </p>
-
-        <div className={styles.roleToggle}>
-          <button
-            className={
-              register.role === "USER"
-                ? styles.roleButtonActive
-                : styles.roleButton
-            }
-            onClick={() => emit(RegisterAction.onChangeRole("USER"))}
-          >
-            User
-          </button>
-          <button
-            className={
-              register.role === "SELLER"
-                ? styles.roleButtonActive
-                : styles.roleButton
-            }
-            onClick={() => emit(RegisterAction.onChangeRole("SELLER"))}
-          >
-            Seller
-          </button>
+    <div className={styles.page}>
+      {/* ── Left: Brand hero ── */}
+      <div className={styles.brand}>
+        <div className={styles.brandBadge}>
+          <span className={styles.brandBadgeText}>TITAN</span>
         </div>
-
-        <div className={styles.form}>
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Name</span>
-            <InputText
-              value={register.name}
-              invalid={showError("name")}
-              type="text"
-              placeholder={isSeller ? "Owner name" : "Your full name"}
-              onChange={(v) => emit(RegisterAction.onChangeName(v))}
-            />
-            <span
-              className={`${styles.fieldError} ${showError("name") ? "" : styles.fieldErrorGhost}`}
-            >
-              {showError("name") ? errors.name : "\u00A0"}
-            </span>
-          </div>
-
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Email</span>
-            <InputText
-              value={register.email}
-              invalid={showError("email")}
-              type="email"
-              placeholder="you@example.com"
-              onChange={(v) => emit(RegisterAction.onChangeEmail(v))}
-            />
-            <span
-              className={`${styles.fieldError} ${showError("email") ? "" : styles.fieldErrorGhost}`}
-            >
-              {showError("email") ? errors.email : "\u00A0"}
-            </span>
-          </div>
-
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Password</span>
-            <InputText
-              value={register.password}
-              invalid={showError("password")}
-              type="password"
-              placeholder="Min 8 chars"
-              onChange={(v) => emit(RegisterAction.onChangePassword(v))}
-            />
-            <span
-              className={`${styles.fieldError} ${showError("password") ? "" : styles.fieldErrorGhost}`}
-            >
-              {showError("password") ? errors.password : "\u00A0"}
-            </span>
-          </div>
-
-          {isSeller ? (
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Shop Name</span>
-              <InputText
-                value={register.shopName}
-                invalid={showError("shopName")}
-                type="text"
-                placeholder="Your shop brand"
-                onChange={(v) => emit(RegisterAction.onChangeShopName(v))}
-              />
-              <span
-                className={`${styles.fieldError} ${showError("shopName") ? "" : styles.fieldErrorGhost}`}
-              >
-                {showError("shopName") ? errors.shopName : "\u00A0"}
-              </span>
-            </div>
-          ) : null}
-
-          <div className={styles.responseSlot}>
-            {renderStatus(register.status)}
-          </div>
-
-          <Button
-            theme_={"Red"}
-            size={"M"}
-            label={
-              isLoading
-                ? "Submitting..."
-                : isSeller
-                  ? "Register Seller"
-                  : "Register User"
-            }
-            onClick={() => emit(RegisterAction.onSubmit())}
-            disabled={canSubmit === false}
+        <div className={styles.brandGrid} />
+        <div className={styles.brandContent}>
+          <img
+            src={localImage.logo.unwrap()}
+            alt="Titan logo"
+            className={styles.brandLogoImg}
           />
         </div>
+      </div>
 
-        <button
-          className={styles.loginLink}
-          onClick={() => emit(navigateTo(toRoute("Login", { redirect: null })))}
-        >
-          Already have account? Go to login
-        </button>
+      {/* ── Right: Registration form ── */}
+      <div className={styles.auth}>
+        <div className={styles.authInner}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={() => emit(navigateTo(toRoute("Home", {})))}
+          >
+            X
+          </button>
+
+          <div className={styles.formHeader}>
+            <span className={styles.formBadge}>Get Started</span>
+            <h2 className={styles.formTitle}>Create Account</h2>
+          </div>
+
+          <div className={styles.roleToggle}>
+            <button
+              className={
+                register.role === "USER"
+                  ? styles.roleButtonActive
+                  : styles.roleButton
+              }
+              onClick={() => emit(RegisterAction.onChangeRole("USER"))}
+            >
+              User
+            </button>
+            <button
+              className={
+                register.role === "SELLER"
+                  ? styles.roleButtonActive
+                  : styles.roleButton
+              }
+              onClick={() => emit(RegisterAction.onChangeRole("SELLER"))}
+            >
+              Seller
+            </button>
+          </div>
+
+          <div className={styles.form}>
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Full name</label>
+              <InputText
+                value={register.name}
+                invalid={showError("name")}
+                type="text"
+                placeholder={isSeller ? "Owner name" : "Your full name"}
+                onChange={(v) => emit(RegisterAction.onChangeName(v))}
+              />
+              <span
+                className={`${styles.fieldError} ${showError("name") ? "" : styles.fieldErrorGhost}`}
+              >
+                {showError("name") ? errors.name : "\u00A0"}
+              </span>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Email address</label>
+              <InputText
+                value={register.email}
+                invalid={showError("email")}
+                type="email"
+                placeholder="you@example.com"
+                onChange={(v) => emit(RegisterAction.onChangeEmail(v))}
+              />
+              <span
+                className={`${styles.fieldError} ${showError("email") ? "" : styles.fieldErrorGhost}`}
+              >
+                {showError("email") ? errors.email : "\u00A0"}
+              </span>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Password</label>
+              <InputText
+                value={register.password}
+                invalid={showError("password")}
+                type="password"
+                placeholder="Min 8 characters"
+                onChange={(v) => emit(RegisterAction.onChangePassword(v))}
+              />
+              <span
+                className={`${styles.fieldError} ${showError("password") ? "" : styles.fieldErrorGhost}`}
+              >
+                {showError("password") ? errors.password : "\u00A0"}
+              </span>
+            </div>
+
+            {isSeller ? (
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>Shop name</label>
+                <InputText
+                  value={register.shopName}
+                  invalid={showError("shopName")}
+                  type="text"
+                  placeholder="Your shop brand"
+                  onChange={(v) => emit(RegisterAction.onChangeShopName(v))}
+                />
+                <span
+                  className={`${styles.fieldError} ${showError("shopName") ? "" : styles.fieldErrorGhost}`}
+                >
+                  {showError("shopName") ? errors.shopName : "\u00A0"}
+                </span>
+              </div>
+            ) : null}
+
+            <div className={styles.responseSlot}>
+              {renderStatus(register.status)}
+            </div>
+
+            <Button
+              theme_={"Red"}
+              size={"M"}
+              label={
+                isLoading
+                  ? "Submitting..."
+                  : isSeller
+                    ? "Register as Seller"
+                    : "Create Account"
+              }
+              onClick={() => emit(RegisterAction.onSubmit())}
+              disabled={canSubmit === false}
+            />
+          </div>
+
+          <div className={styles.footerLinks}>
+            <button
+              type="button"
+              className={styles.textLink}
+              onClick={() =>
+                emit(navigateTo(toRoute("Login", { redirect: null })))
+              }
+            >
+              Already have an account? Sign in
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -234,40 +267,199 @@ function mapShopNameError(_error: ErrorShopName): string {
 }
 
 const styles = {
-  container: css({
-    width: "100%",
-    maxWidth: "100%",
-    minHeight: "100dvh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.s6,
-    overflowX: "hidden",
-    background: `linear-gradient(120deg, ${color.genz.purple100}, ${color.neutral0}, ${color.genz.purple200})`,
-  }),
-  card: css({
-    width: "100%",
-    maxWidth: "540px",
+  page: css({
     display: "flex",
     flexDirection: "column",
-    gap: theme.s4,
-    background: color.neutral0,
-    border: `1px solid ${color.genz.purple100}`,
-    borderRadius: theme.s4,
-    boxShadow: theme.elevation.large,
-    padding: `${theme.s7} ${theme.s6}`,
-    ...bp.sm({
-      padding: `${theme.s10} ${theme.s9}`,
+    minHeight: "100dvh",
+    ...bp.md({
+      flexDirection: "row",
     }),
   }),
-  title: css({
-    ...font.boldH3_29,
-    margin: 0,
+  brand: css({
+    position: "relative",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    padding: `${theme.s10} ${theme.s8}`,
+    background:
+      "linear-gradient(145deg, #0F172A 0%, #312E81 55%, #0F172A 100%)",
+    minHeight: "220px",
+    ...bp.md({
+      flex: "0 0 60%",
+      minHeight: "100dvh",
+      padding: `${theme.s16} ${theme.s14}`,
+    }),
   }),
-  subtitle: css({
-    ...font.regular14,
-    color: color.neutral700,
+  brandGrid: css({
+    position: "absolute",
+    inset: 0,
+    backgroundImage: [
+      "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)",
+      "linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+    ].join(", "),
+    backgroundSize: "48px 48px",
+    pointerEvents: "none",
+  }),
+  brandBadge: css({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 3,
+    width: "180px",
+    height: "72px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #312E81 0%, #7C3AED 100%)",
+    clipPath: "polygon(0 0, 100% 0, 84% 100%, 0 100%)",
+    boxShadow: "0 0 24px rgba(124,58,237,0.45)",
+  }),
+  brandBadgeText: css({
+    ...font.bold14,
+    color: color.neutral0,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    transform: "skewX(-8deg)",
+  }),
+  brandContent: css({
+    position: "relative",
+    zIndex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    ...bp.md({
+      alignItems: "center",
+    }),
+  }),
+  brandLogoImg: css({
+    width: "100%",
+    maxWidth: "520px",
+    minWidth: "120px",
+    aspectRatio: "1 / 1",
+    objectFit: "contain",
+    borderRadius: "50%",
+    border: "3px solid rgba(255,255,255,0.35)",
+    background: "rgba(255,255,255,0.08)",
+    padding: theme.s4,
+    flexShrink: 0,
+  }),
+  brandWordmark: css({
+    fontSize: "clamp(2.4rem, 5vw, 4rem)",
+    fontFamily: 'var(--font-sans, "SF Pro Display", "Inter", sans-serif)',
+    fontWeight: 800,
+    letterSpacing: "-0.05em",
+    lineHeight: 1,
     margin: 0,
+    background:
+      "linear-gradient(135deg, #FFFFFF 0%, rgba(255,255,255,0.65) 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+  }),
+  brandTagline: css({
+    margin: 0,
+    ...font.regular17,
+    color: "rgba(255,255,255,0.50)",
+    letterSpacing: "0.01em",
+    maxWidth: "360px",
+  }),
+  brandFeatures: css({
+    margin: 0,
+    padding: 0,
+    listStyle: "none",
+    display: "none",
+    flexDirection: "column",
+    gap: theme.s3,
+    ...bp.md({
+      display: "flex",
+    }),
+    "& li": {
+      ...font.regular13,
+      color: "rgba(255,255,255,0.55)",
+      paddingLeft: "22px",
+      position: "relative",
+      "&::before": {
+        content: '"✦"',
+        position: "absolute",
+        left: 0,
+        color: color.genz.purpleLight,
+        fontSize: "9px",
+        top: "5px",
+      },
+    },
+  }),
+  brandFootnote: css({
+    position: "relative",
+    zIndex: 1,
+    margin: 0,
+    ...font.regular12,
+    color: "rgba(255,255,255,0.20)",
+    display: "none",
+    ...bp.md({
+      display: "block",
+    }),
+  }),
+  auth: css({
+    flex: "0 0 40%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: color.neutral0,
+    padding: `${theme.s10} ${theme.s8}`,
+    ...bp.md({
+      overflowY: "auto",
+      minHeight: "100dvh",
+    }),
+  }),
+  authInner: css({
+    position: "relative",
+    width: "100%",
+    maxWidth: "380px",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s5,
+    paddingTop: theme.s7,
+    animation: `${fadeSlideUp} 0.45s ease both`,
+  }),
+  closeButton: css({
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    border: `1px solid ${color.neutral200}`,
+    background: color.neutral0,
+    color: color.neutral700,
+    ...font.bold12,
+    cursor: "pointer",
+    "&:hover": {
+      background: color.neutral50,
+      borderColor: color.neutral300,
+    },
+  }),
+  formHeader: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s2,
+  }),
+  formBadge: css({
+    ...font.bold12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: color.genz.purple,
+  }),
+  formTitle: css({
+    margin: 0,
+    ...font.boldH2_35,
+    color: color.neutral900,
+  }),
+  formSubtitle: css({
+    margin: 0,
+    ...font.regular13,
+    color: color.neutral500,
   }),
   roleToggle: css({
     display: "grid",
@@ -276,67 +468,87 @@ const styles = {
   }),
   roleButton: css({
     ...font.medium14,
-    border: `1px solid ${color.genz.purple200}`,
+    border: `1px solid ${color.neutral100}`,
     background: color.neutral0,
-    color: color.genz.purple,
-    borderRadius: theme.s2,
+    color: color.neutral600,
+    borderRadius: "8px",
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
+    transition: "border-color 160ms ease",
+    "&:hover": {
+      borderColor: color.genz.purpleLight,
+    },
   }),
   roleButtonActive: css({
     ...font.medium14,
     border: `1px solid ${color.genz.purple}`,
     background: color.genz.purple,
     color: color.neutral0,
-    borderRadius: theme.s2,
+    borderRadius: "8px",
     padding: `${theme.s2} ${theme.s3}`,
     cursor: "pointer",
   }),
   form: css({
     display: "flex",
     flexDirection: "column",
-    gap: theme.s3,
+    gap: theme.s1,
   }),
   field: css({
     display: "flex",
     flexDirection: "column",
-    gap: theme.s1,
+    gap: "6px",
+    marginBottom: theme.s2,
   }),
   fieldLabel: css({
-    ...font.regular14,
+    ...font.medium14,
+    color: color.neutral700,
   }),
   responseSlot: css({
-    minHeight: theme.s10,
+    minHeight: theme.s8,
     display: "flex",
     alignItems: "center",
     width: "100%",
   }),
   errorText: css({
-    ...font.medium14,
+    ...font.regular13,
     color: color.semantics.error.red500,
+    background: color.semantics.error.red50,
+    border: `1px solid rgba(237,28,36,0.15)`,
+    borderRadius: "8px",
+    padding: `${theme.s2} ${theme.s3}`,
+    width: "100%",
   }),
   fieldError: css({
     ...font.regular12,
     color: color.semantics.error.red500,
-    minHeight: theme.s4,
-    display: "block",
+    minHeight: "18px",
     lineHeight: 1.4,
   }),
   fieldErrorGhost: css({
     visibility: "hidden",
   }),
   successText: css({
-    ...font.medium14,
+    ...font.regular13,
     color: color.semantics.success.green500,
+    background: color.semantics.success.green50,
+    borderRadius: "8px",
+    padding: `${theme.s2} ${theme.s3}`,
+    width: "100%",
   }),
-  loginLink: css({
+  footerLinks: css({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  }),
+  textLink: css({
     border: "none",
     background: "none",
     cursor: "pointer",
-    ...font.medium14,
+    ...font.regular13,
     color: color.genz.purple,
-    textDecoration: "underline",
-    textAlign: "left",
     padding: 0,
+    "&:hover": {
+      textDecoration: "underline",
+    },
   }),
 }
