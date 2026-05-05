@@ -111,6 +111,10 @@ function normalizeOrderPaymentRow(
   }
 }
 
+export function decodeRaw(row: Record<string, unknown>): OrderPaymentRow {
+  return orderPaymentRowDecoder.verify(normalizeOrderPaymentRow(row))
+}
+
 export async function create(params: CreateParams): Promise<OrderPaymentRow> {
   const now = toDate(createNow())
   const id = createOrderPaymentID()

@@ -35,6 +35,7 @@ export type Schema = {
   ai_support_metrics_snapshot: AISupportMetricsSnapshotTable
   coin_rain_campaign: CoinRainCampaignTable
   coin_rain_coin: CoinRainCoinTable
+  order_cancellation_refund: OrderCancellationRefundTable
 }
 
 type UserTable = {
@@ -431,6 +432,15 @@ export type CoinRainCoinTable = {
   value: number
   claimedByUserId: string | null
   claimedAt: Date | null
+  createdAt: Date
+}
+
+export type OrderCancellationRefundTable = {
+  id: string
+  orderID: string
+  userID: string
+  amount: number
+  reason: "SELLER_CANCEL" | "REPORT_CASHBACK"
   createdAt: Date
 }
 

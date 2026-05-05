@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import * as API from "../../../../../../Core/Api/Auth/Seller/OrderPayment/UpdateTracking"
 import { err, ok, Result } from "../../../../../../Core/Data/Result"
 import { AuthSeller } from "../../../AuthApi"
@@ -10,6 +11,8 @@ import {
   toOrderPaymentItem,
 } from "../../../../App/OrderPayment"
 import { getSocketIO } from "../../../../Socket"
+import db from "../../../../Database"
+import { createNow, toDate } from "../../../../../../Core/Data/Time/Timestamp"
 
 export const contract = API.contract
 
@@ -27,9 +30,13 @@ export async function handler(
     return err("INVALID_STATUS_TRANSITION")
   }
 
-  const row = await OrderPaymentRow.updateTracking(id, seller.id, {
-    status,
-  })
+  let row: OrderPaymentRow.OrderPaymentRow | null
+
+  if (status === "CANCELLED") {
+    row = await cancelOrderWithRefund(id, seller.id)
+  } else {
+    row = await OrderPaymentRow.updateTracking(id, seller.id, { status })
+  }
 
   if (row == null) {
     return err("ORDER_PAYMENT_NOT_FOUND")
@@ -51,6 +58,102 @@ export async function handler(
       itemRows.map(toOrderPaymentItem),
       seller.tax.unwrap(),
     ),
+  })
+}
+
+async function cancelOrderWithRefund(
+  id: OrderPaymentRow.OrderPaymentRow["id"],
+  sellerId: OrderPaymentRow.OrderPaymentRow["sellerId"],
+): Promise<OrderPaymentRow.OrderPaymentRow | null> {
+  const now = toDate(createNow())
+
+  return db.transaction().execute(async (trx) => {
+    // Lock the order row
+    const current = await trx
+      .selectFrom("order_payment")
+      .selectAll()
+      .where("id", "=", id.unwrap())
+      .where("sellerId", "=", sellerId.unwrap())
+      .where("isDeleted", "=", false)
+      .forUpdate()
+      .executeTakeFirst()
+
+    if (current == null) {
+      return null
+    }
+
+    // Update order status to CANCELLED
+    const updated = await trx
+      .updateTable("order_payment")
+      .set({ status: "CANCELLED", updatedAt: now })
+      .where("id", "=", id.unwrap())
+      .where("sellerId", "=", sellerId.unwrap())
+      .where("isDeleted", "=", false)
+      .returningAll()
+      .executeTakeFirst()
+
+    if (updated == null) {
+      return null
+    }
+
+    // Only issue a refund if the order was actually paid
+    if (current.isPaid === true) {
+      const refundAmount = current.price
+
+      // Insert audit record — UNIQUE(orderID) prevents double-refund on retry
+      await trx
+        .insertInto("order_cancellation_refund")
+        .values({
+          id: randomUUID(),
+          orderID: current.id,
+          userID: current.userId,
+          amount: refundAmount,
+          reason: "SELLER_CANCEL",
+          createdAt: now,
+        })
+        .onConflict((oc) => oc.column("orderID").doNothing())
+        .execute()
+
+      // Credit the user's wallet
+      await trx
+        .updateTable("user")
+        .set((eb) => ({ wallet: eb("wallet", "+", refundAmount), updatedAt: now }))
+        .where("id", "=", current.userId)
+        .where("isDeleted", "=", false)
+        .execute()
+
+      // Debit the treasury admin's wallet
+      const treasuryAdmin = await trx
+        .selectFrom("admin")
+        .select(["id"])
+        .where("isDeleted", "=", false)
+        .orderBy("createdAt", "asc")
+        .executeTakeFirst()
+
+      if (treasuryAdmin != null) {
+        await trx
+          .updateTable("admin")
+          .set((eb) => ({ wallet: eb("wallet", "-", refundAmount), updatedAt: now }))
+          .where("id", "=", treasuryAdmin.id)
+          .where("isDeleted", "=", false)
+          .where("wallet", ">=", refundAmount)
+          .execute()
+      }
+    }
+
+    // Re-fetch to return the decoded row via existing Row decoder
+    const final = await trx
+      .selectFrom("order_payment")
+      .selectAll()
+      .where("id", "=", id.unwrap())
+      .executeTakeFirst()
+
+    if (final == null) {
+      return null
+    }
+
+    // Use existing decoder path via OrderPaymentRow
+    return OrderPaymentRow.decodeRaw(final)
   })
 }
 

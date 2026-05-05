@@ -4,9 +4,9 @@ import { AuthAdmin } from "../../../AuthApi"
 import { ReportStatus } from "../../../../../../Core/App/Report"
 import * as ReportRow from "../../../../Database/ReportRow"
 import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
-import * as UserRow from "../../../../Database/UserRow"
-import * as AdminRow from "../../../../Database/AdminRow"
 import { toReport } from "../../../../App/Report"
+import { randomUUID } from "node:crypto"
+import db from "../../../../Database"
 
 export const contract = API.contract
 
@@ -39,15 +39,41 @@ export async function handler(
       return err("REPORT_NOT_FOUND")
     }
 
-    const credited = await UserRow.incrementWallet(
-      updated.userId,
-      order.price.unwrap(),
-    )
-    if (credited == null) {
-      return err("REPORT_NOT_FOUND")
-    }
+    const refundAmount = order.price.unwrap()
+    const now = new Date()
 
-    await AdminRow.decrementWallet(_admin.id, order.price.unwrap())
+    await db.transaction().execute(async (trx) => {
+      // Insert audit record — UNIQUE(orderID) prevents double-credit on retry
+      await trx
+        .insertInto("order_cancellation_refund")
+        .values({
+          id: randomUUID(),
+          orderID: order.id.unwrap(),
+          userID: updated.userId.unwrap(),
+          amount: refundAmount,
+          reason: "REPORT_CASHBACK",
+          createdAt: now,
+        })
+        .onConflict((oc) => oc.column("orderID").doNothing())
+        .execute()
+
+      // Credit the user's wallet
+      await trx
+        .updateTable("user")
+        .set((eb) => ({ wallet: eb("wallet", "+", refundAmount), updatedAt: now }))
+        .where("id", "=", updated.userId.unwrap())
+        .where("isDeleted", "=", false)
+        .execute()
+
+      // Debit the admin's wallet
+      await trx
+        .updateTable("admin")
+        .set((eb) => ({ wallet: eb("wallet", "-", refundAmount), updatedAt: now }))
+        .where("id", "=", _admin.id.unwrap())
+        .where("isDeleted", "=", false)
+        .where("wallet", ">=", refundAmount)
+        .execute()
+    })
   }
 
   await OrderPaymentRow.updateStatusByReportFlow(
