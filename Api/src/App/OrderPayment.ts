@@ -35,7 +35,6 @@ export function toOrderPayment(
     items,
     status: row.status,
     price: row.price,
-    trackingCode: row.trackingCode,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }

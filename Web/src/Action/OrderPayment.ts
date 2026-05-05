@@ -9,7 +9,6 @@ import * as SellerUpdateApi from "../Api/Auth/Seller/OrderPayment/UpdateTracking
 import { onLoadUserRatingsResponse } from "./ProductRating"
 import { parseOrderPaymentID } from "../../../Core/App/OrderPayment/OrderPaymentID"
 import { navigateTo, toRoute } from "../Route"
-import { createOrderPaymentTrackingCode } from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
 import { OrderPaymentStatus } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
 
 type DeliveryDecision = "RECEIVED" | "DELIVERY_ISSUE"
@@ -61,25 +60,9 @@ export function onChangeStatusDraft(
   ]
 }
 
-export function onChangeTrackingDraft(orderID: string, value: string): Action {
-  return (state) => [
-    _OrderPaymentState(state, {
-      trackingDraftByOrderID: {
-        ...state.orderPayment.trackingDraftByOrderID,
-        [orderID]: value,
-      },
-    }),
-    cmd(),
-  ]
-}
-
 export function submitTrackingUpdate(orderID: string): Action {
   return (state) => {
     const status = state.orderPayment.statusDraftByOrderID[orderID] ?? "PACKED"
-    const trackingDraftRaw = (
-      state.orderPayment.trackingDraftByOrderID[orderID] ?? ""
-    ).trim()
-    const trackingDraft = trackingDraftRaw.slice(0, 100)
 
     let parsedID
     try {
@@ -91,27 +74,13 @@ export function submitTrackingUpdate(orderID: string): Action {
       ]
     }
 
-    const trackingCode =
-      trackingDraft === ""
-        ? null
-        : createOrderPaymentTrackingCode(trackingDraft)
-
-    if (trackingDraft !== "" && trackingCode == null) {
-      return [
-        _OrderPaymentState(state, {
-          flashMessage: "Invalid tracking code format.",
-        }),
-        cmd(),
-      ]
-    }
-
     return [
       _OrderPaymentState(state, {
         updateTrackingResponse: RD.loading(),
         flashMessage: null,
       }),
       cmd(
-        SellerUpdateApi.call({ id: parsedID }, { status, trackingCode }).then(
+        SellerUpdateApi.call({ id: parsedID }, { status }).then(
           onUpdateTrackingResponse,
         ),
       ),
@@ -189,14 +158,10 @@ function onSellerListResponse(response: SellerListApi.Response): Action {
     const paidOrders = response.value.orders.filter((order) => order.isPaid)
 
     const statusDraftByOrderID = { ...state.orderPayment.statusDraftByOrderID }
-    const trackingDraftByOrderID = {
-      ...state.orderPayment.trackingDraftByOrderID,
-    }
 
     paidOrders.forEach((order) => {
       const key = order.id.unwrap()
       statusDraftByOrderID[key] = order.status
-      trackingDraftByOrderID[key] = order.trackingCode?.unwrap() ?? ""
     })
 
     return [
@@ -204,7 +169,6 @@ function onSellerListResponse(response: SellerListApi.Response): Action {
         sellerOrders: paidOrders,
         sellerOrdersResponse: RD.success(response.value),
         statusDraftByOrderID,
-        trackingDraftByOrderID,
       }),
       cmd(),
     ]

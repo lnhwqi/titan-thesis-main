@@ -17,7 +17,7 @@ export async function handler(
   seller: AuthSeller,
   params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
-  const { id, status, trackingCode } = params
+  const { id, status } = params
 
   if (
     status === "RECEIVED" ||
@@ -29,7 +29,6 @@ export async function handler(
 
   const row = await OrderPaymentRow.updateTracking(id, seller.id, {
     status,
-    trackingCode,
   })
 
   if (row == null) {
@@ -75,17 +74,12 @@ async function emitOrderUpdateChatMessage(
     return
   }
 
-  const trackingText =
-    row.trackingCode == null
-      ? ""
-      : ` Tracking code: ${row.trackingCode.unwrap()}.`
-
   const message = await MessageRow.create({
     conversationId: conversation.id,
     senderId: "SYSTEM",
     senderType: "SYSTEM",
     senderName: "System",
-    text: `Order #${row.id.unwrap().slice(0, 8)} updated to ${row.status}.${trackingText}`,
+    text: `Order #${row.id.unwrap().slice(0, 8)} updated to ${row.status}.`,
   })
   await ConversationRow.touch(conversation.id)
 

@@ -13,11 +13,6 @@ import {
   OrderPaymentStatus,
   orderPaymentStatusDecoder,
 } from "../../../../App/OrderPayment/OrderPaymentStatus"
-import {
-  OrderPaymentTrackingCode,
-  orderPaymentTrackingCodeDecoder,
-} from "../../../../App/OrderPayment/OrderPaymentTrackingCode"
-import { Maybe, maybeOptionalDecoder } from "../../../../Data/Maybe"
 
 export type UrlParams = {
   id: OrderPaymentID
@@ -25,7 +20,6 @@ export type UrlParams = {
 
 export type BodyParams = {
   status: OrderPaymentStatus
-  trackingCode: Maybe<OrderPaymentTrackingCode>
 }
 
 export type Contract = AuthApi<
@@ -59,7 +53,6 @@ export const urlParamsDecoder: JD.Decoder<UrlParams> = JD.object({
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   status: orderPaymentStatusDecoder,
-  trackingCode: maybeOptionalDecoder(orderPaymentTrackingCodeDecoder),
 })
 
 export const contract: Contract = {

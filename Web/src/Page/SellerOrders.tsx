@@ -173,13 +173,6 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                 )}
               </div>
 
-              <div className={styles.section}>
-                <div className={styles.sectionTitle}>Tracking code</div>
-                <div className={styles.rowMuted}>
-                  Current: {order.trackingCode?.unwrap() ?? "Not set"}
-                </div>
-              </div>
-
               {lockedByBuyer ? (
                 <div className={styles.noticeBox}>
                   {report != null &&
@@ -218,26 +211,6 @@ export default function SellerOrdersPage(props: Props): JSX.Element {
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  <div className={styles.rowField}>
-                    <label className={styles.label}>Tracking code</label>
-                    <input
-                      className={styles.input}
-                      type="text"
-                      value={
-                        state.orderPayment.trackingDraftByOrderID[orderID] ?? ""
-                      }
-                      placeholder="Enter tracking code"
-                      onChange={(e) =>
-                        emit(
-                          OrderPaymentAction.onChangeTrackingDraft(
-                            orderID,
-                            e.currentTarget.value,
-                          ),
-                        )
-                      }
-                    />
                   </div>
 
                   <button

@@ -25,10 +25,6 @@ import {
 } from "../../../Core/App/OrderPayment/OrderPaymentStatus"
 import { Price, priceDecoder } from "../../../Core/App/Product/Price"
 import { Maybe, maybeDecoder } from "../../../Core/Data/Maybe"
-import {
-  OrderPaymentTrackingCode,
-  orderPaymentTrackingCodeDecoder,
-} from "../../../Core/App/OrderPayment/OrderPaymentTrackingCode"
 import * as MarketConfigRow from "./MarketConfigRow"
 
 function parseJsonSafe(value: string): unknown {
@@ -60,7 +56,6 @@ export type OrderPaymentRow = {
   isPaid: boolean
   status: OrderPaymentStatus
   price: Price
-  trackingCode: Maybe<OrderPaymentTrackingCode>
   isSellerSettled: boolean
   settledAt: Maybe<Timestamp>
   isDeleted: boolean
@@ -78,7 +73,6 @@ export type CreateParams = {
 
 export type UpdateTrackingParams = {
   status: OrderPaymentStatus
-  trackingCode: Maybe<OrderPaymentTrackingCode>
 }
 
 export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
@@ -92,7 +86,6 @@ export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
   isPaid: JD.boolean,
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
-  trackingCode: maybeDecoder(orderPaymentTrackingCodeDecoder),
   isSellerSettled: JD.boolean,
   settledAt: maybeDecoder(timestampJSDateDecoder),
   isDeleted: JD.boolean,
@@ -131,7 +124,6 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
       isPaid: true,
       status: "PAID",
       price: params.price.unwrap(),
-      trackingCode: null,
       isSellerSettled: false,
       settledAt: null,
       isDeleted: false,
@@ -152,7 +144,6 @@ export async function updateTracking(
     .updateTable(tableName)
     .set({
       status: params.status,
-      trackingCode: params.trackingCode?.unwrap() ?? null,
       updatedAt: toDate(createNow()),
     })
     .where("id", "=", id.unwrap())

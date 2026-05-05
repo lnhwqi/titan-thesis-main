@@ -186,7 +186,6 @@ export type OrderPaymentTable = {
     | "DELIVERY_ISSUE"
     | "CANCELLED"
   price: number
-  trackingCode: string | null
   isSellerSettled: boolean
   settledAt: Date | null
   isDeleted: boolean

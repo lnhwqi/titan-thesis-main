@@ -60,7 +60,6 @@ const GLOBAL_DENY_EXACT: string[] = [
   "adminrefreshtoken",
   "internalmoderationnote",
   "resulttextadmin",
-  "trackingcode",
   "apptransid",
   "previousid",
   "previouscreatedat",
@@ -247,7 +246,7 @@ const POLICY_ENTRIES: TableIngestionPolicyEntry[] = [
         "createdAt",
         "updatedAt",
       ],
-      deniedColumns: ["username", "address", "trackingCode", "price"],
+      deniedColumns: ["username", "address", "price"],
     },
   },
   {

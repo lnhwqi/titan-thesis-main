@@ -201,12 +201,6 @@ export default function UserOrdersPage(props: Props): JSX.Element {
                         {formatT(order.price.unwrap())}
                       </div>
                     </div>
-                    <div className={styles.detailItem}>
-                      <div className={styles.detailLabel}>Tracking Code</div>
-                      <div className={styles.detailValue}>
-                        {order.trackingCode?.unwrap() ?? "Not assigned"}
-                      </div>
-                    </div>
                     <div className={styles.detailItemFull}>
                       <div className={styles.detailLabel}>Shipping Address</div>
                       <div className={styles.detailValue}>

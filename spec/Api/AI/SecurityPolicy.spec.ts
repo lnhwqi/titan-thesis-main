@@ -18,9 +18,6 @@ describe("Api/AI/SecurityPolicy", () => {
     expect(isColumnAllowedForVectorIngestion("seller", "shopName")).toBe(true)
     expect(isColumnAllowedForVectorIngestion("seller", "email")).toBe(false)
     expect(isColumnAllowedForVectorIngestion("seller", "password")).toBe(false)
-    expect(
-      isColumnAllowedForVectorIngestion("order_payment", "trackingCode"),
-    ).toBe(false)
   })
 
   test("row filtering keeps only allowed columns", () => {
@@ -30,7 +27,6 @@ describe("Api/AI/SecurityPolicy", () => {
       sellerId: "seller-id",
       goodsSummary: "Some goods",
       address: "Very private address",
-      trackingCode: "VN123456",
       isPaid: true,
     }
 
@@ -41,7 +37,6 @@ describe("Api/AI/SecurityPolicy", () => {
     expect(filtered.sellerId).toBe("seller-id")
     expect(filtered.goodsSummary).toBe("Some goods")
     expect(filtered.address).toBeUndefined()
-    expect(filtered.trackingCode).toBeUndefined()
   })
 
   test("user private scope allows only matching owner", () => {

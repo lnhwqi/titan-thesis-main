@@ -31,7 +31,6 @@ describe("Api/AI/IngestionContract", () => {
         sellerId: "seller-1",
         goodsSummary: "Headphones",
         address: "private address",
-        trackingCode: "VN123456",
         isPaid: true,
         status: "PAID",
       },
@@ -43,7 +42,6 @@ describe("Api/AI/IngestionContract", () => {
     expect(draft?.access.shopId).toBeNull()
     expect(draft?.content.includes("goodsSummary: Headphones")).toBe(true)
     expect(draft?.content.includes("address")).toBe(false)
-    expect(draft?.content.includes("trackingCode")).toBe(false)
     expect(draft?.contentHash.length).toBe(64)
   })
 })

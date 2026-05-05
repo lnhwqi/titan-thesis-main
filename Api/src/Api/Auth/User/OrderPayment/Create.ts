@@ -218,7 +218,6 @@ export async function handler(
             isPaid,
             status: "PAID",
             price: payablePrice.unwrap(),
-            trackingCode: null,
             isSellerSettled: false,
             settledAt: null,
             isDeleted: false,
