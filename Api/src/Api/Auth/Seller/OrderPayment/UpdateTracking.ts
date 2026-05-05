@@ -117,7 +117,10 @@ async function cancelOrderWithRefund(
       // Credit the user's wallet
       await trx
         .updateTable("user")
-        .set((eb) => ({ wallet: eb("wallet", "+", refundAmount), updatedAt: now }))
+        .set((eb) => ({
+          wallet: eb("wallet", "+", refundAmount),
+          updatedAt: now,
+        }))
         .where("id", "=", current.userId)
         .where("isDeleted", "=", false)
         .execute()
@@ -133,7 +136,10 @@ async function cancelOrderWithRefund(
       if (treasuryAdmin != null) {
         await trx
           .updateTable("admin")
-          .set((eb) => ({ wallet: eb("wallet", "-", refundAmount), updatedAt: now }))
+          .set((eb) => ({
+            wallet: eb("wallet", "-", refundAmount),
+            updatedAt: now,
+          }))
           .where("id", "=", treasuryAdmin.id)
           .where("isDeleted", "=", false)
           .where("wallet", ">=", refundAmount)

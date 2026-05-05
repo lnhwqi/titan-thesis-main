@@ -60,7 +60,10 @@ export async function handler(
       // Credit the user's wallet
       await trx
         .updateTable("user")
-        .set((eb) => ({ wallet: eb("wallet", "+", refundAmount), updatedAt: now }))
+        .set((eb) => ({
+          wallet: eb("wallet", "+", refundAmount),
+          updatedAt: now,
+        }))
         .where("id", "=", updated.userId.unwrap())
         .where("isDeleted", "=", false)
         .execute()
@@ -68,7 +71,10 @@ export async function handler(
       // Debit the admin's wallet
       await trx
         .updateTable("admin")
-        .set((eb) => ({ wallet: eb("wallet", "-", refundAmount), updatedAt: now }))
+        .set((eb) => ({
+          wallet: eb("wallet", "-", refundAmount),
+          updatedAt: now,
+        }))
         .where("id", "=", _admin.id.unwrap())
         .where("isDeleted", "=", false)
         .where("wallet", ">=", refundAmount)
