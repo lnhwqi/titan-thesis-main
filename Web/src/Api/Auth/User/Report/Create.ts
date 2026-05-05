@@ -29,6 +29,10 @@ export function errorString(code: ApiError<ErrorCode>): string {
         return "Seller not found for this order."
       case "ORDER_NOT_OWNED_BY_USER":
         return "You can only report your own order."
+      case "ORDER_NOT_REPORTABLE":
+        return "This order cannot be reported at its current status."
+      case "REPORT_WINDOW_EXPIRED":
+        return "Report window expired for this order."
       case "REPORT_TITLE_MISMATCH":
         return "Report title does not match report category."
       case null:

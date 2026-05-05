@@ -28,6 +28,8 @@ export type OrderPayment = {
   items: OrderPaymentItem[]
   status: OrderPaymentStatus
   price: Price
+  fee: Price
+  profit: Price
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -44,6 +46,8 @@ export const orderPaymentDecoder: JD.Decoder<OrderPayment> = JD.object({
   items: JD.array(orderPaymentItemDecoder),
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
+  fee: priceDecoder,
+  profit: priceDecoder,
   createdAt: timestampDecoder,
   updatedAt: timestampDecoder,
 })

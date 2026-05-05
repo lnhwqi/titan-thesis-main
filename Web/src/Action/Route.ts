@@ -89,8 +89,12 @@ export function onUrlChange(s: State): [State, Cmd] {
     case "SellerProductCreate":
       return SellerDashboardAction.onEnterRoute()(state)
 
-    case "SellerShipping":
-      return SellerDashboardAction.onEnterRoute()(state)
+    case "SellerShipping": {
+      const [dashState, dashCmd] = SellerDashboardAction.onEnterRoute()(state)
+      const [shippingState, shippingCmd] =
+        OrderPaymentAction.onEnterSellerOrdersRoute()(dashState)
+      return [shippingState, [...dashCmd, ...shippingCmd]]
+    }
 
     case "SellerVoucherCreate":
       return VoucherAction.onEnterCreateRoute()(state)

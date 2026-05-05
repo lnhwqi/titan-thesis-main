@@ -2,6 +2,7 @@
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
+import { fadeSlideUp } from "../View/Theme/Keyframe"
 import { emit } from "../Runtime/React"
 import * as AuthToken from "../App/AuthToken"
 import InputText from "../View/Form/InputText"
@@ -48,25 +49,26 @@ export default function SellerVoucherCreatePage(props: Props): JSX.Element {
         </div>
       ) : null}
 
-      <header className={styles.header}>
+      <header className={styles.hero}>
         <div>
-          <h1 className={styles.title}>Voucher Management</h1>
-          <p className={styles.subtitle}>
+          <p className={styles.kicker}>Seller Workspace</p>
+          <h1 className={styles.heroTitle}>Voucher Management</h1>
+          <p className={styles.heroSubtitle}>
             Create, update, and delete all vouchers from one page.
           </p>
         </div>
-        <div className={styles.headerActions}>
+        <div className={styles.heroActions}>
           <button
-            className={styles.secondaryButton}
+            className={styles.heroSecondaryButton}
             onClick={() => emit(VoucherAction.reloadVoucherList())}
           >
             Refresh
           </button>
           <button
-            className={styles.secondaryButton}
+            className={styles.heroSecondaryButton}
             onClick={() => emit(VoucherAction.goToSellerDashboard())}
           >
-            Back to Dashboard
+            ← Dashboard
           </button>
         </div>
       </header>
@@ -361,11 +363,66 @@ const styles = {
     background:
       `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
       `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
-      `${color.neutral0}`,
+      `${color.secondary10}`,
     position: "relative",
+    display: "grid",
+    gap: theme.s5,
+    alignContent: "start",
+    animation: `${fadeSlideUp} 0.4s ease both`,
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
     }),
+  }),
+  hero: css({
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.secondary400} 38%, ${color.primary400} 100%)`,
+    borderRadius: theme.s4,
+    padding: theme.s5,
+    boxShadow: "0 16px 36px rgba(0, 82, 156, 0.24)",
+    color: color.neutral0,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: theme.s3,
+    flexWrap: "wrap",
+    position: "relative",
+    overflow: "hidden",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.14) 0%, transparent 50%)",
+      pointerEvents: "none",
+    },
+  }),
+  kicker: css({
+    ...font.bold12,
+    letterSpacing: "0.15em",
+    textTransform: "uppercase",
+    color: color.secondary50,
+    marginBottom: theme.s1,
+  }),
+  heroTitle: css({ ...font.boldH4_24, margin: 0, color: color.neutral0 }),
+  heroSubtitle: css({
+    ...font.regular14,
+    color: "rgba(255,255,255,0.75)",
+    marginTop: theme.s1,
+  }),
+  heroActions: css({ display: "flex", gap: theme.s2, flexWrap: "wrap" }),
+  heroSecondaryButton: css({
+    border: `1px solid rgba(255,255,255,0.25)`,
+    background: "rgba(255,255,255,0.1)",
+    color: color.neutral0,
+    borderRadius: theme.br5,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+    backdropFilter: "blur(8px)",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      background: "rgba(255,255,255,0.18)",
+      transform: "translateY(-2px)",
+    },
   }),
   modalOverlay: css({
     position: "fixed",
@@ -410,32 +467,11 @@ const styles = {
     ...font.medium14,
     cursor: "pointer",
   }),
-  header: css({
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: theme.s3,
-    marginBottom: theme.s4,
-  }),
-  headerActions: css({
-    display: "flex",
-    gap: theme.s2,
-  }),
-  title: css({
-    ...font.boldH4_24,
-    margin: 0,
-  }),
-  subtitle: css({
-    ...font.regular14,
-    color: color.neutral700,
-    marginTop: theme.s1,
-  }),
   panel: css({
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s5,
-    marginBottom: theme.s4,
   }),
   sectionTitle: css({
     ...font.bold17,

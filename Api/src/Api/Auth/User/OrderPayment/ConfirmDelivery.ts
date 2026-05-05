@@ -30,6 +30,6 @@ export async function handler(
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentID(row.id)
 
   return ok({
-    orderPayment: toOrderPayment(row, itemRows.map(toOrderPaymentItem)),
+    orderPayment: toOrderPayment(row, itemRows.map(toOrderPaymentItem), 0),
   })
 }

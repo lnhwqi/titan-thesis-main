@@ -2,6 +2,7 @@
 import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme, bp } from "../View/Theme"
+import { fadeSlideUp } from "../View/Theme/Keyframe"
 import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
 import { emit } from "../Runtime/React"
@@ -34,8 +35,19 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
 
   if (!isSeller) {
     return (
-      <div className={styles.gate}>
-        <p className={styles.muted}>Seller access required.</p>
+      <div className={styles.gateContainer}>
+        <div className={styles.gateCard}>
+          <h1 className={styles.gateTitle}>Seller Access Required</h1>
+          <p className={styles.gateText}>
+            Please log in as a seller to create products.
+          </p>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => emit(navigateTo(toRoute("SellerLogin", {})))}
+          >
+            Go to Seller Login
+          </button>
+        </div>
       </div>
     )
   }
@@ -63,18 +75,19 @@ export default function SellerProductCreatePage(props: Props): JSX.Element {
         </div>
       ) : null}
 
-      <header className={styles.header}>
+      <header className={styles.hero}>
         <div>
-          <h1 className={styles.title}>Create Product</h1>
-          <p className={styles.subtitle}>
+          <p className={styles.kicker}>Seller Workspace</p>
+          <h1 className={styles.heroTitle}>Create Product</h1>
+          <p className={styles.heroSubtitle}>
             Create a new product from this page.
           </p>
         </div>
         <button
-          className={styles.secondaryButton}
+          className={styles.heroSecondaryButton}
           onClick={() => emit(navigateTo(toRoute("SellerDashboard", {})))}
         >
-          Back to Dashboard
+          ← Dashboard
         </button>
       </header>
 
@@ -383,11 +396,88 @@ const styles = {
     background:
       `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
       `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
-      `${color.neutral0}`,
+      `${color.secondary10}`,
     position: "relative",
+    display: "grid",
+    gap: theme.s5,
+    alignContent: "start",
+    animation: `${fadeSlideUp} 0.4s ease both`,
     ...bp.md({
       padding: `${theme.s8} ${theme.s10}`,
     }),
+  }),
+  gateContainer: css({
+    minHeight: "100dvh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s6,
+    background: `radial-gradient(circle at 10% 15%, rgba(0, 82, 156, 0.08) 0%, transparent 40%), ${color.secondary10}`,
+  }),
+  gateCard: css({
+    maxWidth: "420px",
+    background: "var(--app-surface-strong)",
+    border: "1px solid var(--app-border)",
+    borderRadius: theme.s4,
+    boxShadow: "var(--app-shadow-lg)",
+    padding: theme.s6,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    textAlign: "center",
+  }),
+  gateTitle: css({ ...font.boldH4_24, margin: 0, color: "var(--app-accent)" }),
+  gateText: css({ ...font.regular14, margin: 0, color: color.neutral600 }),
+  hero: css({
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.secondary400} 38%, ${color.primary400} 100%)`,
+    borderRadius: theme.s4,
+    padding: theme.s5,
+    boxShadow: "0 16px 36px rgba(0, 82, 156, 0.24)",
+    color: color.neutral0,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: theme.s3,
+    flexWrap: "wrap",
+    position: "relative",
+    overflow: "hidden",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.14) 0%, transparent 50%)",
+      pointerEvents: "none",
+    },
+  }),
+  kicker: css({
+    ...font.bold12,
+    letterSpacing: "0.15em",
+    textTransform: "uppercase",
+    color: color.secondary50,
+    marginBottom: theme.s1,
+  }),
+  heroTitle: css({ ...font.boldH4_24, margin: 0, color: color.neutral0 }),
+  heroSubtitle: css({
+    ...font.regular14,
+    color: "rgba(255,255,255,0.75)",
+    marginTop: theme.s1,
+  }),
+  heroSecondaryButton: css({
+    border: `1px solid rgba(255,255,255,0.25)`,
+    background: "rgba(255,255,255,0.1)",
+    color: color.neutral0,
+    borderRadius: theme.br5,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+    backdropFilter: "blur(8px)",
+    transition: "all 0.2s ease",
+    whiteSpace: "nowrap",
+    "&:hover": {
+      background: "rgba(255,255,255,0.18)",
+      transform: "translateY(-2px)",
+    },
   }),
   modalOverlay: css({
     position: "fixed",
@@ -431,22 +521,6 @@ const styles = {
     padding: `${theme.s2} ${theme.s4}`,
     ...font.medium14,
     cursor: "pointer",
-  }),
-  header: css({
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: theme.s3,
-    marginBottom: theme.s4,
-  }),
-  title: css({
-    ...font.boldH4_24,
-    margin: 0,
-  }),
-  subtitle: css({
-    ...font.regular14,
-    color: color.neutral700,
-    marginTop: theme.s1,
   }),
   panel: css({
     background: color.neutral0,
@@ -591,8 +665,5 @@ const styles = {
     padding: `${theme.s1} ${theme.s2}`,
     ...font.medium12,
     cursor: "pointer",
-  }),
-  gate: css({
-    padding: theme.s8,
   }),
 }

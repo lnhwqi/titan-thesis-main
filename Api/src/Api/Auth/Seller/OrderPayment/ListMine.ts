@@ -42,6 +42,7 @@ export async function handler(
       toOrderPayment(
         row,
         (itemsByOrderID.get(row.id.unwrap()) ?? []).map(toOrderPaymentItem),
+        seller.tax.unwrap(),
       ),
     ),
   })

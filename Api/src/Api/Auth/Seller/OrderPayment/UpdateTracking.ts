@@ -46,7 +46,11 @@ export async function handler(
   }
 
   return ok({
-    orderPayment: toOrderPayment(row, itemRows.map(toOrderPaymentItem)),
+    orderPayment: toOrderPayment(
+      row,
+      itemRows.map(toOrderPaymentItem),
+      seller.tax.unwrap(),
+    ),
   })
 }
 

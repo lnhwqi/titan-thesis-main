@@ -14,7 +14,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("address", "varchar(256)", (col) => col.notNull())
     .addColumn("status", "varchar(40)", (col) => col.notNull())
     .addColumn("price", "integer", (col) => col.notNull())
-    .addColumn("trackingCode", "varchar(100)")
     .addColumn("isDeleted", "boolean", (col) => col.notNull().defaultTo(false))
     .addColumn("updatedAt", "timestamp", (col) =>
       col.notNull().defaultTo(sql`now()`),

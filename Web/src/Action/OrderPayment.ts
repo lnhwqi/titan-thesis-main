@@ -60,6 +60,33 @@ export function onChangeStatusDraft(
   ]
 }
 
+export function onChangeSellerOrdersSearchQuery(query: string): Action {
+  return (state) => [
+    _OrderPaymentState(state, {
+      sellerOrdersSearchQuery: query,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeSellerOrdersStatusFilter(status: string): Action {
+  return (state) => [
+    _OrderPaymentState(state, {
+      sellerOrdersStatusFilter: status,
+    }),
+    cmd(),
+  ]
+}
+
+export function onChangeSellerOrdersDateFilter(date: string): Action {
+  return (state) => [
+    _OrderPaymentState(state, {
+      sellerOrdersDateFilter: date,
+    }),
+    cmd(),
+  ]
+}
+
 export function submitTrackingUpdate(orderID: string): Action {
   return (state) => {
     const status = state.orderPayment.statusDraftByOrderID[orderID] ?? "PACKED"

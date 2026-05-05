@@ -5,6 +5,7 @@ import { createReportID } from "../../../../../../Core/App/Report"
 import db from "../../../../Database"
 import * as ReportRow from "../../../../Database/ReportRow"
 import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
+import * as MarketConfigRow from "../../../../Database/MarketConfigRow"
 import { toReport } from "../../../../App/Report"
 
 export const contract = API.contract
@@ -26,7 +27,7 @@ export async function handler(
 
   const order = await db
     .selectFrom("order_payment")
-    .select(["id", "userId", "sellerId"])
+    .select(["id", "userId", "sellerId", "status", "updatedAt"])
     .where("id", "=", params.orderID.unwrap())
     .where("isDeleted", "=", false)
     .executeTakeFirst()
@@ -41,6 +42,21 @@ export async function handler(
 
   if (order.sellerId !== params.sellerID.unwrap()) {
     return err("SELLER_NOT_FOUND")
+  }
+
+  const isReportableStatus =
+    order.status === "DELIVERED" ||
+    order.status === "RECEIVED" ||
+    order.status === "DELIVERY_ISSUE"
+  if (isReportableStatus === false) {
+    return err("ORDER_NOT_REPORTABLE")
+  }
+
+  const config = await MarketConfigRow.getOrCreate()
+  const reportWindowMs = config.reportWindowHours.unwrap() * 60 * 60 * 1000
+  const deadline = new Date(order.updatedAt).getTime() + reportWindowMs
+  if (Date.now() > deadline) {
+    return err("REPORT_WINDOW_EXPIRED")
   }
 
   const report = await ReportRow.create({

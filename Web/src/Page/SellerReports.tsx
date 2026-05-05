@@ -1,12 +1,13 @@
 ﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
-import { color, font, theme } from "../View/Theme"
+import { bp, color, font, theme } from "../View/Theme"
 import { emit } from "../Runtime/React"
 import * as ReportAction from "../Action/Report"
 import { navigateTo, toRoute } from "../Route"
 import { ReportStatus } from "../../../Core/App/Report"
 import * as AuthToken from "../App/AuthToken"
+import { fadeSlideUp } from "../View/Theme/Keyframe"
 
 type Props = { state: State }
 
@@ -16,7 +17,22 @@ export default function SellerReportsPage(props: Props): JSX.Element {
   const isSeller = auth != null && auth.role === "SELLER"
 
   if (!isSeller) {
-    return <div className={styles.info}>Please login as seller first.</div>
+    return (
+      <div className={styles.gateContainer}>
+        <div className={styles.gateCard}>
+          <h1 className={styles.gateTitle}>Seller Access Required</h1>
+          <p className={styles.gateText}>
+            Please log in as seller to view reports.
+          </p>
+          <button
+            className={styles.primaryButton}
+            onClick={() => emit(navigateTo(toRoute("SellerLogin", {})))}
+          >
+            Go to Seller Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   const isSubmitting = state.report.sellerRespondResponse._t === "Loading"
@@ -24,23 +40,29 @@ export default function SellerReportsPage(props: Props): JSX.Element {
 
   return (
     <div className={styles.page}>
-      <div className={styles.headerRow}>
-        <h1 className={styles.title}>Seller Reports</h1>
-        <div className={styles.headerActions}>
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.kicker}>Seller Workspace</p>
+          <h1 className={styles.heroTitle}>Seller Reports</h1>
+          <p className={styles.heroSubtitle}>
+            Manage dispute reports and respond to buyer claims.
+          </p>
+        </div>
+        <div className={styles.heroActions}>
           <button
-            className={styles.secondaryButton}
+            className={styles.heroSecondaryButton}
             onClick={() => emit(ReportAction.onEnterSellerReportsRoute())}
           >
             Refresh
           </button>
           <button
-            className={styles.secondaryButton}
+            className={styles.heroSecondaryButton}
             onClick={() => emit(navigateTo(toRoute("SellerDashboard", {})))}
           >
-            Back Dashboard
+            ← Dashboard
           </button>
         </div>
-      </div>
+      </header>
 
       {state.report.flashMessage != null ? (
         <div className={styles.notice}>{state.report.flashMessage}</div>
@@ -65,30 +87,86 @@ export default function SellerReportsPage(props: Props): JSX.Element {
               key={id}
               className={styles.card}
             >
-              <div>ID: {id}</div>
-              <div>Order ID: {report.orderID.unwrap()}</div>
-              <div>Category: {report.category}</div>
-              <div>Title: {report.title}</div>
-              <div>Status: {humanizeStatus(report.status)}</div>
-
-              <div className={styles.sectionTitle}>User Claim</div>
-              <div>User Description: {report.userDescription.unwrap()}</div>
-              <div>
-                User Images:{" "}
-                {report.userUrlImgs.map((i) => i.unwrap()).join(", ") || "-"}
+              <div className={styles.cardTopRow}>
+                <div className={styles.cardMeta}>
+                  <span className={styles.cardId}>#{id.slice(0, 8)}</span>
+                  <span
+                    className={styles.statusPill}
+                    data-closed={!canAgreeCashback}
+                  >
+                    {humanizeStatus(report.status)}
+                  </span>
+                </div>
+                <div className={styles.cardCategory}>{report.category}</div>
               </div>
 
-              <div className={styles.sectionTitle}>Your Response</div>
-              <div>
-                Seller Description: {report.sellerDescription?.unwrap() ?? "-"}
-              </div>
-              <div>
-                Seller Images:{" "}
-                {report.sellerUrlImgs.map((i) => i.unwrap()).join(", ") || "-"}
+              <div className={styles.cardTitle}>{report.title}</div>
+
+              <div className={styles.metaGrid}>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Report ID</span>
+                  <span className={styles.metaValue}>{id}</span>
+                </div>
+                <div className={styles.metaItem}>
+                  <span className={styles.metaLabel}>Order ID</span>
+                  <span className={styles.metaValue}>
+                    {report.orderID.unwrap()}
+                  </span>
+                </div>
               </div>
 
-              <div className={styles.sectionTitle}>Admin Decision</div>
-              <div>Admin Result: {report.resultTextAdmin?.unwrap() ?? "-"}</div>
+              <div className={styles.section}>
+                <div className={styles.sectionTitle}>User Claim</div>
+                <div className={styles.sectionBody}>
+                  {report.userDescription.unwrap() || "—"}
+                </div>
+                {report.userUrlImgs.length > 0 ? (
+                  <div className={styles.imageList}>
+                    {report.userUrlImgs.map((img, idx) => (
+                      <a
+                        key={idx}
+                        href={img.unwrap()}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.imageLink}
+                      >
+                        Evidence {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className={styles.section}>
+                <div className={styles.sectionTitle}>Your Response</div>
+                <div className={styles.sectionBody}>
+                  {report.sellerDescription?.unwrap() ?? "No response yet"}
+                </div>
+                {report.sellerUrlImgs.length > 0 ? (
+                  <div className={styles.imageList}>
+                    {report.sellerUrlImgs.map((img, idx) => (
+                      <a
+                        key={idx}
+                        href={img.unwrap()}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.imageLink}
+                      >
+                        Evidence {idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              {report.resultTextAdmin != null ? (
+                <div className={styles.section}>
+                  <div className={styles.sectionTitle}>Admin Decision</div>
+                  <div className={styles.sectionBody}>
+                    {report.resultTextAdmin.unwrap()}
+                  </div>
+                </div>
+              ) : null}
 
               <div className={styles.actions}>
                 <button
@@ -191,34 +269,182 @@ const styles = {
     minHeight: "100dvh",
     padding: theme.s6,
     display: "grid",
-    gap: theme.s2,
+    gap: theme.s5,
+    alignContent: "start",
     background:
       `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
       `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
-      `${color.neutral0}`,
+      `${color.secondary10}`,
+    animation: `${fadeSlideUp} 0.4s ease both`,
+    ...bp.md({
+      padding: `${theme.s8} ${theme.s10}`,
+    }),
   }),
-  title: css({ ...font.boldH4_24, margin: 0 }),
-  headerRow: css({
+  gateContainer: css({
+    minHeight: "100dvh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s6,
+    background: `radial-gradient(circle at 10% 15%, rgba(0, 82, 156, 0.08) 0%, transparent 40%), ${color.secondary10}`,
+  }),
+  gateCard: css({
+    maxWidth: "420px",
+    background: "var(--app-surface-strong)",
+    border: "1px solid var(--app-border)",
+    borderRadius: theme.s4,
+    boxShadow: "var(--app-shadow-lg)",
+    padding: theme.s6,
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    textAlign: "center",
+  }),
+  gateTitle: css({ ...font.boldH4_24, margin: 0, color: "var(--app-accent)" }),
+  gateText: css({ ...font.regular14, margin: 0, color: color.neutral600 }),
+  hero: css({
+    background: `linear-gradient(135deg, ${color.secondary500} 0%, ${color.secondary400} 38%, ${color.primary400} 100%)`,
+    borderRadius: theme.s4,
+    padding: theme.s5,
+    boxShadow: "0 16px 36px rgba(0, 82, 156, 0.24)",
+    color: color.neutral0,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: theme.s3,
+    flexWrap: "wrap",
+    position: "relative",
+    overflow: "hidden",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.14) 0%, transparent 50%)",
+      pointerEvents: "none",
+    },
+  }),
+  kicker: css({
+    ...font.bold12,
+    letterSpacing: "0.15em",
+    textTransform: "uppercase",
+    color: color.secondary50,
+    marginBottom: theme.s1,
+  }),
+  heroTitle: css({ ...font.boldH4_24, margin: 0, color: color.neutral0 }),
+  heroSubtitle: css({
+    ...font.regular14,
+    color: "rgba(255,255,255,0.75)",
+    marginTop: theme.s1,
+  }),
+  heroActions: css({ display: "flex", gap: theme.s2, flexWrap: "wrap" }),
+  heroSecondaryButton: css({
+    border: `1px solid rgba(255,255,255,0.25)`,
+    background: "rgba(255,255,255,0.1)",
+    color: color.neutral0,
+    borderRadius: theme.br5,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+    backdropFilter: "blur(8px)",
+    transition: "all 0.2s ease",
+    "&:hover": {
+      background: "rgba(255,255,255,0.18)",
+      transform: "translateY(-2px)",
+    },
+  }),
+  list: css({ display: "grid", gap: theme.s3 }),
+  card: css({
+    border: `1px solid ${color.genz.purple100}`,
+    borderRadius: theme.s3,
+    padding: theme.s4,
+    display: "grid",
+    gap: theme.s3,
+    background: color.neutral0,
+    boxShadow: theme.elevation.xsmall,
+  }),
+  cardTopRow: css({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     gap: theme.s2,
+    flexWrap: "wrap",
   }),
-  headerActions: css({ display: "flex", gap: theme.s2 }),
-  list: css({ display: "grid", gap: theme.s2 }),
-  card: css({
-    border: `1px solid ${color.genz.purple100}`,
-    borderRadius: theme.s2,
-    padding: theme.s3,
+  cardMeta: css({ display: "flex", alignItems: "center", gap: theme.s2 }),
+  cardId: css({
+    ...font.bold14,
+    color: color.genz.pink,
+    background: color.genz.pinkDim,
+    borderRadius: theme.s1,
+    padding: `${theme.s1} ${theme.s2}`,
+  }),
+  statusPill: css({
+    ...font.medium12,
+    borderRadius: theme.s1,
+    padding: `${theme.s1} ${theme.s2}`,
+    border: `1px solid ${color.genz.purple200}`,
+    color: color.genz.purple,
+    background: color.genz.purpleDim,
+    "&[data-closed='true']": {
+      border: `1px solid ${color.neutral300}`,
+      color: color.neutral600,
+      background: color.neutral100,
+    },
+  }),
+  cardCategory: css({
+    ...font.medium12,
+    color: color.neutral600,
+    background: color.neutral100,
+    borderRadius: theme.s1,
+    padding: `${theme.s1} ${theme.s2}`,
+  }),
+  cardTitle: css({ ...font.bold14, color: color.neutral900 }),
+  metaGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: theme.s2,
+  }),
+  metaItem: css({
     display: "grid",
     gap: theme.s1,
-    background: color.neutral0,
-    ...font.regular14,
+    padding: `${theme.s1} ${theme.s2}`,
+    borderRadius: theme.s1,
+    border: `1px solid ${color.genz.purple100}`,
+    background: color.neutral100,
   }),
+  metaLabel: css({ ...font.medium12, color: color.genz.purple }),
+  metaValue: css({
+    ...font.regular13,
+    color: color.neutral800,
+    wordBreak: "break-all",
+  }),
+  section: css({ display: "grid", gap: theme.s1 }),
   sectionTitle: css({
     ...font.bold14,
-    marginTop: theme.s1,
     color: color.neutral800,
+  }),
+  sectionBody: css({
+    ...font.regular14,
+    color: color.neutral700,
+    background: color.neutral50,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    border: `1px solid ${color.neutral200}`,
+  }),
+  imageList: css({
+    display: "flex",
+    gap: theme.s2,
+    flexWrap: "wrap",
+    marginTop: theme.s1,
+  }),
+  imageLink: css({
+    ...font.medium12,
+    color: color.genz.purple,
+    border: `1px solid ${color.genz.purple200}`,
+    borderRadius: theme.s1,
+    padding: `${theme.s1} ${theme.s2}`,
+    textDecoration: "none",
+    "&:hover": { background: color.genz.purpleDim },
   }),
   actions: css({ display: "flex", gap: theme.s2 }),
   primaryButton: css({
@@ -226,8 +452,10 @@ const styles = {
     background: color.genz.purple,
     color: color.neutral0,
     borderRadius: theme.s2,
-    padding: `${theme.s2} ${theme.s3}`,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
     cursor: "pointer",
+    "&:disabled": { opacity: 0.5, cursor: "not-allowed" },
   }),
   secondaryButton: css({
     border: `1px solid ${color.genz.purple300}`,
@@ -235,11 +463,12 @@ const styles = {
     color: color.genz.purple,
     borderRadius: theme.s2,
     padding: `${theme.s2} ${theme.s3}`,
+    ...font.medium14,
     cursor: "pointer",
     width: "fit-content",
     "&:disabled": { opacity: 0.6, cursor: "not-allowed" },
   }),
-  hint: css({ ...font.regular13, color: color.neutral700 }),
+  hint: css({ ...font.regular13, color: color.neutral600 }),
   confirmOverlay: css({
     position: "fixed",
     inset: 0,
@@ -254,12 +483,12 @@ const styles = {
     width: "100%",
     maxWidth: "520px",
     background: color.neutral0,
-    borderRadius: theme.s2,
+    borderRadius: theme.s3,
     border: `1px solid ${color.genz.purple100}`,
     boxShadow: theme.elevation.medium,
-    padding: theme.s4,
+    padding: theme.s5,
     display: "grid",
-    gap: theme.s2,
+    gap: theme.s3,
   }),
   confirmTitle: css({ ...font.boldH5_20, margin: 0, color: color.neutral900 }),
   confirmText: css({ ...font.regular14, margin: 0, color: color.neutral700 }),
@@ -269,6 +498,13 @@ const styles = {
     justifyContent: "flex-end",
     gap: theme.s2,
   }),
-  notice: css({ ...font.regular14, color: color.genz.purple }),
+  notice: css({
+    ...font.regular14,
+    color: color.genz.purple,
+    background: color.genz.purpleDim,
+    border: `1px solid ${color.genz.purple200}`,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+  }),
   info: css({ ...font.regular14, color: color.neutral700 }),
 }

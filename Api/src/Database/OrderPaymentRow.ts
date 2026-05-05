@@ -56,6 +56,8 @@ export type OrderPaymentRow = {
   isPaid: boolean
   status: OrderPaymentStatus
   price: Price
+  fee: Price
+  profit: Price
   isSellerSettled: boolean
   settledAt: Maybe<Timestamp>
   isDeleted: boolean
@@ -86,6 +88,8 @@ export const orderPaymentRowDecoder: JD.Decoder<OrderPaymentRow> = JD.object({
   isPaid: JD.boolean,
   status: orderPaymentStatusDecoder,
   price: priceDecoder,
+  fee: priceDecoder,
+  profit: priceDecoder,
   isSellerSettled: JD.boolean,
   settledAt: maybeDecoder(timestampJSDateDecoder),
   isDeleted: JD.boolean,
@@ -124,6 +128,8 @@ export async function create(params: CreateParams): Promise<OrderPaymentRow> {
       isPaid: true,
       status: "PAID",
       price: params.price.unwrap(),
+      fee: 0,
+      profit: 0,
       isSellerSettled: false,
       settledAt: null,
       isDeleted: false,
@@ -442,6 +448,8 @@ export async function autoSettleDueOrders(): Promise<number> {
         .set({
           isSellerSettled: true,
           settledAt: now,
+          fee: gross - payout,
+          profit: payout,
           updatedAt: now,
         })
         .where("id", "=", candidate.orderID)

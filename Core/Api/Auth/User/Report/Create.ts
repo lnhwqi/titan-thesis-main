@@ -49,6 +49,8 @@ export type ErrorCode =
   | "ORDER_PAYMENT_NOT_FOUND"
   | "SELLER_NOT_FOUND"
   | "ORDER_NOT_OWNED_BY_USER"
+  | "ORDER_NOT_REPORTABLE"
+  | "REPORT_WINDOW_EXPIRED"
   | "REPORT_TITLE_MISMATCH"
 
 export type Payload = {
@@ -78,6 +80,8 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "ORDER_PAYMENT_NOT_FOUND",
   "SELLER_NOT_FOUND",
   "ORDER_NOT_OWNED_BY_USER",
+  "ORDER_NOT_REPORTABLE",
+  "REPORT_WINDOW_EXPIRED",
   "REPORT_TITLE_MISMATCH",
 ])
 

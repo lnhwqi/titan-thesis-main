@@ -3,6 +3,7 @@ import { ok, Result } from "../../../../../../Core/Data/Result"
 import { AuthUser } from "../../../AuthApi"
 import * as OrderPaymentRow from "../../../../Database/OrderPaymentRow"
 import * as OrderPaymentItemRow from "../../../../Database/OrderPaymentItemRow"
+import * as SellerRow from "../../../../Database/SellerRow"
 import {
   toOrderPayment,
   toOrderPaymentItem,
@@ -25,6 +26,12 @@ export async function handler(
       OrderPaymentRow.getByUserIDPaginated(user.id, limit, offset),
       OrderPaymentRow.getUserTotals(user.id),
     ])
+
+  const uniqueSellerIDs = [...new Set(rows.map((row) => row.sellerId))]
+  const sellerRows = await SellerRow.getByIDs(uniqueSellerIDs)
+  const taxBySellerID = new Map(
+    sellerRows.map((s) => [s.id.unwrap(), s.tax.unwrap()]),
+  )
 
   const itemRows = await OrderPaymentItemRow.getByOrderPaymentIDs(
     rows.map((row) => row.id),
@@ -49,6 +56,7 @@ export async function handler(
       toOrderPayment(
         row,
         (itemsByOrderID.get(row.id.unwrap()) ?? []).map(toOrderPaymentItem),
+        taxBySellerID.get(row.sellerId.unwrap()) ?? 0,
       ),
     ),
     totalCount,

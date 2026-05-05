@@ -32,6 +32,9 @@ export type OrderPaymentState = {
   userOrdersTotalCount: number
   userOrdersTotalMoneyPaid: number
   userOrdersTotalProducts: number
+  sellerOrdersSearchQuery: string
+  sellerOrdersStatusFilter: string
+  sellerOrdersDateFilter: string
   statusDraftByOrderID: Record<string, OrderPaymentStatus>
   flashMessage: string | null
 }
@@ -49,6 +52,9 @@ export function initOrderPaymentState(): OrderPaymentState {
     userOrdersTotalCount: 0,
     userOrdersTotalMoneyPaid: 0,
     userOrdersTotalProducts: 0,
+    sellerOrdersSearchQuery: "",
+    sellerOrdersStatusFilter: "ALL",
+    sellerOrdersDateFilter: "",
     statusDraftByOrderID: {},
     flashMessage: null,
   }

@@ -218,6 +218,8 @@ export async function handler(
             isPaid,
             status: "PAID",
             price: payablePrice.unwrap(),
+            fee: 0,
+            profit: 0,
             isSellerSettled: false,
             settledAt: null,
             isDeleted: false,
@@ -366,7 +368,7 @@ export async function handler(
 
     return ok({
       orderPayments: createdOrders.map((order) =>
-        toOrderPayment(order.row, order.items.map(toOrderPaymentItem)),
+        toOrderPayment(order.row, order.items.map(toOrderPaymentItem), 0),
       ),
     })
   } catch (e) {
