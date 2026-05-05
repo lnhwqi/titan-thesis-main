@@ -16,6 +16,8 @@ import { createNow, toDate } from "../../../../../../Core/Data/Time/Timestamp"
 
 export const contract = API.contract
 
+const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
+
 export async function handler(
   seller: AuthSeller,
   params: API.UrlParams & API.BodyParams,
@@ -50,6 +52,14 @@ export async function handler(
     await emitOrderUpdateChatMessage(row)
   } catch {
     // Keep order status update successful even if chat notification fails.
+  }
+
+  if (status === "CANCELLED") {
+    try {
+      await emitCancelConfirmationToSupportChat(row)
+    } catch {
+      // Non-critical — don't fail the request if support chat delivery fails.
+    }
   }
 
   return ok({
@@ -161,6 +171,74 @@ async function cancelOrderWithRefund(
     // Use existing decoder path via OrderPaymentRow
     return OrderPaymentRow.decodeRaw(final)
   })
+}
+
+async function emitCancelConfirmationToSupportChat(
+  row: OrderPaymentRow.OrderPaymentRow,
+): Promise<void> {
+  const userID = row.userId.unwrap()
+  const orderShort = row.id.unwrap().slice(0, 8).toUpperCase()
+
+  let conversation = await ConversationRow.findBetween(
+    userID,
+    SUPPORT_PARTICIPANT_ID,
+  )
+  if (conversation == null) {
+    try {
+      conversation = await ConversationRow.create(
+        userID,
+        "USER",
+        SUPPORT_PARTICIPANT_ID,
+        "SELLER",
+      )
+    } catch {
+      conversation = await ConversationRow.findBetween(
+        userID,
+        SUPPORT_PARTICIPANT_ID,
+      )
+    }
+  }
+
+  if (conversation == null) {
+    return
+  }
+
+  const isPaid = row.isPaid
+  const refundLine = isPaid
+    ? `A refund of ₫${row.price.unwrap().toLocaleString()} has been returned to your wallet.`
+    : "No payment was taken, so no refund is needed."
+
+  const text =
+    `Your order #${orderShort} has been cancelled by the seller. ${refundLine}\n\n` +
+    `Did you authorize this cancellation? Please reply **YES** or **NO**.`
+
+  const message = await MessageRow.create({
+    conversationId: conversation.id,
+    senderId: SUPPORT_PARTICIPANT_ID,
+    senderType: "SYSTEM",
+    senderName: "Titan Support",
+    text,
+  })
+  await ConversationRow.touch(conversation.id)
+
+  const io = getSocketIO()
+  if (io != null) {
+    io.to(`conversation:${conversation.id}`).emit("message:received", {
+      message: {
+        id: message.id,
+        conversationID: message.conversationId,
+        senderID: message.senderId,
+        senderType: message.senderType,
+        senderName: message.senderName,
+        text: message.text,
+        readAt: message.readAt,
+        createdAt: message.createdAt,
+      },
+    })
+    io.to(`user:${userID}`).emit("conversation:updated", {
+      conversationID: conversation.id,
+    })
+  }
 }
 
 async function emitOrderUpdateChatMessage(

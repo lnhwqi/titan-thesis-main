@@ -17,6 +17,15 @@ import {
 } from "../Runtime/Socket"
 
 const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
+
+const TYPING_TIMEOUT_MS = 3_000
+
+function _getMyID(state: State): string | null {
+  if (state._t === "AuthUser") return state.profile.id.unwrap()
+  if (state._t === "AuthSeller") return state.profile.id.unwrap()
+  if (state._t === "AuthAdmin") return state.profile.id.unwrap()
+  return null
+}
 const LEGACY_SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
 const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
 
@@ -188,6 +197,7 @@ export function openConversation(conversationID: ConversationID): Action {
         currentConversationID: conversationID,
         messagesLoading: true,
         messagesError: null,
+        typingUsers: new Set(),
       }),
       cmd(loadMessagesForConversationCmd(conversationID)),
     ]
@@ -302,8 +312,28 @@ export function receiveMessage(message: Message): Action {
 
 export function receiveTyping(userID: string): Action {
   return (state: State) => {
+    // Don't show the indicator for the current user's own typing
+    if (userID === _getMyID(state)) return [state, cmd()]
+
+    // Reset the auto-clear timer for this user (handled via cmd promise below)
+
     const next = new Set(state.message.typingUsers)
     next.add(userID)
+    return [
+      _MessageState(state, { typingUsers: next }),
+      cmd(
+        new Promise<Action>((resolve) =>
+          setTimeout(() => resolve(clearTyping(userID)), TYPING_TIMEOUT_MS),
+        ),
+      ),
+    ]
+  }
+}
+
+export function clearTyping(userID: string): Action {
+  return (state: State) => {
+    const next = new Set(state.message.typingUsers)
+    next.delete(userID)
     return [_MessageState(state, { typingUsers: next }), cmd()]
   }
 }

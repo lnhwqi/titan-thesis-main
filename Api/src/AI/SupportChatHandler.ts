@@ -23,6 +23,7 @@ import type { ActorContext } from "./SecurityPolicy"
 import type { ConversationTurn } from "./SupportAssistant"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 import { parseProductVariantID } from "../../../Core/App/ProductVariant/ProductVariantID"
+import db from "../Database"
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -130,6 +131,17 @@ async function _handleSupportAIReply(
     return
   }
 
+  // Handle YES/NO reply to a pending cancellation confirmation before RAG
+  if (actor.role === "USER") {
+    const handled = await _handleCancelConfirmationReply(
+      io,
+      conversationID,
+      userMessage,
+      actor.userId,
+    )
+    if (handled) return
+  }
+
   inFlightSet.add(conversationID)
   const startMs = Date.now()
 
@@ -180,6 +192,164 @@ async function _handleSupportAIReply(
   } finally {
     inFlightSet.delete(conversationID)
   }
+}
+
+// ── Cancel confirmation flow ─────────────────────────────────────────────────
+
+/**
+ * Returns true if the message was handled as a YES/NO cancel confirmation reply.
+ * Skips the RAG pipeline when true.
+ */
+async function _handleCancelConfirmationReply(
+  io: SocketIOServer,
+  conversationID: string,
+  userMessage: string,
+  userId: string,
+): Promise<boolean> {
+  const normalized = userMessage.trim().toLowerCase()
+  if (normalized !== "yes" && normalized !== "no") return false
+
+  // Check recent history for an unanswered cancel confirmation from the system
+  const { messages } = await MessageRow.listForConversation(
+    conversationID,
+    1,
+    20,
+  )
+
+  // Walk newest → oldest; stop at the first USER/SELLER (already answered) or
+  // the SYSTEM cancel-confirmation message (pending)
+  let hasPendingConfirmation = false
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    if (msg == null) break
+    if (
+      msg.senderType === "SYSTEM" &&
+      msg.text.includes("Did you authorize this cancellation?")
+    ) {
+      hasPendingConfirmation = true
+      break
+    }
+    // Any user reply after the last SYSTEM message means it was already answered
+    if (msg.senderType === "USER" || msg.senderType === "SELLER") {
+      break
+    }
+  }
+
+  if (!hasPendingConfirmation) return false
+
+  if (normalized === "yes") {
+    await _deliverAIMessage(
+      io,
+      conversationID,
+      "Thank you for confirming. The cancellation has been recorded.",
+    )
+    return true
+  }
+
+  // NO — find the most recent SELLER_CANCEL refund for this user on a still-CANCELLED order
+  const refundRecord = await db
+    .selectFrom("order_cancellation_refund")
+    .select(["id", "orderID", "amount"])
+    .where("userID", "=", userId)
+    .where("reason", "=", "SELLER_CANCEL")
+    .orderBy("createdAt", "desc")
+    .executeTakeFirst()
+
+  if (refundRecord == null) {
+    await _deliverAIMessage(
+      io,
+      conversationID,
+      "We could not locate the cancelled order to reverse. A human support agent will follow up shortly.",
+    )
+    return true
+  }
+
+  // Verify the order is still CANCELLED before reversing
+  const order = await db
+    .selectFrom("order_payment")
+    .select(["id", "status"])
+    .where("id", "=", refundRecord.orderID)
+    .where("isDeleted", "=", false)
+    .executeTakeFirst()
+
+  if (order == null || order.status !== "CANCELLED") {
+    await _deliverAIMessage(
+      io,
+      conversationID,
+      "The order could not be reverted — it may have already been resolved. A human support agent will follow up shortly.",
+    )
+    return true
+  }
+
+  const now = new Date()
+  const { orderID, amount } = refundRecord
+
+  await db.transaction().execute(async (trx) => {
+    // Revert order status back to PACKED
+    await trx
+      .updateTable("order_payment")
+      .set({ status: "PACKED", updatedAt: now })
+      .where("id", "=", orderID)
+      .where("status", "=", "CANCELLED")
+      .execute()
+
+    // Re-debit user wallet (reverse the refund)
+    await trx
+      .updateTable("user")
+      .set((eb) => ({ wallet: eb("wallet", "-", amount), updatedAt: now }))
+      .where("id", "=", userId)
+      .where("isDeleted", "=", false)
+      .where("wallet", ">=", amount)
+      .execute()
+
+    // Re-credit treasury admin wallet
+    const treasuryAdmin = await trx
+      .selectFrom("admin")
+      .select(["id"])
+      .where("isDeleted", "=", false)
+      .orderBy("createdAt", "asc")
+      .executeTakeFirst()
+
+    if (treasuryAdmin != null) {
+      await trx
+        .updateTable("admin")
+        .set((eb) => ({ wallet: eb("wallet", "+", amount), updatedAt: now }))
+        .where("id", "=", treasuryAdmin.id)
+        .where("isDeleted", "=", false)
+        .execute()
+    }
+
+    // Remove the audit record so a future legitimate cancel can issue a fresh refund
+    await trx
+      .deleteFrom("order_cancellation_refund")
+      .where("orderID", "=", orderID)
+      .execute()
+  })
+
+  // Notify all admins via socket
+  const admins = await db
+    .selectFrom("admin")
+    .select(["id"])
+    .where("isDeleted", "=", false)
+    .execute()
+
+  const orderShort = orderID.slice(0, 8).toUpperCase()
+  for (const admin of admins) {
+    io.to(`user:${admin.id}`).emit("admin:unauthorized_cancel", {
+      orderID,
+      userID: userId,
+    })
+  }
+
+  await _deliverAIMessage(
+    io,
+    conversationID,
+    `We have reversed the cancellation of order #${orderShort} and alerted our support team. ` +
+      `The order is back in progress and your payment has been re-debited. ` +
+      `We apologize for the inconvenience — our team will investigate the unauthorized action.`,
+  )
+
+  return true
 }
 
 async function _deliverAIMessage(
