@@ -187,6 +187,16 @@ export function submitDeposit(): Action {
       return [state, cmd()]
     }
 
+    if (!state.profile.active.unwrap()) {
+      return [
+        _PaymentState(state, {
+          flashMessage:
+            "Your account is suspended. Please contact admin via chatbox.",
+        }),
+        cmd(perform(MessageAction.toggleChatbox())),
+      ]
+    }
+
     const amount = Math.floor(Number(state.payment.depositAmount.trim()))
     const decoded = WalletDepositCreateApi.paramsDecoder.decode({ amount })
     if (
@@ -253,6 +263,16 @@ export function submitPayment(): Action {
       return [
         state,
         cmd(perform(navigateTo(toRoute("Login", { redirect: "/payment" })))),
+      ]
+    }
+
+    if (!state.profile.active.unwrap()) {
+      return [
+        _PaymentState(state, {
+          flashMessage:
+            "Your account is suspended. Please contact admin via chatbox.",
+        }),
+        cmd(perform(MessageAction.toggleChatbox())),
       ]
     }
 

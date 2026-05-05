@@ -1,5 +1,9 @@
 import { JSX } from "react"
+import { css } from "@emotion/css"
 import { State } from "./State"
+import { color, font, theme } from "./View/Theme"
+import { emit } from "./Runtime/React"
+import * as MessageAction from "./Action/Message"
 import { LoadingLayout } from "./View/Layout/Loading"
 import { EmptyLayout } from "./View/Layout/Empty"
 // import { AuthLayout } from "./View/Layout/Auth"
@@ -42,6 +46,7 @@ import ProductDetailPage from "./Page/ProductDetail"
 import SellerProfilePage from "./Page/SellerProfile"
 import EventPosterPage from "./Page/EventPoster"
 import CoinRainOverlay from "./View/CoinRainOverlay"
+import { Chatbox } from "./View/Part/Chatbox"
 
 type Props = { state: State }
 export default function View(props: Props): JSX.Element {
@@ -54,8 +59,74 @@ export default function View(props: Props): JSX.Element {
     <>
       {routeView(state)}
       <CoinRainOverlay coinRain={state.coinRain} />
+      {state._t === "AuthUser" && !state.profile.active.unwrap() ? (
+        <SuspendedModal />
+      ) : null}
+      <Chatbox state={state} />
     </>
   )
+}
+
+function SuspendedModal(): JSX.Element {
+  return (
+    <div className={suspendedStyles.overlay}>
+      <div className={suspendedStyles.card}>
+        <h2 className={suspendedStyles.title}>Account Suspended</h2>
+        <p className={suspendedStyles.body}>
+          Your account has been suspended. Please contact our support team via
+          the chatbox to resolve this issue.
+        </p>
+        <button
+          className={suspendedStyles.button}
+          onClick={() => emit(MessageAction.toggleChatbox())}
+        >
+          Message Admin Support
+        </button>
+      </div>
+    </div>
+  )
+}
+
+const suspendedStyles = {
+  overlay: css({
+    position: "fixed",
+    inset: 0,
+    zIndex: 10000,
+    background: "rgba(0,0,0,0.6)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s4,
+  }),
+  card: css({
+    background: color.neutral0,
+    borderRadius: theme.s4,
+    padding: theme.s8,
+    maxWidth: "420px",
+    width: "100%",
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s4,
+    boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
+  }),
+
+  title: css({
+    ...font.boldH4_24,
+    margin: 0,
+    color: color.semantics.error.red500,
+  }),
+  body: css({ ...font.regular14, color: color.neutral700, margin: 0 }),
+  button: css({
+    background: color.primary500,
+    color: color.neutral0,
+    border: "none",
+    borderRadius: theme.s2,
+    padding: `${theme.s3} ${theme.s5}`,
+    ...font.medium14,
+    cursor: "pointer",
+    ":hover": { opacity: 0.9 },
+  }),
 }
 
 function routeView(state: State): JSX.Element {

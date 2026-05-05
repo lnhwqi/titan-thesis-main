@@ -10,7 +10,6 @@ import SubHeader from "./SubHeader"
 import CategorySidebar from "../Part/Category"
 import { CartSidebar } from "../Part/Cart"
 import HomePoster from "../Part/HomePoster"
-import { Chatbox } from "../Part/Chatbox"
 
 type Props = {
   state: State
@@ -88,7 +87,6 @@ export function HomeLayout(props: Props): JSX.Element {
       </div>
 
       <CartSidebar state={state} />
-      <Chatbox state={state} />
     </div>
   )
 }
@@ -243,7 +241,8 @@ const styles = {
     height: "auto",
     padding: `${theme.s4} ${theme.s4} ${theme.s6}`,
     position: "relative",
-    background: "linear-gradient(180deg, rgba(72,85,106,0.03) 0%, transparent 140px)",
+    background:
+      "linear-gradient(180deg, rgba(72,85,106,0.03) 0%, transparent 140px)",
   }),
   mainPoster: css({
     display: "flex",

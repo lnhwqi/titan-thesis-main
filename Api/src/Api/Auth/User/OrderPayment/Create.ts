@@ -40,6 +40,10 @@ export async function handler(
   user: AuthUser,
   params: API.UrlParams & API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
+  if (!user.active.unwrap()) {
+    return err("ACCOUNT_SUSPENDED")
+  }
+
   const { address, panels, isPaid, paymentMethod } = params
 
   if (isPaid !== (paymentMethod === "WALLET")) {

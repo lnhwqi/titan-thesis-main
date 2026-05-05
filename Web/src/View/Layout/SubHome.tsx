@@ -9,7 +9,6 @@ import SubHeader from "./SubHeader"
 import CategorySidebar from "../Part/Category"
 import { CartSidebar } from "../Part/Cart"
 import HomePoster from "../Part/HomePoster"
-import { Chatbox } from "../Part/Chatbox"
 
 type Props = {
   state: State
@@ -63,7 +62,6 @@ export function SubHome(props: Props): JSX.Element {
       </div>
 
       <CartSidebar state={state} />
-      <Chatbox state={state} />
     </div>
   )
 }

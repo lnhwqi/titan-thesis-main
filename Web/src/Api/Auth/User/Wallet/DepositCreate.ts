@@ -27,6 +27,8 @@ export function errorString(code: ApiError<ErrorCode>): string {
         return "Deposit amount must be greater than zero."
       case "CREATE_FAILED":
         return "Unable to create ZaloPay deposit session."
+      case "ACCOUNT_SUSPENDED":
+        return "Your account is suspended. Please contact admin via chatbox."
     }
   })
 }

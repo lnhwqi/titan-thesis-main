@@ -22,7 +22,7 @@ export type BodyParams = {
   amount: number
 }
 
-export type ErrorCode = "INVALID_AMOUNT" | "CREATE_FAILED"
+export type ErrorCode = "INVALID_AMOUNT" | "CREATE_FAILED" | "ACCOUNT_SUSPENDED"
 
 export type Payload = {
   appTransID: string
@@ -45,6 +45,7 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "INVALID_AMOUNT",
   "CREATE_FAILED",
+  "ACCOUNT_SUSPENDED",
 ])
 
 export const contract: Contract = {

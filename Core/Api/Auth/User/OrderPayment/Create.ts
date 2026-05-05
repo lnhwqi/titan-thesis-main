@@ -64,6 +64,7 @@ export type ErrorCode =
   | "VOUCHER_EXPIRED"
   | "VOUCHER_MIN_VALUE_NOT_MET"
   | "VOUCHER_ALREADY_USED"
+  | "ACCOUNT_SUSPENDED"
 
 export type Payload = {
   orderPayments: OrderPayment[]
@@ -105,6 +106,7 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "VOUCHER_EXPIRED",
   "VOUCHER_MIN_VALUE_NOT_MET",
   "VOUCHER_ALREADY_USED",
+  "ACCOUNT_SUSPENDED",
 ])
 
 export const contract: Contract = {

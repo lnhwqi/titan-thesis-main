@@ -7,7 +7,33 @@ import { emit } from "../../Runtime/React"
 import * as MessageAction from "../../Action/Message"
 import { navigateTo, toRoute } from "../../Route"
 import * as AuthToken from "../../App/AuthToken"
-import styles from "./Chatbox.module.css"
+import { css, keyframes } from "@emotion/css"
+
+// ── Color constants ───────────────────────────────────────────────────────────
+const BRAND = "#00529c"
+const SECONDARY = "#ed1c24"
+const ACCENT_SOFT = "rgba(0, 82, 156, 0.05)"
+const BORDER = "rgba(0, 82, 156, 0.14)"
+const PURPLE = "#7c3aed"
+const PINK = "#ec4899"
+
+// ── Keyframes ─────────────────────────────────────────────────────────────────
+const floatY = keyframes({
+  "0%, 100%": { transform: "translateY(0)" },
+  "50%": { transform: "translateY(-7px)" },
+})
+const glowPulse = keyframes({
+  "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+  "50%": { opacity: "1", transform: "scale(1.08)" },
+})
+const slideUp = keyframes({
+  from: { opacity: "0", transform: "translateY(16px) scale(0.97)" },
+  to: { opacity: "1", transform: "translateY(0) scale(1)" },
+})
+const bounce = keyframes({
+  "0%, 80%, 100%": { transform: "translateY(0)", opacity: "0.5" },
+  "40%": { transform: "translateY(-4px)", opacity: "1" },
+})
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -125,7 +151,9 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
   } = state.message
 
   const isAdmin = state._t === "AuthAdmin"
-  const isGuest = AuthToken.get() == null && (state._t === "Public" || state._t === "LoadingAuth")
+  const isGuest =
+    AuthToken.get() == null &&
+    (state._t === "Public" || state._t === "LoadingAuth")
 
   function getProfileID(): string | null {
     if (state._t === "AuthUser") return state.profile.id.unwrap()
@@ -179,7 +207,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
   const isInChat = currentConversationID != null
 
   return (
-    <div className={`${styles.chatboxContainer} ${isOpen ? styles.open : ""}`}>
+    <div className={styles.chatboxContainer}>
       {/* ── Toggle button ── */}
       <div className={styles.chatboxToggleWrap}>
         {!isOpen && (
@@ -189,7 +217,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
           </div>
         )}
         <button
-          className={`${styles.chatboxToggle} ${isOpen ? styles.chatboxToggleOpen : ""}`}
+          className={`${styles.chatboxToggle} ${isOpen ? styles.chatboxToggleOpen : styles.chatboxToggleIdle}`}
           onClick={handleToggle}
           aria-label="Toggle chatbox"
         >
@@ -259,7 +287,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
             <div className={styles.headerActions}>
               {!isGuest && !isInChat && (
                 <button
-                  className={styles.newChatBtn}
+                  className={styles.headerActionBtn}
                   onClick={handleToggleNewChat}
                   title={
                     isAdmin
@@ -284,7 +312,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                 </button>
               )}
               <button
-                className={styles.closeBtn}
+                className={styles.headerActionBtn}
                 onClick={handleToggle}
                 aria-label="Close chatbox"
               >
@@ -593,7 +621,9 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                                 className={`${styles.msgBubble} ${isMine ? styles.msgBubbleMine : styles.msgBubbleOther}`}
                               >
                                 {isMine ? (
-                                  <p className={styles.messageText}>
+                                  <p
+                                    className={`${styles.messageText} ${styles.messageTextMine}`}
+                                  >
                                     {renderMessageText(msg.text.unwrap())}
                                   </p>
                                 ) : (
@@ -712,5 +742,644 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
     </div>
   )
 }
-
+// ── Styles ────────────────────────────────────────────────────────────────────
+const styles = {
+  chatboxContainer: css({
+    position: "fixed",
+    bottom: "24px",
+    right: "24px",
+    zIndex: 10001,
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    "@media (max-width: 480px)": { bottom: "16px", right: "16px" },
+  }),
+  chatboxToggleWrap: css({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "6px",
+    position: "relative",
+  }),
+  chatboxBubble: css({
+    position: "relative",
+    background: "rgba(255,255,255,0.95)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(0,82,156,0.16)",
+    borderRadius: "14px",
+    padding: "6px 14px",
+    boxShadow: "0 10px 24px rgba(0,82,156,0.12)",
+    whiteSpace: "nowrap",
+    animation: `${floatY} 4s ease-in-out infinite`,
+  }),
+  chatboxBubbleText: css({
+    fontSize: "12px",
+    fontWeight: 700,
+    background: `linear-gradient(90deg, ${BRAND}, ${SECONDARY})`,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+  }),
+  chatboxBubbleTail: css({
+    position: "absolute",
+    bottom: "-7px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "12px",
+    height: "8px",
+    background: "rgba(255,255,255,0.95)",
+    clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+  }),
+  chatboxToggle: css({
+    width: "64px",
+    height: "64px",
+    borderRadius: "50%",
+    background: `linear-gradient(135deg, ${BRAND}, ${SECONDARY})`,
+    border: "none",
+    cursor: "pointer",
+    boxShadow: "0 8px 24px rgba(0,82,156,0.24)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+    position: "relative",
+    overflow: "hidden",
+    "::before": {
+      content: '""',
+      position: "absolute",
+      inset: "-4px",
+      borderRadius: "50%",
+      background:
+        "linear-gradient(135deg,rgba(0,82,156,0.18),rgba(237,28,36,0.14))",
+      filter: "blur(8px)",
+      zIndex: -1,
+      animation: `${glowPulse} 2.5s ease-in-out infinite`,
+    },
+    "&:active": { transform: "scale(0.94)" },
+  }),
+  chatboxToggleIdle: css({
+    animation: `${floatY} 3.5s ease-in-out infinite`,
+    "&:hover": {
+      transform: "scale(1.08) translateY(-2px)",
+      boxShadow: "0 10px 28px rgba(0,82,156,0.3)",
+    },
+  }),
+  chatboxToggleOpen: css({
+    animation: "none",
+    boxShadow: "0 0 0 3px rgba(0,82,156,0.2),0 4px 20px rgba(0,82,156,0.2)",
+    transform: "scale(0.95)",
+  }),
+  chatboxAvatarImg: css({
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    objectFit: "cover",
+    objectPosition: "center top",
+  }),
+  chatboxWindow: css({
+    position: "absolute",
+    bottom: "76px",
+    right: "0",
+    width: "380px",
+    height: "580px",
+    background: "#ffffff",
+    borderRadius: "16px",
+    boxShadow: "0 8px 48px rgba(0,0,0,0.18),0 2px 12px rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    animation: `${slideUp} 0.25s cubic-bezier(0.34,1.56,0.64,1)`,
+    border: "1px solid rgba(0,82,156,0.12)",
+    "@media (max-width: 480px)": {
+      width: "calc(100vw - 32px)",
+      height: "calc(100dvh - 100px)",
+      bottom: "72px",
+      borderRadius: "14px",
+    },
+  }),
+  header: css({
+    padding: "14px 16px",
+    background: `linear-gradient(135deg, ${BRAND} 0%, ${SECONDARY} 100%)`,
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flexShrink: 0,
+  }),
+  backBtn: css({
+    background: "rgba(255,255,255,0.18)",
+    border: "none",
+    color: "white",
+    cursor: "pointer",
+    borderRadius: "8px",
+    width: "32px",
+    height: "32px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    transition: "background 0.2s",
+    "&:hover": { background: "rgba(255,255,255,0.3)" },
+  }),
+  headerIconWrap: css({
+    width: "32px",
+    height: "32px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    opacity: 0.85,
+  }),
+  headerTitle: css({
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  }),
+  headerName: css({
+    fontSize: "15px",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  }),
+  headerOnline: css({
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.85)",
+    fontWeight: 500,
+  }),
+  headerActions: css({
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    flexShrink: 0,
+  }),
+  headerActionBtn: css({
+    background: "rgba(255,255,255,0.18)",
+    border: "none",
+    color: "white",
+    cursor: "pointer",
+    borderRadius: "8px",
+    width: "32px",
+    height: "32px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "background 0.2s",
+    "&:hover": { background: "rgba(255,255,255,0.32)" },
+  }),
+  newChatPanel: css({
+    padding: "10px 14px",
+    background: ACCENT_SOFT,
+    borderBottom: "1px solid rgba(0,82,156,0.12)",
+    flexShrink: 0,
+  }),
+  newChatLabel: css({
+    margin: "0 0 6px 0",
+    fontSize: "11px",
+    color: BRAND,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  }),
+  newChatRow: css({ display: "flex", gap: "6px" }),
+  newChatInput: css({
+    flex: 1,
+    padding: "7px 10px",
+    border: "1px solid rgba(0,82,156,0.24)",
+    borderRadius: "8px",
+    fontSize: "13px",
+    color: "#1a1a1a",
+    background: "#ffffff",
+    outline: "none",
+    transition: "border-color 0.2s",
+    "&:focus": {
+      borderColor: "#3375b0",
+      boxShadow: "0 0 0 3px rgba(0,82,156,0.1)",
+    },
+  }),
+  newChatStartBtn: css({
+    padding: "7px 14px",
+    background: `linear-gradient(135deg, ${BRAND}, ${SECONDARY})`,
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "opacity 0.2s",
+    "&:disabled": { opacity: 0.45, cursor: "not-allowed" },
+  }),
+  newChatError: css({
+    margin: "5px 0 0 0",
+    fontSize: "11px",
+    color: "#dc2626",
+  }),
+  guestPrompt: css({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    padding: "32px 28px",
+    textAlign: "center",
+    gap: "14px",
+  }),
+  guestIcon: css({
+    width: "72px",
+    height: "72px",
+    borderRadius: "50%",
+    background: ACCENT_SOFT,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }),
+  guestPromptTitle: css({
+    margin: 0,
+    fontSize: "17px",
+    fontWeight: 700,
+    color: "#1a1a1a",
+  }),
+  guestPromptText: css({
+    margin: 0,
+    fontSize: "13px",
+    color: "#4d4d4d",
+    lineHeight: 1.55,
+  }),
+  guestPromptActions: css({ display: "flex", gap: "10px", marginTop: "4px" }),
+  guestLoginBtn: css({
+    padding: "10px 28px",
+    background: `linear-gradient(135deg, ${BRAND}, ${SECONDARY})`,
+    color: "white",
+    border: "none",
+    borderRadius: "10px",
+    fontSize: "14px",
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "opacity 0.2s, transform 0.15s",
+    "&:hover": { opacity: 0.9, transform: "translateY(-1px)" },
+  }),
+  guestRegisterBtn: css({
+    padding: "10px 28px",
+    background: "#ffffff",
+    color: BRAND,
+    border: `1px solid ${BORDER}`,
+    borderRadius: "10px",
+    fontSize: "14px",
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "background 0.2s, transform 0.15s",
+    "&:hover": { background: ACCENT_SOFT, transform: "translateY(-1px)" },
+  }),
+  loadingState: css({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    padding: "28px",
+    color: "#9ca3af",
+    fontSize: "13px",
+    flex: 1,
+  }),
+  loadingDots: css({
+    display: "flex",
+    gap: "4px",
+    "& span": {
+      width: "6px",
+      height: "6px",
+      borderRadius: "50%",
+      background: `linear-gradient(135deg, ${BRAND}, ${SECONDARY})`,
+      animation: `${bounce} 1.2s infinite`,
+    },
+    "& span:nth-child(2)": { animationDelay: "0.18s" },
+    "& span:nth-child(3)": { animationDelay: "0.36s" },
+  }),
+  emptyState: css({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    padding: "48px 24px",
+    color: "#9ca3af",
+    fontSize: "13px",
+    textAlign: "center",
+    flex: 1,
+    "& p": { margin: 0 },
+  }),
+  convListPanel: css({
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+  }),
+  convList: css({ listStyle: "none", padding: "6px 0", margin: 0 }),
+  convItem: css({
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "12px 16px",
+    cursor: "pointer",
+    transition: "background 0.15s",
+    borderBottom: "1px solid rgba(0,0,0,0.04)",
+    "&:hover": { background: ACCENT_SOFT },
+  }),
+  convAvatar: css({
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: 800,
+    color: "white",
+    flexShrink: 0,
+    position: "relative",
+    letterSpacing: "0.01em",
+  }),
+  convAvatarOnline: css({
+    position: "absolute",
+    bottom: "1px",
+    right: "1px",
+    width: "11px",
+    height: "11px",
+    borderRadius: "50%",
+    background: "#10b981",
+    border: "2px solid white",
+  }),
+  convMeta: css({
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: "3px",
+  }),
+  convRow: css({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "6px",
+  }),
+  convName: css({
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#374151",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  }),
+  convNameBold: css({ fontWeight: 700, color: "#111827" }),
+  convTime: css({ fontSize: "11px", color: "#9ca3af", flexShrink: 0 }),
+  convPreview: css({
+    fontSize: "12px",
+    color: "#9ca3af",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    flex: 1,
+  }),
+  convPreviewBold: css({ color: "#374151", fontWeight: 500 }),
+  unreadBadge: css({
+    background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`,
+    color: "white",
+    borderRadius: "10px",
+    padding: "2px 7px",
+    fontSize: "11px",
+    fontWeight: 700,
+    flexShrink: 0,
+    minWidth: "20px",
+    textAlign: "center",
+    boxShadow: "0 2px 6px rgba(124,58,237,0.35)",
+  }),
+  messagesPanel: css({
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  }),
+  messagesList: css({
+    flex: 1,
+    overflowY: "auto",
+    padding: "16px 14px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+    scrollBehavior: "smooth",
+  }),
+  noMessages: css({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    flex: 1,
+    padding: "48px 24px",
+    color: "#9ca3af",
+    fontSize: "13px",
+    textAlign: "center",
+    margin: "auto",
+    "& p": { margin: 0 },
+  }),
+  msgRow: css({
+    display: "flex",
+    alignItems: "flex-end",
+    gap: "8px",
+    maxWidth: "88%",
+    marginBottom: "4px",
+  }),
+  msgRowMine: css({ alignSelf: "flex-end", flexDirection: "row-reverse" }),
+  msgRowOther: css({ alignSelf: "flex-start" }),
+  msgAvatar: css({
+    width: "28px",
+    height: "28px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "10px",
+    fontWeight: 800,
+    color: "white",
+    flexShrink: 0,
+  }),
+  msgBubbleWrap: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+    minWidth: 0,
+  }),
+  msgSenderName: css({
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "#6b7280",
+    paddingLeft: "2px",
+  }),
+  msgBubble: css({
+    padding: "9px 13px",
+    borderRadius: "16px",
+    maxWidth: "100%",
+    wordWrap: "break-word",
+  }),
+  msgBubbleMine: css({
+    background: `linear-gradient(135deg, ${PURPLE}, #a855f7)`,
+    color: "white",
+    borderBottomRightRadius: "4px",
+    boxShadow: "0 2px 10px rgba(124,58,237,0.28)",
+  }),
+  msgBubbleOther: css({
+    background: "#f0eeff",
+    color: "#1f2937",
+    borderBottomLeftRadius: "4px",
+  }),
+  msgFooter: css({
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    paddingLeft: "2px",
+  }),
+  msgFooterMine: css({
+    flexDirection: "row-reverse",
+    paddingLeft: 0,
+    paddingRight: "2px",
+  }),
+  timestamp: css({ fontSize: "10px", color: "#9ca3af" }),
+  readReceipt: css({ fontSize: "11px", color: PURPLE, fontWeight: 700 }),
+  systemMsg: css({
+    display: "flex",
+    justifyContent: "center",
+    padding: "4px 0",
+    margin: "6px 0",
+  }),
+  systemMsgPill: css({
+    background: "rgba(124,58,237,0.08)",
+    color: "#6d28d9",
+    fontSize: "12px",
+    fontWeight: 600,
+    borderRadius: "12px",
+    padding: "5px 14px",
+    maxWidth: "90%",
+    textAlign: "center",
+    lineHeight: 1.4,
+    border: "1px solid rgba(124,58,237,0.18)",
+    "& ul, & ol": { margin: "0.25em 0 0.25em 1.2em", padding: 0 },
+    "& li": { marginBottom: "0.15em" },
+    "& strong": { fontWeight: 600 },
+    "& em": { fontStyle: "italic" },
+    "& code": {
+      fontFamily: 'ui-monospace,"Cascadia Code","Fira Code",monospace',
+      fontSize: "0.85em",
+      background: "rgba(124,58,237,0.1)",
+      borderRadius: "3px",
+      padding: "0.1em 0.35em",
+    },
+  }),
+  typingRow: css({
+    display: "flex",
+    alignItems: "flex-end",
+    gap: "8px",
+    alignSelf: "flex-start",
+    marginBottom: "4px",
+  }),
+  typingBubble: css({
+    background: "#f0eeff",
+    borderRadius: "16px",
+    borderBottomLeftRadius: "4px",
+    padding: "10px 14px",
+  }),
+  dots: css({
+    display: "flex",
+    gap: "3px",
+    alignItems: "center",
+    "& span": {
+      width: "6px",
+      height: "6px",
+      borderRadius: "50%",
+      background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`,
+      animation: `${bounce} 1.2s infinite`,
+    },
+    "& span:nth-child(2)": { animationDelay: "0.18s" },
+    "& span:nth-child(3)": { animationDelay: "0.36s" },
+  }),
+  inputArea: css({
+    padding: "10px 12px",
+    borderTop: "1px solid rgba(124,58,237,0.1)",
+    display: "flex",
+    alignItems: "flex-end",
+    gap: "8px",
+    background: "white",
+    flexShrink: 0,
+  }),
+  input: css({
+    flex: 1,
+    border: "1.5px solid #e5e7eb",
+    borderRadius: "20px",
+    padding: "9px 14px",
+    fontSize: "14px",
+    fontFamily: "inherit",
+    resize: "none",
+    lineHeight: 1.4,
+    maxHeight: "96px",
+    overflowY: "auto",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    background: "white",
+    "&:focus": {
+      outline: "none",
+      borderColor: PURPLE,
+      boxShadow: "0 0 0 3px rgba(124,58,237,0.1)",
+    },
+    "&:disabled": { background: "#f3f4f6", cursor: "not-allowed" },
+  }),
+  sendBtn: css({
+    width: "38px",
+    height: "38px",
+    background: `linear-gradient(135deg, ${PURPLE}, ${PINK})`,
+    color: "white",
+    border: "none",
+    borderRadius: "50%",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    transition: "transform 0.2s, opacity 0.2s, box-shadow 0.2s",
+    boxShadow: "0 2px 8px rgba(124,58,237,0.35)",
+    "&:hover:not(:disabled)": {
+      transform: "scale(1.08)",
+      boxShadow: "0 4px 14px rgba(124,58,237,0.45)",
+    },
+    "&:active:not(:disabled)": { transform: "scale(0.93)" },
+    "&:disabled": { opacity: 0.45, cursor: "not-allowed", boxShadow: "none" },
+  }),
+  messageText: css({
+    margin: 0,
+    fontSize: "14px",
+    lineHeight: 1.45,
+    wordBreak: "break-word",
+    "& ul, & ol": { margin: "0.25em 0 0.25em 1.2em", padding: 0 },
+    "& li": { marginBottom: "0.15em" },
+    "& strong": { fontWeight: 600 },
+    "& em": { fontStyle: "italic" },
+    "& code": {
+      fontFamily: 'ui-monospace,"Cascadia Code","Fira Code",monospace',
+      fontSize: "0.85em",
+      background: "rgba(124,58,237,0.1)",
+      borderRadius: "3px",
+      padding: "0.1em 0.35em",
+    },
+  }),
+  messageTextMine: css({ "& code": { background: "rgba(255,255,255,0.2)" } }),
+  messageLink: css({
+    color: "inherit",
+    textDecoration: "underline",
+    textUnderlineOffset: "2px",
+    wordBreak: "break-all",
+    opacity: 0.85,
+    "&:hover": { opacity: 1 },
+  }),
+  mdPara: css({
+    display: "block",
+    margin: "0 0 0.35em",
+    "&:last-child": { marginBottom: 0 },
+  }),
+}
 export default Chatbox

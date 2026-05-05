@@ -47,6 +47,18 @@ export default function WalletDepositPage(props: Props): JSX.Element {
       </div>
 
       <AuthPageCard>
+        {state.payment.flashMessage != null ? (
+          <div className={styles.notice}>
+            <span>{state.payment.flashMessage}</span>
+            <button
+              className={styles.noticeDismiss}
+              onClick={() => emit(PaymentAction.clearFlashMessage())}
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : null}
+
         <div className={styles.infoGrid}>
           <div className={styles.infoRow}>
             <span className={styles.infoLabel}>Current Balance</span>
@@ -172,5 +184,27 @@ const styles = {
     gap: theme.s3,
     flexWrap: "wrap",
     marginTop: theme.s2,
+  }),
+  notice: css({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: theme.s3,
+    padding: `${theme.s3} ${theme.s4}`,
+    background: color.secondary50,
+    border: `1px solid ${color.secondary200}`,
+    borderRadius: theme.br5,
+    ...font.regular14,
+    color: color.secondary500,
+    marginBottom: theme.s4,
+  }),
+  noticeDismiss: css({
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    ...font.medium14,
+    color: color.secondary500,
+    padding: 0,
+    flexShrink: 0,
   }),
 }

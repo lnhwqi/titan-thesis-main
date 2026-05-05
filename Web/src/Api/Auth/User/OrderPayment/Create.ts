@@ -45,6 +45,8 @@ export function errorString(code: ApiError<ErrorCode>): string {
         return "Voucher minimum value is not met."
       case "VOUCHER_ALREADY_USED":
         return "Voucher was already used."
+      case "ACCOUNT_SUSPENDED":
+        return "Your account is suspended. Please contact admin via chatbox."
     }
   })
 }
