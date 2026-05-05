@@ -264,10 +264,7 @@ export function sendMessage(): Action {
 
 export function clearSendingState(): Action {
   return (state: State) => {
-    return [
-      _MessageState(state, { messageInput: "", isLoading: false }),
-      cmd(),
-    ]
+    return [_MessageState(state, { messageInput: "", isLoading: false }), cmd()]
   }
 }
 

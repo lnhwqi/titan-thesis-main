@@ -504,6 +504,7 @@ export function navigateTo(route: Route): Action {
           // so we are triggering it manually (See Subscription.ts)
           window.history.pushState(null, "", toPath(route))
           window.dispatchEvent(new PopStateEvent("popstate"))
+          window.scrollTo(0, 0)
           return null
         }),
       ],
