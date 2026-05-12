@@ -3,7 +3,12 @@ import { css } from "@emotion/css"
 import { State } from "../State"
 import { color, font, theme } from "../View/Theme"
 import { ProductCard } from "../View/Part/ProductCard"
-import { AuthPageShell, AuthPageHeader, AuthPageCard, AuthGateCard } from "../View/Part/AuthPageShell"
+import {
+  AuthPageShell,
+  AuthPageHeader,
+  AuthPageCard,
+  AuthGateCard,
+} from "../View/Part/AuthPageShell"
 
 export type SavedPageProps = { state: State }
 
@@ -53,8 +58,14 @@ export default function SavedPage(props: SavedPageProps): JSX.Element {
         {savedProducts.length > 0 ? (
           <div className={styles.grid}>
             {savedProducts.map((product) => (
-              <div key={product.id.unwrap()} className={styles.savedItem}>
-                <ProductCard product={product} state={state} />
+              <div
+                key={product.id.unwrap()}
+                className={styles.savedItem}
+              >
+                <ProductCard
+                  product={product}
+                  state={state}
+                />
               </div>
             ))}
           </div>

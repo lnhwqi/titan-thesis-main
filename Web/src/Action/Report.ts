@@ -576,27 +576,28 @@ function onSellerListResponse(response: SellerListApi.Response): Action {
       ]
     }
 
-    const [nextStatusDraft, nextAdminResultDraft] = response.value.reports.reduce<
-      [Record<string, ReportStatus>, Record<string, string>]
-    >(
-      ([statusDraft, adminResultDraft], report) => {
-        const key = report.id.unwrap()
-        return [
-          {
-            ...statusDraft,
-            [key]: report.status,
-          },
-          {
-            ...adminResultDraft,
-            [key]: report.resultTextAdmin?.unwrap() ?? "",
-          },
-        ]
-      },
-      [
-        { ...state.report.statusDraftByReportID },
-        { ...state.report.adminResultDraftByReportID },
-      ],
-    )
+    const [nextStatusDraft, nextAdminResultDraft] =
+      response.value.reports.reduce<
+        [Record<string, ReportStatus>, Record<string, string>]
+      >(
+        ([statusDraft, adminResultDraft], report) => {
+          const key = report.id.unwrap()
+          return [
+            {
+              ...statusDraft,
+              [key]: report.status,
+            },
+            {
+              ...adminResultDraft,
+              [key]: report.resultTextAdmin?.unwrap() ?? "",
+            },
+          ]
+        },
+        [
+          { ...state.report.statusDraftByReportID },
+          { ...state.report.adminResultDraftByReportID },
+        ],
+      )
 
     return [
       _ReportState(state, {
@@ -698,27 +699,28 @@ function onAdminListResponse(response: AdminListApi.Response): Action {
       ]
     }
 
-    const [nextStatusDraft, nextAdminResultDraft] = response.value.reports.reduce<
-      [Record<string, ReportStatus>, Record<string, string>]
-    >(
-      ([statusDraft, adminResultDraft], report) => {
-        const key = report.id.unwrap()
-        return [
-          {
-            ...statusDraft,
-            [key]: report.status,
-          },
-          {
-            ...adminResultDraft,
-            [key]: report.resultTextAdmin?.unwrap() ?? "",
-          },
-        ]
-      },
-      [
-        { ...state.report.statusDraftByReportID },
-        { ...state.report.adminResultDraftByReportID },
-      ],
-    )
+    const [nextStatusDraft, nextAdminResultDraft] =
+      response.value.reports.reduce<
+        [Record<string, ReportStatus>, Record<string, string>]
+      >(
+        ([statusDraft, adminResultDraft], report) => {
+          const key = report.id.unwrap()
+          return [
+            {
+              ...statusDraft,
+              [key]: report.status,
+            },
+            {
+              ...adminResultDraft,
+              [key]: report.resultTextAdmin?.unwrap() ?? "",
+            },
+          ]
+        },
+        [
+          { ...state.report.statusDraftByReportID },
+          { ...state.report.adminResultDraftByReportID },
+        ],
+      )
 
     return [
       _ReportState(state, {

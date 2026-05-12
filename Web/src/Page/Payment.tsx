@@ -57,17 +57,15 @@ export default function PaymentPage(props: Props): JSX.Element {
       linePrice,
     }
 
-    const basePanel =
-      current ??
-      {
-        sellerID: item.product.sellerID,
-        shopName:
-          state.payment.sellerShopNameByID[sellerKey] ??
-          item.product.shopName?.unwrap() ??
-          `Shop ${sellerKey.slice(0, 8)}`,
-        items: [],
-        subtotal: 0,
-      }
+    const basePanel = current ?? {
+      sellerID: item.product.sellerID,
+      shopName:
+        state.payment.sellerShopNameByID[sellerKey] ??
+        item.product.shopName?.unwrap() ??
+        `Shop ${sellerKey.slice(0, 8)}`,
+      items: [],
+      subtotal: 0,
+    }
 
     return {
       ...acc,

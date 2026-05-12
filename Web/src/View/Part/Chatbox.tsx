@@ -217,7 +217,9 @@ function MessageItem(props: MessageItemProps): React.ReactElement {
             </div>
           )}
         </div>
-        <div className={`${styles.msgFooter} ${isMine ? styles.msgFooterMine : ""}`}>
+        <div
+          className={`${styles.msgFooter} ${isMine ? styles.msgFooterMine : ""}`}
+        >
           <span className={styles.timestamp}>
             {formatTime(new Date(message.createdAt))}
           </span>

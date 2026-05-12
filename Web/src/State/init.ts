@@ -1,10 +1,5 @@
 import { Route } from "../Route"
-import {
-  AuthAdminState,
-  AuthSellerState,
-  AuthUserState,
-  State,
-} from "../State"
+import { AuthAdminState, AuthSellerState, AuthUserState, State } from "../State"
 import * as AuthToken from "../App/AuthToken"
 import { initLoginState } from "./Login"
 import { initProductState } from "./Product"

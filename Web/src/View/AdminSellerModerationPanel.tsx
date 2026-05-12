@@ -45,8 +45,7 @@ export default function AdminSellerModerationPanel(props: Props): JSX.Element {
         props.filterBy === "revenue-high"
           ? (a: Seller, b: Seller) => b.revenue.unwrap() - a.revenue.unwrap()
           : props.filterBy === "revenue-low"
-            ? (a: Seller, b: Seller) =>
-                a.revenue.unwrap() - b.revenue.unwrap()
+            ? (a: Seller, b: Seller) => a.revenue.unwrap() - b.revenue.unwrap()
             : props.filterBy === "profit-high"
               ? (a: Seller, b: Seller) => b.profit.unwrap() - a.profit.unwrap()
               : props.filterBy === "profit-low"

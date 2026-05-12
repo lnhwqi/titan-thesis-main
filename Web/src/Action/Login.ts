@@ -138,10 +138,7 @@ function onSubmitSellerResponse(response: LoginSellerApi.Response): Action {
       loginResponse: RD.notAsked(),
     })
 
-    return [
-      nextState,
-      cmd(perform(navigateTo(toRoute("SellerDashboard", {})))),
-    ]
+    return [nextState, cmd(perform(navigateTo(toRoute("SellerDashboard", {}))))]
   }
 }
 
@@ -171,10 +168,7 @@ function onSubmitAdminResponse(response: LoginAdminApi.Response): Action {
       loginResponse: RD.notAsked(),
     })
 
-    return [
-      nextState,
-      cmd(perform(navigateTo(toRoute("AdminDashboard", {})))),
-    ]
+    return [nextState, cmd(perform(navigateTo(toRoute("AdminDashboard", {}))))]
   }
 }
 

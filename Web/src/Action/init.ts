@@ -46,11 +46,9 @@ function initialProductCall(): Promise<ProductApi.Response> {
 
 function initPublicCmd(): Cmd {
   return cmd(
-    Promise.all([
-      initialProductCall(),
-      CategoryApi.call(),
-    ]).then(([productRes, categoryRes]) =>
-      publicInitResponse(productRes, categoryRes),
+    Promise.all([initialProductCall(), CategoryApi.call()]).then(
+      ([productRes, categoryRes]) =>
+        publicInitResponse(productRes, categoryRes),
     ),
   )
 }
