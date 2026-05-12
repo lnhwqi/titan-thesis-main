@@ -33,7 +33,7 @@ export function ProductCard(props: Props): JSX.Element {
 
   const getVariantSizes = () => {
     const variantRows = product.variants.map((variant) => {
-      const fromName = variant.name.unwrap().split("-").pop()
+      const fromName = variant.name.unwrap().split("-").at(-1)
       const sizeFromName = fromName != null ? fromName.trim().toUpperCase() : ""
 
       if (sizeFromName !== "") {
@@ -43,7 +43,7 @@ export function ProductCard(props: Props): JSX.Element {
         }
       }
 
-      const fromSku = variant.sku.unwrap().split("-").pop()
+      const fromSku = variant.sku.unwrap().split("-").at(-1)
       const sizeFromSku = (fromSku ?? "").trim().toUpperCase()
 
       return {
@@ -52,26 +52,27 @@ export function ProductCard(props: Props): JSX.Element {
       }
     })
 
-    const bySize = new Map<string, number>()
-    variantRows.forEach((item) => {
+    const bySize = variantRows.reduce<Record<string, number>>((acc, item) => {
       if (item.size === "") {
-        return
+        return acc
       }
 
-      const previous = bySize.get(item.size) ?? 0
-      bySize.set(item.size, previous + item.stock)
-    })
+      return {
+        ...acc,
+        [item.size]: (acc[item.size] ?? 0) + item.stock,
+      }
+    }, {})
 
-    const unique = Array.from(bySize.keys())
+    const unique = Object.keys(bySize)
     const ordered = ["S", "M", "L", "XL"]
     const byKnownOrder = unique
       .filter((size) => ordered.includes(size))
-      .sort((a, b) => ordered.indexOf(a) - ordered.indexOf(b))
+      .toSorted((a, b) => ordered.indexOf(a) - ordered.indexOf(b))
     const custom = unique.filter((size) => ordered.includes(size) === false)
 
     return [...byKnownOrder, ...custom].map((size) => ({
       size,
-      isOutOfStock: (bySize.get(size) ?? 0) <= 0,
+      isOutOfStock: (bySize[size] ?? 0) <= 0,
     }))
   }
 

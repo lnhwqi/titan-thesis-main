@@ -3,7 +3,7 @@ import { JSX } from "react"
 import Link from "../Link"
 import { toRoute } from "../../Route"
 import { color, font, theme } from "../Theme"
-import { State } from "../../State"
+import { State, isAuthUser } from "../../State"
 
 type Props = {
   state: State
@@ -11,7 +11,7 @@ type Props = {
 
 export default function SubHeader(props: Props): JSX.Element {
   const { state } = props
-  const isAuthUser = state._t === "AuthUser"
+  const isUser = isAuthUser(state)
   const rootCategories =
     state.category.treeResponse._t === "Success"
       ? state.category.treeResponse.data
@@ -21,7 +21,7 @@ export default function SubHeader(props: Props): JSX.Element {
     <div className={styles.navContainer}>
       <Link
         route={
-          isAuthUser
+          isUser
             ? toRoute("Saved", {})
             : toRoute("Login", { redirect: "/saved" })
         }

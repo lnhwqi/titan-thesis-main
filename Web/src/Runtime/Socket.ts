@@ -13,7 +13,7 @@ import * as JD from "decoders"
 import * as Logger from "../Logger"
 import Env from "../Env"
 
-let socket: Socket | null = null
+const socketRef: { current: Socket | null } = { current: null }
 
 // ---------------------------------------------------------------------------
 // Coin Rain payload types
@@ -68,7 +68,7 @@ export function initializeSocket(
   guestID?: string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (socket && socket.connected) {
+    if (socketRef.current && socketRef.current.connected) {
       resolve()
       return
     }
@@ -76,7 +76,7 @@ export function initializeSocket(
     try {
       const socketUrl = `${location.protocol}//${Env.API_HOST}`
 
-      socket = io(socketUrl, {
+      socketRef.current = io(socketUrl, {
         auth: authToken ? { token: authToken } : { guestID },
         reconnection: true,
         reconnectionDelay: 1000,
@@ -86,17 +86,17 @@ export function initializeSocket(
       })
 
       // Connection established
-      socket.on("connect", () => {
+      socketRef.current.on("connect", () => {
         resolve()
       })
 
       // Connection error
-      socket.on("connect_error", (err: Error) => {
+      socketRef.current.on("connect_error", (err: Error) => {
         reject(err)
       })
 
       // Setup message event listeners
-      setupMessageListeners(socket, handlers)
+      setupMessageListeners(socketRef.current, handlers)
     } catch (err) {
       Logger.error(err)
       reject(err)
@@ -108,9 +108,9 @@ export function initializeSocket(
  * Disconnect socket
  */
 export function disconnectSocket(): void {
-  if (socket) {
-    socket.disconnect()
-    socket = null
+  if (socketRef.current) {
+    socketRef.current.disconnect()
+    socketRef.current = null
   }
 }
 
@@ -118,7 +118,7 @@ export function disconnectSocket(): void {
  * Get socket instance
  */
 export function getSocket(): Socket | null {
-  return socket
+  return socketRef.current
 }
 
 /**
@@ -198,12 +198,12 @@ export function emitSendMessage(
   text: string,
 ): Promise<{ success: boolean; message?: Message; error?: string }> {
   return new Promise((resolve) => {
-    if (!socket || !socket.connected) {
+    if (!socketRef.current || !socketRef.current.connected) {
       resolve({ success: false, error: "Socket not connected" })
       return
     }
 
-    socket.emit(
+    socketRef.current.emit(
       "message:send",
       { conversationID, text },
       (raw: { success: boolean; message?: unknown; error?: string }) => {
@@ -226,9 +226,9 @@ export function emitSendMessage(
  * Emit typing indicator
  */
 export function emitTyping(conversationID: string): void {
-  if (!socket || !socket.connected) return
+  if (!socketRef.current || !socketRef.current.connected) return
 
-  socket.emit("message:typing", { conversationID })
+  socketRef.current.emit("message:typing", { conversationID })
 }
 
 /**
@@ -238,9 +238,9 @@ export function emitMessageRead(
   messageID: string,
   conversationID: string,
 ): void {
-  if (!socket || !socket.connected) return
+  if (!socketRef.current || !socketRef.current.connected) return
 
-  socket.emit("message:read", { messageID, conversationID })
+  socketRef.current.emit("message:read", { messageID, conversationID })
 }
 
 /**
@@ -254,12 +254,12 @@ export function emitCoinPickup(coinId: string): Promise<{
   error?: string
 }> {
   return new Promise((resolve) => {
-    if (!socket || !socket.connected) {
+    if (!socketRef.current || !socketRef.current.connected) {
       resolve({ success: false, error: "Socket not connected" })
       return
     }
 
-    socket.emit(
+    socketRef.current.emit(
       "coin_rain:pickup",
       { coinId },
       (raw: {
@@ -284,12 +284,12 @@ export function emitGetConversations(): Promise<{
   error?: string
 }> {
   return new Promise((resolve) => {
-    if (!socket || !socket.connected) {
+    if (!socketRef.current || !socketRef.current.connected) {
       resolve({ success: false, error: "Socket not connected" })
       return
     }
 
-    socket.emit(
+    socketRef.current.emit(
       "conversation:list",
       {},
       (raw: {
@@ -329,12 +329,12 @@ export function emitGetMessages(
   error?: string
 }> {
   return new Promise((resolve) => {
-    if (!socket || !socket.connected) {
+    if (!socketRef.current || !socketRef.current.connected) {
       resolve({ success: false, error: "Socket not connected" })
       return
     }
 
-    socket.emit(
+    socketRef.current.emit(
       "message:list",
       { conversationID, page, limit },
       (raw: {
@@ -376,12 +376,12 @@ export function emitStartConversation(
   error?: string
 }> {
   return new Promise((resolve) => {
-    if (!socket || !socket.connected) {
+    if (!socketRef.current || !socketRef.current.connected) {
       resolve({ success: false, error: "Socket not connected" })
       return
     }
 
-    socket.emit(
+    socketRef.current.emit(
       "conversation:start",
       { participantID, participantType },
       (raw: { success: boolean; conversation?: unknown; error?: string }) => {

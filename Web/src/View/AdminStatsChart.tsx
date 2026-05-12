@@ -384,7 +384,7 @@ function renderSupportMetrics(
   const current = supportMetricsResponse.data
   const history = supportMetricsHistoryResponse.data.items
 
-  const trendData = [...history].reverse().map((item, index) => ({
+  const trendData = history.toReversed().map((item, index) => ({
     label: toHistoryLabel(item.generatedAt, index),
     requests: item.snapshot.totals.requests,
     delivered: item.snapshot.totals.answersDelivered,

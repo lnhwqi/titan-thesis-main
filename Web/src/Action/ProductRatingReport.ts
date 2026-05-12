@@ -21,12 +21,8 @@ export function reportSpamRating(orderID: string, productID: string): Action {
   return (state) => {
     const key = `${orderID}:${productID}`
 
-    let parsedOrderID: OrderPaymentID
-    let parsedProductID: ProductID
-    try {
-      parsedOrderID = orderPaymentIDDecoder.verify(orderID)
-      parsedProductID = productIDDecoder.verify(productID)
-    } catch (_e) {
+    const parsedTarget = parseSpamTarget(orderID, productID)
+    if (parsedTarget == null) {
       return [
         _ProductRatingReportState(state, {
           flashMessage: "Invalid order or product ID.",
@@ -42,13 +38,27 @@ export function reportSpamRating(orderID: string, productID: string): Action {
       }),
       cmd(
         SellerReportSpamApi.call({
-          orderID: parsedOrderID,
-          productID: parsedProductID,
+          orderID: parsedTarget.orderID,
+          productID: parsedTarget.productID,
           reason: "SPAM",
           detail: null,
         }).then((response) => onReportSpamResponse(key, response)),
       ),
     ]
+  }
+}
+
+function parseSpamTarget(
+  orderID: string,
+  productID: string,
+): { orderID: OrderPaymentID; productID: ProductID } | null {
+  try {
+    return {
+      orderID: orderPaymentIDDecoder.verify(orderID),
+      productID: productIDDecoder.verify(productID),
+    }
+  } catch (_e) {
+    return null
   }
 }
 

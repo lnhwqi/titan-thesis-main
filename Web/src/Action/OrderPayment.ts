@@ -91,10 +91,8 @@ export function submitTrackingUpdate(orderID: string): Action {
   return (state) => {
     const status = state.orderPayment.statusDraftByOrderID[orderID] ?? "PACKED"
 
-    let parsedID
-    try {
-      parsedID = parseOrderPaymentID(orderID)
-    } catch (_e) {
+    const parsedID = parseOrderPaymentIDOrNull(orderID)
+    if (parsedID == null) {
       return [
         _OrderPaymentState(state, { flashMessage: "Invalid order id." }),
         cmd(),
@@ -120,10 +118,8 @@ export function submitDeliveryDecision(
   decision: DeliveryDecision,
 ): Action {
   return (state) => {
-    let parsedID
-    try {
-      parsedID = parseOrderPaymentID(orderID)
-    } catch (_e) {
+    const parsedID = parseOrderPaymentIDOrNull(orderID)
+    if (parsedID == null) {
       return [
         _OrderPaymentState(state, { flashMessage: "Invalid order id." }),
         cmd(),
@@ -221,6 +217,16 @@ function onUpdateTrackingResponse(response: SellerUpdateApi.Response): Action {
       }),
       cmd(SellerListApi.call().then(onSellerListResponse)),
     ]
+  }
+}
+
+function parseOrderPaymentIDOrNull(
+  value: string,
+): ReturnType<typeof parseOrderPaymentID> | null {
+  try {
+    return parseOrderPaymentID(value)
+  } catch (_e) {
+    return null
   }
 }
 

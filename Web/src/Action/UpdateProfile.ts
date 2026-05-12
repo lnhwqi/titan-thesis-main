@@ -6,10 +6,10 @@ import {
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 import * as UpdateProfileApi from "../Api/Auth/User/UpdateProfile"
 import * as RD from "../../../Core/Data/RemoteData"
-import { _AuthState, AuthState } from "../State"
+import { _AuthUserState, AuthUserState } from "../State"
 
 export function onChangeName(value: string): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     const { name } = authState.updateProfile
     return [
       _UpdateProfileState(authState, {
@@ -21,7 +21,7 @@ export function onChangeName(value: string): Action {
 }
 
 export function onChangeEmail(value: string): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     const { email } = authState.updateProfile
     return [
       _UpdateProfileState(authState, {
@@ -33,7 +33,7 @@ export function onChangeEmail(value: string): Action {
 }
 
 export function onChangeCurrentPassword(value: string): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     const { currentPassword } = authState.updateProfile
     return [
       _UpdateProfileState(authState, {
@@ -45,7 +45,7 @@ export function onChangeCurrentPassword(value: string): Action {
 }
 
 export function onChangeNewPassword(value: string): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     const { newPassword } = authState.updateProfile
     return [
       _UpdateProfileState(authState, {
@@ -57,7 +57,7 @@ export function onChangeNewPassword(value: string): Action {
 }
 
 export function onChangeConfirmPassword(value: string): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     const { confirmPassword } = authState.updateProfile
     return [
       _UpdateProfileState(authState, {
@@ -69,7 +69,7 @@ export function onChangeConfirmPassword(value: string): Action {
 }
 
 export function onSubmit(params: UpdateProfileApi.BodyParams): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     return [
       _UpdateProfileState(authState, { updateResponse: RD.loading() }),
       cmd(UpdateProfileApi.call(params).then(onSubmitResponse)),
@@ -78,7 +78,7 @@ export function onSubmit(params: UpdateProfileApi.BodyParams): Action {
 }
 
 function onSubmitResponse(response: UpdateProfileApi.Response): Action {
-  return _AuthState((authState: AuthState) => {
+  return _AuthUserState((authState: AuthUserState) => {
     if (response._t === "Err") {
       return [
         _UpdateProfileState(authState, {

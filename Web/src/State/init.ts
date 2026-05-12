@@ -1,9 +1,16 @@
 import { Route } from "../Route"
-import { AuthState, State } from "../State"
+import {
+  AuthAdminState,
+  AuthSellerState,
+  AuthUserState,
+  State,
+} from "../State"
 import * as AuthToken from "../App/AuthToken"
 import { initLoginState } from "./Login"
 import { initProductState } from "./Product"
 import { User } from "../../../Core/App/User"
+import { Seller } from "../../../Core/App/Seller"
+import { Admin } from "../../../Core/App/Admin"
 import { initUpdateProfileState } from "./UpdateProfile"
 import { initCategoryState } from "./Category"
 import { initCartState } from "./Cart"
@@ -50,11 +57,33 @@ export function initState(route: Route): State {
   }
 }
 
-export function initAuthState(profile: User, state: State): AuthState {
+export function initAuthUserState(profile: User, state: State): AuthUserState {
   return {
     ...state,
     _t: "AuthUser",
     updateProfile: initUpdateProfileState(profile),
+    profile,
+  }
+}
+
+export function initAuthSellerState(
+  profile: Seller,
+  state: State,
+): AuthSellerState {
+  return {
+    ...state,
+    _t: "AuthSeller",
+    profile,
+  }
+}
+
+export function initAuthAdminState(
+  profile: Admin,
+  state: State,
+): AuthAdminState {
+  return {
+    ...state,
+    _t: "AuthAdmin",
     profile,
   }
 }

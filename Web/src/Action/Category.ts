@@ -39,11 +39,11 @@ function gotTreeResponse(response: ListApi.Response): Action {
 
 export function selectCategory(categoryId: CategoryID): Action {
   return (state) => {
-    let nextState = _ProductState(state, {
+    const productState = _ProductState(state, {
       currentCategoryId: categoryId,
     })
 
-    nextState = _CategoryState(nextState, {
+    const nextState = _CategoryState(productState, {
       detailResponse: RD.loading(),
     })
 

@@ -1124,10 +1124,8 @@ export function changeUserMgmtSearch(search: string): Action {
 
 export function toggleUserActive(userID: string, active: boolean): Action {
   return (state) => {
-    let decodedID
-    try {
-      decodedID = userIDDecoder.verify(userID)
-    } catch (_e) {
+    const decodedID = parseUserIDOrNull(userID)
+    if (decodedID == null) {
       return [
         _AdminDashboardState(state, { flashMessage: "Invalid user ID." }),
         cmd(),
@@ -1246,10 +1244,8 @@ export function submitUserMessage(): Action {
       ]
     }
 
-    let decodedID
-    try {
-      decodedID = userIDDecoder.verify(rawUserID)
-    } catch (_e) {
+    const decodedID = parseUserIDOrNull(rawUserID)
+    if (decodedID == null) {
       return [
         _AdminDashboardState(state, { flashMessage: "Invalid user ID." }),
         cmd(),
@@ -1292,5 +1288,15 @@ function onSendUserMessageResponse(
       }),
       cmd(),
     ]
+  }
+}
+
+function parseUserIDOrNull(
+  value: string,
+): ReturnType<typeof userIDDecoder.verify> | null {
+  try {
+    return userIDDecoder.verify(value)
+  } catch (_e) {
+    return null
   }
 }

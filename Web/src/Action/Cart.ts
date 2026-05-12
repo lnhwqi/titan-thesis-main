@@ -1,5 +1,5 @@
 import { Action, cmd, perform, type Cmd } from "../Action"
-import { State } from "../State"
+import { State, isAuthUser } from "../State"
 import { BasicProduct } from "../../../Core/App/ProductBasic"
 import { _CartState, CartItem, CartState } from "../State/Cart"
 import { navigateTo, toRoute } from "../Route"
@@ -45,7 +45,7 @@ function withAuth(
   state: State,
   authorizedAction: () => [State, Cmd],
 ): [State, Cmd] {
-  if (state._t !== "AuthUser") {
+  if (!isAuthUser(state)) {
     const currentPath = window.location.pathname
     return [
       state,
@@ -65,32 +65,30 @@ export function addToCart(product: BasicProduct, quantity: number = 1): Action {
         isSameLine(item.product, product),
       )
 
-      let nextItems: CartItem[]
-      if (existingItem) {
-        nextItems = state.cart.items.map((item) =>
-          isSameLine(item.product, product)
-            ? {
-                ...item,
-                quantity: Math.min(
-                  item.quantity + nextQuantity,
-                  getMaxStock(item.product),
-                ),
-              }
-            : item,
-        )
-      } else {
-        if (getMaxStock(product) <= 0) {
-          return [state, cmd()]
-        }
-
-        nextItems = [
-          ...state.cart.items,
-          {
-            product,
-            quantity: Math.min(nextQuantity, getMaxStock(product)),
-          },
-        ]
+      if (existingItem == null && getMaxStock(product) <= 0) {
+        return [state, cmd()]
       }
+
+      const nextItems =
+        existingItem != null
+          ? state.cart.items.map((item) =>
+              isSameLine(item.product, product)
+                ? {
+                    ...item,
+                    quantity: Math.min(
+                      item.quantity + nextQuantity,
+                      getMaxStock(item.product),
+                    ),
+                  }
+                : item,
+            )
+          : [
+              ...state.cart.items,
+              {
+                product,
+                quantity: Math.min(nextQuantity, getMaxStock(product)),
+              },
+            ]
 
       return saveAndReturn(state, { items: nextItems, isOpen: true })
     })

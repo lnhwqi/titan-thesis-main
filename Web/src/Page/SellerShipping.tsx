@@ -85,9 +85,9 @@ function exportCSV(rows: OrderRow[]): void {
     "Margin (%)",
     "Payment Method",
   ]
-  const lines = [headers.join(",")]
-  for (const row of rows) {
-    lines.push(
+  const lines = [
+    headers.join(","),
+    ...rows.map((row) =>
       [
         `"${row.id}"`,
         `"${row.date}"`,
@@ -99,8 +99,8 @@ function exportCSV(rows: OrderRow[]): void {
         row.margin.toFixed(2),
         `"${row.paymentMethod}"`,
       ].join(","),
-    )
-  }
+    ),
+  ]
   const csv = "\uFEFF" + lines.join("\n")
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
   const url = URL.createObjectURL(blob)
@@ -145,60 +145,88 @@ export default function SellerShippingPage(props: Props): JSX.Element {
 
   const receivedOrders = orders.filter((order) => order.status === "RECEIVED")
 
-  let totalRevenue = 0
-  let totalFee = 0
-  let totalProfit = 0
-  let completedProfit = 0
-  let pendingProfit = 0
-  const trendByDate: Record<
-    string,
+  const summary = receivedOrders.reduce<{
+    totalRevenue: number
+    totalFee: number
+    totalProfit: number
+    completedProfit: number
+    trendByDate: Record<
+      string,
+      {
+        date: string
+        revenue: number
+        fee: number
+        profit: number
+        orders: number
+      }
+    >
+    statusProfit: Record<string, number>
+  }>(
+    (acc, order) => {
+      const revenue = order.price.unwrap()
+      const fee = order.fee.unwrap()
+      const profit = order.profit.unwrap()
+      const date = formatDate(order.createdAt)
+
+      const currentTrend = acc.trendByDate[date] ?? {
+        date,
+        revenue: 0,
+        fee: 0,
+        profit: 0,
+        orders: 0,
+      }
+
+      return {
+        totalRevenue: acc.totalRevenue + revenue,
+        totalFee: acc.totalFee + fee,
+        totalProfit: acc.totalProfit + profit,
+        completedProfit: acc.completedProfit + profit,
+        trendByDate: {
+          ...acc.trendByDate,
+          [date]: {
+            date,
+            revenue: currentTrend.revenue + revenue,
+            fee: currentTrend.fee + fee,
+            profit: currentTrend.profit + profit,
+            orders: currentTrend.orders + 1,
+          },
+        },
+        statusProfit: {
+          ...acc.statusProfit,
+          [order.status]: (acc.statusProfit[order.status] ?? 0) + profit,
+        },
+      }
+    },
     {
-      date: string
-      revenue: number
-      fee: number
-      profit: number
-      orders: number
-    }
-  > = {}
-  const statusProfit: Record<string, number> = {}
+      totalRevenue: 0,
+      totalFee: 0,
+      totalProfit: 0,
+      completedProfit: 0,
+      trendByDate: {},
+      statusProfit: {},
+    },
+  )
 
-  for (const order of receivedOrders) {
-    const revenue = order.price.unwrap()
-    const fee = order.fee.unwrap()
-    const profit = order.profit.unwrap()
-    const date = formatDate(order.createdAt)
+  const totalRevenue = summary.totalRevenue
+  const totalFee = summary.totalFee
+  const totalProfit = summary.totalProfit
+  const completedProfit = summary.completedProfit
 
-    totalRevenue += revenue
-    totalFee += fee
-    totalProfit += profit
-    statusProfit[order.status] = (statusProfit[order.status] ?? 0) + profit
-
-    completedProfit += profit
-
-    if (trendByDate[date] == null) {
-      trendByDate[date] = { date, revenue: 0, fee: 0, profit: 0, orders: 0 }
-    }
-    trendByDate[date].revenue += revenue
-    trendByDate[date].fee += fee
-    trendByDate[date].profit += profit
-    trendByDate[date].orders += 1
-  }
-
-  pendingProfit = orders
+  const pendingProfit = orders
     .filter((order) => order.status !== "RECEIVED")
     .reduce((sum, order) => sum + order.profit.unwrap(), 0)
 
   const margin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0
-  const trendData = Object.values(trendByDate)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  const trendData = Object.values(summary.trendByDate)
+    .toSorted((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-14)
 
-  const statusProfitData = Object.entries(statusProfit)
+  const statusProfitData = Object.entries(summary.statusProfit)
     .map(([status, profit]) => ({
       name: STATUS_LABELS[status] ?? status,
       profit,
     }))
-    .sort((a, b) => b.profit - a.profit)
+    .toSorted((a, b) => b.profit - a.profit)
 
   const rows = buildRows(receivedOrders)
 

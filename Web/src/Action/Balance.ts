@@ -34,11 +34,7 @@ function onBalanceResponse(response: HomeUserApi.Response): Action {
     if (response._t === "Err") return [state, cmd()]
     const wallet = response.value.user.wallet
     const base = { ...state, userBalance: wallet }
-    if (
-      base._t === "AuthUser" ||
-      base._t === "AuthSeller" ||
-      base._t === "AuthAdmin"
-    ) {
+    if ("updateProfile" in base) {
       return [{ ...base, profile: { ...base.profile, wallet } }, cmd()]
     }
     return [base, cmd()]

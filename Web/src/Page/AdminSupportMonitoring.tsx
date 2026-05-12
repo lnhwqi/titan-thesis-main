@@ -276,8 +276,8 @@ function renderTrendChart(
     )
   }
 
-  const trendData = [...filteredHistory]
-    .sort((a, b) => toTimestamp(a.generatedAt) - toTimestamp(b.generatedAt))
+  const trendData = filteredHistory
+    .toSorted((a, b) => toTimestamp(a.generatedAt) - toTimestamp(b.generatedAt))
     .map((item, index) => ({
       label: toHistoryLabel(item.generatedAt, index),
       requests: item.snapshot.totals.requests,
@@ -391,8 +391,8 @@ function renderSnapshotTable(
     )
   }
 
-  const recent = [...filteredHistory]
-    .sort((a, b) => toTimestamp(b.generatedAt) - toTimestamp(a.generatedAt))
+  const recent = filteredHistory
+    .toSorted((a, b) => toTimestamp(b.generatedAt) - toTimestamp(a.generatedAt))
     .slice(0, 12)
 
   return (
@@ -461,7 +461,7 @@ function filterHistoryByRange(
     return []
   }
 
-  const sortedItems = [...response.data.items].sort(
+  const sortedItems = response.data.items.toSorted(
     (a, b) => toTimestamp(b.generatedAt) - toTimestamp(a.generatedAt),
   )
 

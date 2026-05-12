@@ -11,7 +11,7 @@ import { Maybe } from "../../../Core/Data/Maybe"
 import * as RD from "../../../Core/Data/RemoteData"
 import { createEmailE, Email, ErrorEmail } from "../../../Core/Data/User/Email"
 import { ApiError } from "../Api"
-import type { AuthState } from "../State"
+import type { AuthUserState } from "../State"
 
 export type UpdateProfileState = {
   name: FieldString.FieldString<ErrorName, Name>
@@ -41,9 +41,9 @@ export function initUpdateProfileState(profile: User): UpdateProfileState {
 }
 
 export function _UpdateProfileState(
-  authState: AuthState,
+  authState: AuthUserState,
   updateProfile: Partial<UpdateProfileState>,
-): AuthState {
+): AuthUserState {
   return {
     ...authState,
     updateProfile: { ...authState.updateProfile, ...updateProfile },

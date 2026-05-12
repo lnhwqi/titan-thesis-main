@@ -183,7 +183,7 @@ export function onChangeDepositAmount(value: string): Action {
 
 export function submitDeposit(): Action {
   return (state) => {
-    if (state._t !== "AuthUser") {
+    if (!("updateProfile" in state)) {
       return [state, cmd()]
     }
 
@@ -259,7 +259,7 @@ export function showFlashMessage(message: string): Action {
 
 export function submitPayment(): Action {
   return (state) => {
-    if (state._t !== "AuthUser") {
+    if (!("updateProfile" in state)) {
       return [
         state,
         cmd(perform(navigateTo(toRoute("Login", { redirect: "/payment" })))),
@@ -587,17 +587,28 @@ function onDepositQueryResponse(
       ]
     }
 
-    if (state._t !== "AuthUser") {
+    if (!("updateProfile" in state)) {
       return [state, cmd()]
+    }
+
+    const depositStatusResponse: typeof state.payment.depositStatusResponse = {
+      _t: "Success",
+      data: response.value,
+    }
+
+    const nextPaymentState = {
+      ...state.payment,
+      depositStatusResponse,
     }
 
     if (response.value.status === "FAILED") {
       return [
         {
-          ..._PaymentState(state, {
-            depositStatusResponse: RD.success(response.value),
+          ...state,
+          payment: {
+            ...nextPaymentState,
             flashMessage: "Deposit failed or cancelled.",
-          }),
+          },
           profile: response.value.user,
         },
         cmd(),
@@ -606,12 +617,13 @@ function onDepositQueryResponse(
 
     return [
       {
-        ..._PaymentState(state, {
-          depositStatusResponse: RD.success(response.value),
+        ...state,
+        payment: {
+          ...nextPaymentState,
           depositAmount: "",
           depositCheckout: null,
           flashMessage: "Deposit successful. Wallet updated.",
-        }),
+        },
         profile: response.value.user,
         userBalance: response.value.user.wallet,
       },

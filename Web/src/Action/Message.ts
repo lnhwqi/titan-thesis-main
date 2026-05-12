@@ -1,5 +1,5 @@
 import { Action, cmd } from "../Action"
-import { State, _MessageState, _AuthState } from "../State"
+import { State, _MessageState, currentActorId } from "../State"
 import * as Logger from "../Logger"
 import * as AuthToken from "../App/AuthToken"
 import {
@@ -20,12 +20,6 @@ const SUPPORT_PARTICIPANT_ID = "00000000-0000-6000-8000-000000000001"
 
 const TYPING_TIMEOUT_MS = 3_000
 
-function _getMyID(state: State): string | null {
-  if (state._t === "AuthUser") return state.profile.id.unwrap()
-  if (state._t === "AuthSeller") return state.profile.id.unwrap()
-  if (state._t === "AuthAdmin") return state.profile.id.unwrap()
-  return null
-}
 const LEGACY_SUPPORT_PARTICIPANT_ID = "00000000-0000-0000-0000-000000000001"
 const SUPPORT_PARTICIPANT_TYPE: "SELLER" = "SELLER"
 
@@ -313,7 +307,7 @@ export function receiveMessage(message: Message): Action {
 export function receiveTyping(userID: string): Action {
   return (state: State) => {
     // Don't show the indicator for the current user's own typing
-    if (userID === _getMyID(state)) return [state, cmd()]
+    if (userID === currentActorId(state)) return [state, cmd()]
 
     // Reset the auto-clear timer for this user (handled via cmd promise below)
 
@@ -533,7 +527,7 @@ function setNewConversation(conversation: Conversation): Action {
 function sortConversationsPinned(
   conversations: Conversation[],
 ): Conversation[] {
-  return [...conversations].sort((a, b) => {
+  return conversations.toSorted((a, b) => {
     const aSupport = isSupportConversation(a)
     const bSupport = isSupportConversation(b)
 

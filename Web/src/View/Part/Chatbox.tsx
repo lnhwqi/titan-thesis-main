@@ -1,7 +1,7 @@
 import React from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { State } from "../../State"
+import { State, currentActorId, isAdmin as isAdminState } from "../../State"
 import type { ConversationID } from "../../../../Core/App/Message"
 import { emit } from "../../Runtime/React"
 import * as MessageAction from "../../Action/Message"
@@ -40,29 +40,35 @@ const bounce = keyframes({
 const URL_PATTERN = /(https?:\/\/[^\s]+|\/[a-z][a-z0-9/_-]*)/g
 
 function renderMessageText(text: string): React.ReactNode[] {
-  const parts: React.ReactNode[] = []
-  let lastIndex = 0
-  let match: RegExpExecArray | null
-  URL_PATTERN.lastIndex = 0
-  while ((match = URL_PATTERN.exec(text)) !== null) {
-    const raw = match[0]
-    const start = match.index
-    if (start > lastIndex) parts.push(text.slice(lastIndex, start))
-    parts.push(
-      <a
-        key={start}
-        href={raw}
-        className={styles.messageLink}
-        target={raw.startsWith("http") ? "_blank" : "_self"}
-        rel="noopener noreferrer"
-      >
-        {raw}
-      </a>,
-    )
-    lastIndex = start + raw.length
+  const matches = Array.from(text.matchAll(new RegExp(URL_PATTERN.source, "g")))
+  if (matches.length === 0) {
+    return [text]
   }
-  if (lastIndex < text.length) parts.push(text.slice(lastIndex))
-  return parts.length > 0 ? parts : [text]
+
+  const [nodes, cursor] = matches.reduce<readonly [React.ReactNode[], number]>(
+    ([acc, lastIndex], match) => {
+      const raw = match[0]
+      const start = match.index ?? 0
+      const plainText = start > lastIndex ? [text.slice(lastIndex, start)] : []
+
+      const link = (
+        <a
+          key={`${start}-${raw}`}
+          href={raw}
+          className={styles.messageLink}
+          target={raw.startsWith("http") ? "_blank" : "_self"}
+          rel="noopener noreferrer"
+        >
+          {raw}
+        </a>
+      )
+
+      return [[...acc, ...plainText, link], start + raw.length]
+    },
+    [[], 0],
+  )
+
+  return cursor < text.length ? [...nodes, text.slice(cursor)] : nodes
 }
 
 // Hàm chuẩn bị văn bản Markdown để chắc chắn các link tương đối được render thành thẻ <a>
@@ -104,9 +110,11 @@ const AVATAR_COLORS = [
   "#14b8a6",
 ]
 function getAvatarColor(name: string): string {
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return AVATAR_COLORS[h % AVATAR_COLORS.length] ?? "#7c3aed"
+  const hash = Array.from(name).reduce(
+    (acc, char) => (acc * 31 + char.charCodeAt(0)) >>> 0,
+    0,
+  )
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length] ?? "#7c3aed"
 }
 
 function formatRelativeTime(date: Date): string {
@@ -127,6 +135,99 @@ function formatTime(date: Date): string {
     hour: "2-digit",
     minute: "2-digit",
   })
+}
+
+function renderMarkdownMessage(text: string): React.ReactElement {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            className={styles.messageLink}
+            target={href?.startsWith("http") ? "_blank" : "_self"}
+            rel="noopener noreferrer"
+          >
+            {children}
+          </a>
+        ),
+        p: ({ children }) => <span className={styles.mdPara}>{children}</span>,
+      }}
+    >
+      {prepareMarkdown(text)}
+    </ReactMarkdown>
+  )
+}
+
+type ChatMessage = State["message"]["currentMessages"][number]
+
+type MessageItemProps = {
+  message: ChatMessage
+  currentUserID: string | null
+}
+
+function MessageItem(props: MessageItemProps): React.ReactElement {
+  const { message, currentUserID } = props
+  const isSystem = message.senderType === "SYSTEM"
+  const isMine =
+    !isSystem &&
+    currentUserID != null &&
+    message.senderID !== "SYSTEM" &&
+    message.senderID.unwrap() === currentUserID
+
+  if (isSystem) {
+    return (
+      <div className={styles.systemMsg}>
+        <div className={styles.systemMsgPill}>
+          {renderMarkdownMessage(message.text.unwrap())}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`${styles.msgRow} ${isMine ? styles.msgRowMine : styles.msgRowOther}`}
+    >
+      {!isMine && (
+        <div
+          className={styles.msgAvatar}
+          style={{
+            background: getAvatarColor(message.senderName),
+          }}
+        >
+          {getInitials(message.senderName)}
+        </div>
+      )}
+      <div className={styles.msgBubbleWrap}>
+        {!isMine && (
+          <span className={styles.msgSenderName}>{message.senderName}</span>
+        )}
+        <div
+          className={`${styles.msgBubble} ${isMine ? styles.msgBubbleMine : styles.msgBubbleOther}`}
+        >
+          {isMine ? (
+            <p className={`${styles.messageText} ${styles.messageTextMine}`}>
+              {renderMessageText(message.text.unwrap())}
+            </p>
+          ) : (
+            <div className={styles.messageText}>
+              {renderMarkdownMessage(message.text.unwrap())}
+            </div>
+          )}
+        </div>
+        <div className={`${styles.msgFooter} ${isMine ? styles.msgFooterMine : ""}`}>
+          <span className={styles.timestamp}>
+            {formatTime(new Date(message.createdAt))}
+          </span>
+          {isMine && message.readAt && (
+            <span className={styles.readReceipt}>✓✓</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -150,18 +251,10 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
     newChatError,
   } = state.message
 
-  const isAdmin = state._t === "AuthAdmin"
-  const isGuest =
-    AuthToken.get() == null &&
-    (state._t === "Public" || state._t === "LoadingAuth")
+  const isAdmin = isAdminState(state)
+  const isGuest = AuthToken.get() == null && !("profile" in state)
 
-  function getProfileID(): string | null {
-    if (state._t === "AuthUser") return state.profile.id.unwrap()
-    if (state._t === "AuthSeller") return state.profile.id.unwrap()
-    if (state._t === "AuthAdmin") return state.profile.id.unwrap()
-    return null
-  }
-  const currentUserID = getProfileID()
+  const currentUserID = currentActorId(state)
 
   const selectedConversation =
     currentConversationID != null
@@ -205,6 +298,7 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
   const handleGoToRegister = () => emit(navigateTo(toRoute("Register", {})))
 
   const isInChat = currentConversationID != null
+  const firstTypingUser = typingUsers.values().next().value ?? null
 
   return (
     <div className={styles.chatboxContainer}>
@@ -535,17 +629,15 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                   )}
                   {!messagesLoading && (
                     <div className={styles.messagesList}>
-                      {typingUsers.size > 0 && (
+                      {firstTypingUser != null && (
                         <div className={styles.typingRow}>
                           <div
                             className={styles.msgAvatar}
                             style={{
-                              background: getAvatarColor(
-                                Array.from(typingUsers)[0] ?? "",
-                              ),
+                              background: getAvatarColor(firstTypingUser),
                             }}
                           >
-                            {getInitials(Array.from(typingUsers)[0] ?? "?")}
+                            {getInitials(firstTypingUser)}
                           </div>
                           <div className={styles.typingBubble}>
                             <span className={styles.dots}>
@@ -571,127 +663,13 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
                           <p>No messages yet. Say hello! 👋</p>
                         </div>
                       )}
-                      {[...currentMessages].reverse().map((msg) => {
-                        const isSystem = msg.senderType === "SYSTEM"
-                        const isMine =
-                          !isSystem &&
-                          currentUserID != null &&
-                          msg.senderID !== "SYSTEM" &&
-                          msg.senderID.unwrap() === currentUserID
-
-                        if (isSystem) {
-                          return (
-                            <div
-                              key={msg.id.unwrap()}
-                              className={styles.systemMsg}
-                            >
-                              <div className={styles.systemMsgPill}>
-                                <ReactMarkdown
-                                  remarkPlugins={[remarkGfm]}
-                                  components={{
-                                    a: ({ href, children }) => (
-                                      <a
-                                        href={href}
-                                        className={styles.messageLink}
-                                        target={
-                                          href?.startsWith("http")
-                                            ? "_blank"
-                                            : "_self"
-                                        }
-                                        rel="noopener noreferrer"
-                                      >
-                                        {children}
-                                      </a>
-                                    ),
-                                    p: ({ children }) => (
-                                      <span className={styles.mdPara}>
-                                        {children}
-                                      </span>
-                                    ),
-                                  }}
-                                >
-                                  {prepareMarkdown(msg.text.unwrap())}
-                                </ReactMarkdown>
-                              </div>
-                            </div>
-                          )
-                        }
-
-                        return (
-                          <div
-                            key={msg.id.unwrap()}
-                            className={`${styles.msgRow} ${isMine ? styles.msgRowMine : styles.msgRowOther}`}
-                          >
-                            {!isMine && (
-                              <div
-                                className={styles.msgAvatar}
-                                style={{
-                                  background: getAvatarColor(msg.senderName),
-                                }}
-                              >
-                                {getInitials(msg.senderName)}
-                              </div>
-                            )}
-                            <div className={styles.msgBubbleWrap}>
-                              {!isMine && (
-                                <span className={styles.msgSenderName}>
-                                  {msg.senderName}
-                                </span>
-                              )}
-                              <div
-                                className={`${styles.msgBubble} ${isMine ? styles.msgBubbleMine : styles.msgBubbleOther}`}
-                              >
-                                {isMine ? (
-                                  <p
-                                    className={`${styles.messageText} ${styles.messageTextMine}`}
-                                  >
-                                    {renderMessageText(msg.text.unwrap())}
-                                  </p>
-                                ) : (
-                                  <div className={styles.messageText}>
-                                    <ReactMarkdown
-                                      remarkPlugins={[remarkGfm]}
-                                      components={{
-                                        a: ({ href, children }) => (
-                                          <a
-                                            href={href}
-                                            className={styles.messageLink}
-                                            target={
-                                              href?.startsWith("http")
-                                                ? "_blank"
-                                                : "_self"
-                                            }
-                                            rel="noopener noreferrer"
-                                          >
-                                            {children}
-                                          </a>
-                                        ),
-                                        p: ({ children }) => (
-                                          <span className={styles.mdPara}>
-                                            {children}
-                                          </span>
-                                        ),
-                                      }}
-                                    >
-                                      {prepareMarkdown(msg.text.unwrap())}
-                                    </ReactMarkdown>
-                                  </div>
-                                )}
-                              </div>
-                              <div
-                                className={`${styles.msgFooter} ${isMine ? styles.msgFooterMine : ""}`}
-                              >
-                                <span className={styles.timestamp}>
-                                  {formatTime(new Date(msg.createdAt))}
-                                </span>
-                                {isMine && msg.readAt && (
-                                  <span className={styles.readReceipt}>✓✓</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
+                      {currentMessages.toReversed().map((message) => (
+                        <MessageItem
+                          key={message.id.unwrap()}
+                          message={message}
+                          currentUserID={currentUserID}
+                        />
+                      ))}
                     </div>
                   )}
 

@@ -266,10 +266,8 @@ export function submitEditProductFromPage(): Action {
       ]
     }
 
-    let productID: ProductID
-    try {
-      productID = parseProductID(rawID)
-    } catch (_e) {
+    const productID = parseProductIDOrNull(rawID)
+    if (productID == null) {
       return [
         _SellerDashboardState(state, {
           flashMessage: "Invalid product id.",
@@ -936,10 +934,8 @@ export function confirmDeleteProduct(): Action {
       return [state, cmd()]
     }
 
-    let productID: ProductID
-    try {
-      productID = parseProductID(rawId)
-    } catch (_e) {
+    const productID = parseProductIDOrNull(rawId)
+    if (productID == null) {
       return [
         _SellerDashboardState(state, {
           pendingDeleteProductId: null,
@@ -1007,28 +1003,44 @@ function findProductNameById(state: State, productID: ProductID): string {
   return found?.name.unwrap() ?? "this product"
 }
 
+function parseProductIDOrNull(value: string): ProductID | null {
+  try {
+    return parseProductID(value)
+  } catch (_e) {
+    return null
+  }
+}
+
 function filterUploadFiles(files: File[]): {
   acceptedFiles: File[]
   warning: string | null
 } {
-  const accepted: File[] = []
-  let warning: string | null = null
+  return files.reduce<{
+    acceptedFiles: File[]
+    warning: string | null
+  }>(
+    (acc, file) => {
+      if (file.type.startsWith("image/") === false) {
+        return {
+          ...acc,
+          warning: "Only image files are allowed.",
+        }
+      }
 
-  files.forEach((file) => {
-    if (file.type.startsWith("image/") === false) {
-      warning = "Only image files are allowed."
-      return
-    }
+      if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+        return {
+          ...acc,
+          warning: `Each image must be smaller than ${MAX_UPLOAD_SIZE_MB} MB.`,
+        }
+      }
 
-    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      warning = `Each image must be smaller than ${MAX_UPLOAD_SIZE_MB} MB.`
-      return
-    }
-
-    accepted.push(file)
-  })
-
-  return { acceptedFiles: accepted, warning }
+      return {
+        ...acc,
+        acceptedFiles: [...acc.acceptedFiles, file],
+      }
+    },
+    { acceptedFiles: [], warning: null },
+  )
 }
 
 function readFilesAsDataUrl(

@@ -13,6 +13,7 @@ import * as WishlistSaveApi from "../Api/Auth/User/Wishlist/Save"
 import * as WishlistRemoveApi from "../Api/Auth/User/Wishlist/Remove"
 import * as RD from "../../../Core/Data/RemoteData"
 import { navigateTo, toRoute } from "../Route"
+import { isAuthUser } from "../State"
 import { _ProductState } from "../State/Product"
 import { ProductID } from "../../../Core/App/Product/ProductID"
 import { CategoryID } from "../../../Core/App/Category/CategoryID"
@@ -190,13 +191,8 @@ function gotListResponse(
         : []
 
     const getAllValidCategoryIds = (cat: Category): string[] => {
-      let ids = [cat.id.unwrap()]
-      if (cat.children && cat.children.length > 0) {
-        for (const child of cat.children) {
-          ids = [...ids, ...getAllValidCategoryIds(child)]
-        }
-      }
-      return ids
+      const childIds = (cat.children ?? []).flatMap(getAllValidCategoryIds)
+      return [cat.id.unwrap(), ...childIds]
     }
 
     const findCategory = (
@@ -475,7 +471,7 @@ export function loadDetail(id: ProductID): Action {
 export function loadSellerProfile(sellerID: SellerID): Action {
   return (state) => {
     const sellerIdString = sellerID.unwrap()
-    const shouldLoadVouchers = state._t === "AuthUser"
+    const shouldLoadVouchers = isAuthUser(state)
 
     return [
       _ProductState(state, {
@@ -575,17 +571,15 @@ function clearRecentlyClaimedVoucher(voucherID: string): Action {
 
 export function claimSellerVoucher(rawVoucherID: string): Action {
   return (state) => {
-    if (state._t !== "AuthUser") {
+    if (!isAuthUser(state)) {
       return [
         state,
         cmd(perform(navigateTo(toRoute("Login", { redirect: null })))),
       ]
     }
 
-    let voucherID
-    try {
-      voucherID = voucherIDDecoder.verify(rawVoucherID)
-    } catch (_e) {
+    const voucherID = parseVoucherIDOrNull(rawVoucherID)
+    if (voucherID == null) {
       return [
         _ProductState(state, {
           sellerVoucherFlashMessage: "Invalid voucher id.",
@@ -641,6 +635,16 @@ function onClaimSellerVoucherResponse(
         sleep(2200).then(() => clearRecentlyClaimedVoucher(claimedVoucherID)),
       ),
     ]
+  }
+}
+
+function parseVoucherIDOrNull(
+  value: string,
+): ReturnType<typeof voucherIDDecoder.verify> | null {
+  try {
+    return voucherIDDecoder.verify(value)
+  } catch (_e) {
+    return null
   }
 }
 

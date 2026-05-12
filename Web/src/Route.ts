@@ -5,6 +5,8 @@ import { Maybe, maybeOptionalDecoder } from "../../Core/Data/Maybe"
 import type { Action } from "./Action"
 import type { State } from "./State"
 
+const reversePath = Teki.reverse
+
 export type Route =
   | { _t: "Home"; path: "/"; params: NoParams }
   | {
@@ -565,7 +567,7 @@ export function toPath(route: Route): string {
   // We need to convert all the param values into string
   // before we can put them into the path
   const urlParams = _serializeParams(params)
-  return Teki.reverse(path)(urlParams)
+  return reversePath(path)(urlParams)
 }
 
 /**

@@ -48,7 +48,7 @@ export default function ProductDetailPage(
 
   const variantRows = product.variants
     .map((variant) => {
-      const fromName = variant.name.unwrap().split("-").pop()
+      const fromName = variant.name.unwrap().split("-").at(-1)
       const parsedFromName =
         fromName != null ? fromName.trim().toUpperCase() : ""
 
@@ -56,7 +56,7 @@ export default function ProductDetailPage(
         return { size: parsedFromName, variant }
       }
 
-      const fromSku = variant.sku.unwrap().split("-").pop()
+      const fromSku = variant.sku.unwrap().split("-").at(-1)
       const parsedFromSku = (fromSku ?? "").trim().toUpperCase()
 
       return {
@@ -66,21 +66,24 @@ export default function ProductDetailPage(
     })
     .filter((item) => item.size !== "")
 
-  const variantBySize = new Map<
-    string,
-    (typeof variantRows)[number]["variant"]
-  >()
-  variantRows.forEach((item) => {
-    if (!variantBySize.has(item.size)) {
-      variantBySize.set(item.size, item.variant)
+  const variantBySize = variantRows.reduce<
+    Record<string, (typeof variantRows)[number]["variant"]>
+  >((acc, item) => {
+    if (acc[item.size] != null) {
+      return acc
     }
-  })
+
+    return {
+      ...acc,
+      [item.size]: item.variant,
+    }
+  }, {})
 
   const knownOrder = ["S", "M", "L", "XL"]
-  const variantKeys = Array.from(variantBySize.keys())
+  const variantKeys = Object.keys(variantBySize)
   const knownSizes = variantKeys
     .filter((size) => knownOrder.includes(size))
-    .sort((a, b) => knownOrder.indexOf(a) - knownOrder.indexOf(b))
+    .toSorted((a, b) => knownOrder.indexOf(a) - knownOrder.indexOf(b))
   const customSizes = variantKeys.filter(
     (size) => knownOrder.includes(size) === false,
   )
@@ -92,7 +95,7 @@ export default function ProductDetailPage(
   )
 
   const selectedVariant =
-    selectedSize != null ? (variantBySize.get(selectedSize) ?? null) : null
+    selectedSize != null ? (variantBySize[selectedSize] ?? null) : null
 
   const shownPrice =
     selectedVariant != null
@@ -135,9 +138,7 @@ export default function ProductDetailPage(
   const isSaved = state.product.wishlistProductIDs.includes(product.id.unwrap())
 
   const changeIndex = (i: number) => {
-    let nextIndex = i
-    if (i < 0) nextIndex = images.length - 1
-    if (i >= images.length) nextIndex = 0
+    const nextIndex = i < 0 ? images.length - 1 : i >= images.length ? 0 : i
     emit(ProductAction.setImageIndex(nextIndex))
   }
 
@@ -231,7 +232,7 @@ export default function ProductDetailPage(
                 </div>
                 <div className={styles.variantList}>
                   {orderedSizes.map((size) => {
-                    const variant = variantBySize.get(size)
+                    const variant = variantBySize[size]
                     if (variant == null) return null
 
                     const stock = variant.stock.unwrap()

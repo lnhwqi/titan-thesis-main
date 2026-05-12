@@ -20,22 +20,22 @@ export function start<S>(
   initCmd: Cmd<S>,
   renderState: RenderFn<S>,
 ): EmitFn<S> {
-  let singletonState: S = initState
+  const singletonState: { current: S } = { current: initState }
 
   // Creates the emit function that is tied to state S
   // It uses the closure of mutableState in order to maintain a single state
   // Javascript is a single-thread runtime which guarantees us
   // that emit will always run sequentially
   const emit: EmitFn<S> = (action: Action<S>) => {
-    const [newState, cmd] = action(singletonState)
-    singletonState = newState
+    const [newState, cmd] = action(singletonState.current)
+    singletonState.current = newState
     runCmd(emit, cmd)
-    renderState(singletonState)
+    renderState(singletonState.current)
   }
 
   // First run of the program
   runCmd(emit, initCmd)
-  renderState(singletonState)
+  renderState(singletonState.current)
 
   // Subsequently, any changes to State is only caused by emit
   // Return the emit function for app to change state

@@ -146,10 +146,8 @@ export function submitUpdateVoucher(): Action {
       ]
     }
 
-    let voucherID
-    try {
-      voucherID = voucherIDDecoder.verify(id)
-    } catch (_e) {
+    const voucherID = parseVoucherIDOrNull(id)
+    if (voucherID == null) {
       return [
         _VoucherState(state, {
           flashMessage: "Invalid voucher id.",
@@ -218,10 +216,8 @@ export function confirmDeleteVoucher(): Action {
       return [state, cmd()]
     }
 
-    let voucherID
-    try {
-      voucherID = voucherIDDecoder.verify(id)
-    } catch (_e) {
+    const voucherID = parseVoucherIDOrNull(id)
+    if (voucherID == null) {
       return [
         _VoucherState(state, {
           flashMessage: "Invalid voucher id.",
@@ -422,4 +418,14 @@ function toDateInput(timestamp: number): string {
   const month = String(date.getMonth() + 1).padStart(2, "0")
   const day = String(date.getDate()).padStart(2, "0")
   return `${year}-${month}-${day}`
+}
+
+function parseVoucherIDOrNull(
+  value: string,
+): ReturnType<typeof voucherIDDecoder.verify> | null {
+  try {
+    return voucherIDDecoder.verify(value)
+  } catch (_e) {
+    return null
+  }
 }

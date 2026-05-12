@@ -1,5 +1,7 @@
 import { Action, cmd, Cmd } from "../Action"
-import * as ProfileApi from "../Api/Auth/User/Profile"
+import * as UserProfileApi from "../Api/Auth/User/Profile"
+import * as SellerHomeApi from "../Api/Auth/Seller/Home"
+import * as AdminHomeApi from "../Api/Auth/Admin/Home"
 import * as ProductApi from "../Api/Public/Product"
 import { _ProductState } from "../State/Product"
 
@@ -9,7 +11,11 @@ import { _CategoryState } from "../State/Category"
 import { State } from "../State"
 import * as AuthToken from "../App/AuthToken"
 import { onUrlChange } from "./Route"
-import { initAuthState } from "../State/init"
+import {
+  initAuthAdminState,
+  initAuthSellerState,
+  initAuthUserState,
+} from "../State/init"
 import * as RD from "../../../Core/Data/RemoteData"
 
 export function initCmd(): Cmd {
@@ -20,23 +26,28 @@ export function initCmd(): Cmd {
 
   switch (authToken.role) {
     case "USER":
-      return initAuthCmd()
+      return initUserCmd()
     case "SELLER":
+      return initSellerCmd()
     case "ADMIN":
-      return initRoleBootstrapCmd()
+      return initAdminCmd()
   }
+}
+
+function initialProductCall(): Promise<ProductApi.Response> {
+  return ProductApi.call({
+    categoryID: "",
+    name: "",
+    page: 1,
+    limit: 12,
+    sortBy: "newest",
+  })
 }
 
 function initPublicCmd(): Cmd {
   return cmd(
     Promise.all([
-      ProductApi.call({
-        categoryID: "",
-        name: "",
-        page: 1,
-        limit: 12,
-        sortBy: "newest",
-      }),
+      initialProductCall(),
       CategoryApi.call(),
     ]).then(([productRes, categoryRes]) =>
       publicInitResponse(productRes, categoryRes),
@@ -49,14 +60,14 @@ function publicInitResponse(
   categoryRes: CategoryApi.Response,
 ): Action {
   return (state: State) => {
-    let nextState = _ProductState(state, {
+    const productState = _ProductState(state, {
       listResponse:
         productRes._t === "Ok"
           ? RD.success(productRes.value)
           : RD.failure(productRes.error),
     })
 
-    nextState = _CategoryState(nextState, {
+    const nextState = _CategoryState(productState, {
       treeResponse:
         categoryRes._t === "Ok"
           ? RD.success(categoryRes.value)
@@ -67,54 +78,60 @@ function publicInitResponse(
   }
 }
 
-function initAuthCmd(): Cmd {
+function initUserCmd(): Cmd {
   return cmd(
     Promise.all([
-      ProfileApi.call(),
+      UserProfileApi.call(),
       CategoryApi.call(),
-      ProductApi.call({
-        categoryID: "",
-        name: "",
-        page: 1,
-        limit: 12,
-        sortBy: "newest",
-      }),
+      initialProductCall(),
     ]).then(([profileRes, categoryRes, productRes]) =>
-      authInitResponse(profileRes, categoryRes, productRes),
+      userInitResponse(profileRes, categoryRes, productRes),
     ),
   )
 }
 
-function initRoleBootstrapCmd(): Cmd {
+function initSellerCmd(): Cmd {
   return cmd(
     Promise.all([
+      SellerHomeApi.call(),
       CategoryApi.call(),
-      ProductApi.call({
-        categoryID: "",
-        name: "",
-        page: 1,
-        limit: 12,
-        sortBy: "newest",
-      }),
-    ]).then(([categoryRes, productRes]) =>
-      roleBootstrapResponse(categoryRes, productRes),
+      initialProductCall(),
+    ]).then(([homeRes, categoryRes, productRes]) =>
+      sellerInitResponse(homeRes, categoryRes, productRes),
     ),
   )
 }
 
-function roleBootstrapResponse(
+function initAdminCmd(): Cmd {
+  return cmd(
+    Promise.all([
+      AdminHomeApi.call(),
+      CategoryApi.call(),
+      initialProductCall(),
+    ]).then(([homeRes, categoryRes, productRes]) =>
+      adminInitResponse(homeRes, categoryRes, productRes),
+    ),
+  )
+}
+
+function sellerInitResponse(
+  homeRes: SellerHomeApi.Response,
   categoryRes: CategoryApi.Response,
   productRes: ProductApi.Response,
 ): Action {
   return (state: State) => {
-    let nextState = _CategoryState(state, {
+    if (homeRes._t === "Err") {
+      return onUrlChange({ ...state, _t: "Public" })
+    }
+
+    const categoryState = _CategoryState(state, {
       treeResponse:
         categoryRes._t === "Ok"
           ? RD.success(categoryRes.value)
           : RD.failure(categoryRes.error),
     })
 
-    nextState = _ProductState(nextState, {
+    const nextState = _ProductState(categoryState, {
       listResponse:
         productRes._t === "Ok"
           ? RD.success(productRes.value)
@@ -122,13 +139,41 @@ function roleBootstrapResponse(
       currentCategoryId: null,
     })
 
-    // Keep non-user sessions (seller/admin) functional after refresh.
-    return onUrlChange({ ...nextState, _t: "Public" })
+    return onUrlChange(initAuthSellerState(homeRes.value.seller, nextState))
   }
 }
 
-function authInitResponse(
-  profileRes: ProfileApi.Response,
+function adminInitResponse(
+  homeRes: AdminHomeApi.Response,
+  categoryRes: CategoryApi.Response,
+  productRes: ProductApi.Response,
+): Action {
+  return (state: State) => {
+    if (homeRes._t === "Err") {
+      return onUrlChange({ ...state, _t: "Public" })
+    }
+
+    const categoryState = _CategoryState(state, {
+      treeResponse:
+        categoryRes._t === "Ok"
+          ? RD.success(categoryRes.value)
+          : RD.failure(categoryRes.error),
+    })
+
+    const nextState = _ProductState(categoryState, {
+      listResponse:
+        productRes._t === "Ok"
+          ? RD.success(productRes.value)
+          : RD.failure(productRes.error),
+      currentCategoryId: null,
+    })
+
+    return onUrlChange(initAuthAdminState(homeRes.value.admin, nextState))
+  }
+}
+
+function userInitResponse(
+  profileRes: UserProfileApi.Response,
   categoryRes: CategoryApi.Response,
   productRes: ProductApi.Response,
 ): Action {
@@ -137,13 +182,13 @@ function authInitResponse(
       return onUrlChange({ ...state, _t: "Public" })
     }
 
-    let nextState = _CategoryState(state, {
+    const categoryState = _CategoryState(state, {
       treeResponse:
         categoryRes._t === "Ok"
           ? RD.success(categoryRes.value)
           : RD.failure(categoryRes.error),
     })
-    nextState = _ProductState(nextState, {
+    const nextState = _ProductState(categoryState, {
       listResponse:
         productRes._t === "Ok"
           ? RD.success(productRes.value)
@@ -151,7 +196,7 @@ function authInitResponse(
       currentCategoryId: null, // Đảm bảo trạng thái là All Products
     })
 
-    const authState = initAuthState(profileRes.value.user, nextState)
+    const authState = initAuthUserState(profileRes.value.user, nextState)
     return onUrlChange(authState)
   }
 }

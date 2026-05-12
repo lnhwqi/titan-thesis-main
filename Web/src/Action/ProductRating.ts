@@ -66,12 +66,8 @@ export function submitRating(orderID: string, productID: string): Action {
     const feedbackRaw =
       state.productRating.feedbackDraftByKey[key]?.trim() || null
 
-    let parsedOrderID: OrderPaymentID
-    let parsedProductID: ProductID
-    try {
-      parsedOrderID = orderPaymentIDDecoder.verify(orderID)
-      parsedProductID = productIDDecoder.verify(productID)
-    } catch (_e) {
+    const parsedTarget = parseRatingTarget(orderID, productID)
+    if (parsedTarget == null) {
       return [
         _ProductRatingState(state, {
           flashMessage: "Invalid order or product ID.",
@@ -80,10 +76,8 @@ export function submitRating(orderID: string, productID: string): Action {
       ]
     }
 
-    let score
-    try {
-      score = ratingDecoder.verify(scoreRaw)
-    } catch (_e) {
+    const parsedScore = parseRatingScore(scoreRaw)
+    if (parsedScore == null) {
       return [
         _ProductRatingState(state, {
           flashMessage: "Rating score must be between 1 and 5.",
@@ -92,18 +86,14 @@ export function submitRating(orderID: string, productID: string): Action {
       ]
     }
 
-    let feedback = null
-    if (feedbackRaw != null) {
-      try {
-        feedback = ratingFeedbackDecoder.verify(feedbackRaw)
-      } catch (_e) {
-        return [
-          _ProductRatingState(state, {
-            flashMessage: "Feedback text is too long.",
-          }),
-          cmd(),
-        ]
-      }
+    const feedbackResult = parseRatingFeedback(feedbackRaw)
+    if (feedbackResult._t === "Err") {
+      return [
+        _ProductRatingState(state, {
+          flashMessage: "Feedback text is too long.",
+        }),
+        cmd(),
+      ]
     }
 
     return [
@@ -114,10 +104,10 @@ export function submitRating(orderID: string, productID: string): Action {
       }),
       cmd(
         UserCreateRatingApi.call({
-          orderID: parsedOrderID,
-          productID: parsedProductID,
-          score,
-          feedback,
+          orderID: parsedTarget.orderID,
+          productID: parsedTarget.productID,
+          score: parsedScore,
+          feedback: feedbackResult.feedback,
         }).then((response) => onCreateRatingResponse(key, response)),
       ),
     ]
@@ -171,11 +161,12 @@ export function onLoadUserRatingsResponse(
       return [state, cmd()]
     }
     type SingleRating = (typeof response.value.ratings)[number]
-    const userRatingsByKey: Record<string, SingleRating> = {}
-    response.value.ratings.forEach((rating) => {
-      const key = `${rating.orderID.unwrap()}:${rating.productID.unwrap()}`
-      userRatingsByKey[key] = rating
-    })
+    const userRatingsByKey: Record<string, SingleRating> = Object.fromEntries(
+      response.value.ratings.map((rating) => [
+        `${rating.orderID.unwrap()}:${rating.productID.unwrap()}`,
+        rating,
+      ]),
+    )
 
     return [
       _ProductRatingState(state, {
@@ -183,5 +174,45 @@ export function onLoadUserRatingsResponse(
       }),
       cmd(),
     ]
+  }
+}
+
+function parseRatingTarget(
+  orderID: string,
+  productID: string,
+): { orderID: OrderPaymentID; productID: ProductID } | null {
+  try {
+    return {
+      orderID: orderPaymentIDDecoder.verify(orderID),
+      productID: productIDDecoder.verify(productID),
+    }
+  } catch (_e) {
+    return null
+  }
+}
+
+function parseRatingScore(
+  value: number,
+): UserCreateRatingApi.BodyParams["score"] | null {
+  try {
+    return ratingDecoder.verify(value)
+  } catch (_e) {
+    return null
+  }
+}
+
+type FeedbackParseResult =
+  | { _t: "Ok"; feedback: UserCreateRatingApi.BodyParams["feedback"] }
+  | { _t: "Err" }
+
+function parseRatingFeedback(raw: string | null): FeedbackParseResult {
+  if (raw == null) {
+    return { _t: "Ok", feedback: null }
+  }
+
+  try {
+    return { _t: "Ok", feedback: ratingFeedbackDecoder.verify(raw) }
+  } catch (_e) {
+    return { _t: "Err" }
   }
 }

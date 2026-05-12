@@ -59,7 +59,7 @@ export default function View(props: Props): JSX.Element {
     <>
       {routeView(state)}
       <CoinRainOverlay coinRain={state.coinRain} />
-      {state._t === "AuthUser" && !state.profile.active.unwrap() ? (
+      {"updateProfile" in state && !state.profile.active.unwrap() ? (
         <SuspendedModal />
       ) : null}
       <Chatbox state={state} />
@@ -398,20 +398,3 @@ function routeView(state: State): JSX.Element {
       )
   }
 }
-
-// function withAuthLayout(
-//   state: State,
-//   Page: React.FC<{ authState: AuthState }>,
-// ): JSX.Element {
-//   return state._t !== "AuthUser" ? (
-//     <EmptyLayout
-//       state={state}
-//       Page={LoginPage}
-//     />
-//   ) : (
-//     <AuthLayout
-//       authState={state}
-//       Page={Page}
-//     />
-//   )
-// }

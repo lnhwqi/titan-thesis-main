@@ -17,6 +17,8 @@ import {
 } from "../Api"
 import { sleep } from "../../../Core/Data/Time/Timer"
 
+const reversePath = Teki.reverse
+
 // Convenience
 export type { ApiResponse, ApiError } from "../Api"
 export { apiErrorString } from "../Api"
@@ -35,7 +37,7 @@ export async function authApi<
   bodyData: RequestBody,
 ): Promise<ApiResponse<ErrorCode, Payload>> {
   const { method, route, responseDecoder } = contract
-  const path = Teki.reverse(route)(toStringRecord(urlData))
+  const path = reversePath(route)(toStringRecord(urlData))
   const authHeader = await authHeaders(new Headers())
   if (authHeader == null) {
     return err("UNAUTHORISED")

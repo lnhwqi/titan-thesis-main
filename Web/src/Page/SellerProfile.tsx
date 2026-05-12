@@ -70,6 +70,7 @@ export default function SellerProfilePage(
   const claimingVoucherID = state.product.sellerVoucherClaimingID
   const recentlyClaimedID = state.product.sellerVoucherRecentlyClaimedID
   const voucherFlashMessage = state.product.sellerVoucherFlashMessage
+  const authUser = "updateProfile" in state ? state : null
 
   // Pagination
   const page = state.product.sellerListPage
@@ -108,7 +109,7 @@ export default function SellerProfilePage(
             </div>
           </div>
 
-          {state._t === "AuthUser" ? (
+          {authUser != null ? (
             <button
               className={styles.messageBtn}
               onClick={() =>
@@ -154,7 +155,7 @@ export default function SellerProfilePage(
           </h2>
         </div>
 
-        {state._t !== "AuthUser" ? (
+        {authUser == null ? (
           <div className={styles.voucherEmpty}>
             Log in to claim this shop vouchers.
           </div>

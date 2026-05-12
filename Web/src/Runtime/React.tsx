@@ -10,10 +10,10 @@ import { EmitFn } from "./Internal"
 // Due to cyclic dependencies between Runtime.start and View,
 // we have to do this trick to allow View to import emit
 // This also resolves Runtime<S> and emit<State>
-let runtimeEmit: EmitFn<State> | null = null
+const runtimeEmitRef: { current: EmitFn<State> | null } = { current: null }
 export const emit: EmitFn<State> = (action: Action) => {
-  if (runtimeEmit != null) {
-    runtimeEmit(action)
+  if (runtimeEmitRef.current != null) {
+    runtimeEmitRef.current(action)
   } else {
     throw new Error("Emit function is not set yet.")
   }
@@ -40,6 +40,5 @@ export function startReactRuntime(
       )
     })
   }
-
-  runtimeEmit = Runtime.start(initState, initCmd, render)
+  runtimeEmitRef.current = Runtime.start(initState, initCmd, render)
 }

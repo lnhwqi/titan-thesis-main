@@ -21,7 +21,7 @@ import {
 
 export type Props = { state: State }
 export default function ProfilePage(props: Props): JSX.Element {
-  if (props.state._t !== "AuthUser") {
+  if (!("updateProfile" in props.state)) {
     return (
       <AuthPageShell>
         <AuthGateCard

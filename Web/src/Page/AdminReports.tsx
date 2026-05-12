@@ -51,7 +51,7 @@ export default function AdminReportsPage(props: Props): JSX.Element {
         ? true
         : toMonthKey(report.createdAt) === state.report.adminMonthFilter,
     )
-    .sort((a, b) => b.createdAt - a.createdAt)
+    .toSorted((a, b) => b.createdAt - a.createdAt)
   const confirmState = state.report.adminFinalStatusConfirmState
 
   return (
@@ -322,7 +322,7 @@ function getMonthOptions(
         .map((report) => toMonthKey(report.createdAt))
         .filter((value) => value !== ""),
     ),
-  ).sort((a, b) => b.localeCompare(a))
+  ).toSorted((a, b) => b.localeCompare(a))
 
   return keys.map((key) => {
     const [year, month] = key.split("-")

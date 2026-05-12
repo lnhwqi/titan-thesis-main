@@ -10,7 +10,7 @@ export type SavedPageProps = { state: State }
 export default function SavedPage(props: SavedPageProps): JSX.Element {
   const { state } = props
 
-  if (state._t !== "AuthUser") {
+  if (!("updateProfile" in state)) {
     return (
       <AuthPageShell>
         <AuthGateCard

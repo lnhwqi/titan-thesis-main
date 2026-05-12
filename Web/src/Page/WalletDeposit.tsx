@@ -19,7 +19,7 @@ type Props = { state: State }
 export default function WalletDepositPage(props: Props): JSX.Element {
   const { state } = props
 
-  if (state._t !== "AuthUser") {
+  if (!("updateProfile" in state)) {
     return (
       <AuthPageShell>
         <AuthGateCard

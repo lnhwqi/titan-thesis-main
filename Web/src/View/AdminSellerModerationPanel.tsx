@@ -39,18 +39,22 @@ function parseFilterOption(value: string): Props["filterBy"] {
 export default function AdminSellerModerationPanel(props: Props): JSX.Element {
   const sellers = (() => {
     if (props.sellersResponse._t === "Success") {
-      const data = [...props.sellersResponse.data.sellers]
+      const data = props.sellersResponse.data.sellers
 
-      if (props.filterBy === "revenue-high") {
-        return data.sort((a, b) => b.revenue.unwrap() - a.revenue.unwrap())
-      } else if (props.filterBy === "revenue-low") {
-        return data.sort((a, b) => a.revenue.unwrap() - b.revenue.unwrap())
-      } else if (props.filterBy === "profit-high") {
-        return data.sort((a, b) => b.profit.unwrap() - a.profit.unwrap())
-      } else if (props.filterBy === "profit-low") {
-        return data.sort((a, b) => a.profit.unwrap() - b.profit.unwrap())
-      }
-      return data
+      const comparator =
+        props.filterBy === "revenue-high"
+          ? (a: Seller, b: Seller) => b.revenue.unwrap() - a.revenue.unwrap()
+          : props.filterBy === "revenue-low"
+            ? (a: Seller, b: Seller) =>
+                a.revenue.unwrap() - b.revenue.unwrap()
+            : props.filterBy === "profit-high"
+              ? (a: Seller, b: Seller) => b.profit.unwrap() - a.profit.unwrap()
+              : props.filterBy === "profit-low"
+                ? (a: Seller, b: Seller) =>
+                    a.profit.unwrap() - b.profit.unwrap()
+                : null
+
+      return comparator == null ? data : data.toSorted(comparator)
     }
     return []
   })()
@@ -58,8 +62,10 @@ export default function AdminSellerModerationPanel(props: Props): JSX.Element {
   // Calculate tier distribution safely without the 'as' keyword
   const tierCounts = sellers.reduce<Record<string, number>>((acc, seller) => {
     const tier = seller.tier.unwrap()
-    acc[tier] = (acc[tier] || 0) + 1
-    return acc
+    return {
+      ...acc,
+      [tier]: (acc[tier] ?? 0) + 1,
+    }
   }, {})
 
   const tierColors: Record<string, string> = {

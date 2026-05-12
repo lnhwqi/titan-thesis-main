@@ -18,6 +18,8 @@ import {
   makePath,
 } from "../Api"
 
+const reversePath = Teki.reverse
+
 // Convenience
 export type { ApiResponse, ApiError } from "../Api"
 export { apiErrorString } from "../Api"
@@ -35,7 +37,7 @@ export async function publicApi<
   bodyData: RequestBody,
 ): Promise<ApiResponse<ErrorCode, Payload>> {
   const { method, route, responseDecoder } = contract
-  const path = Teki.reverse(route)(toStringRecord(urlData))
+  const path = reversePath(route)(toStringRecord(urlData))
   return fetchE(makePath(path), {
     method,
     headers: jsonHeaders(new Headers()),

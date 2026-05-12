@@ -15,7 +15,7 @@ type Props = { state: State }
 export default function PaymentPage(props: Props): JSX.Element {
   const { state } = props
 
-  if (state._t !== "AuthUser") {
+  if (!("updateProfile" in state)) {
     return (
       <div className={styles.page}>
         <div className={styles.notice}>Please login to continue payment.</div>
@@ -23,70 +23,63 @@ export default function PaymentPage(props: Props): JSX.Element {
     )
   }
 
-  const grouped = new Map<
-    string,
-    {
-      sellerID: (typeof state.cart.items)[number]["product"]["sellerID"]
-      shopName: string
-      items: Array<{
-        productID: string
-        variantID: string | null
-        stock: number
-        name: string
-        quantity: number
-        linePrice: number
-      }>
-      subtotal: number
-    }
-  >()
-
-  for (const item of state.cart.items) {
+  const grouped = state.cart.items.reduce<
+    Record<
+      string,
+      {
+        sellerID: (typeof state.cart.items)[number]["product"]["sellerID"]
+        shopName: string
+        items: Array<{
+          productID: string
+          variantID: string | null
+          stock: number
+          name: string
+          quantity: number
+          linePrice: number
+        }>
+        subtotal: number
+      }
+    >
+  >((acc, item) => {
     const sellerKey = item.product.sellerID.unwrap()
-    const current = grouped.get(sellerKey)
+    const current = acc[sellerKey]
     const variant = item.product.variants[0]
     const linePrice =
       (variant == null ? item.product.price.unwrap() : variant.price.unwrap()) *
       item.quantity
 
-    if (current == null) {
-      grouped.set(sellerKey, {
+    const nextItem = {
+      productID: item.product.id.unwrap(),
+      variantID: getVariantID(item),
+      stock: getMaxStock(item),
+      name: formatProductDisplayName(item),
+      quantity: item.quantity,
+      linePrice,
+    }
+
+    const basePanel =
+      current ??
+      {
         sellerID: item.product.sellerID,
         shopName:
           state.payment.sellerShopNameByID[sellerKey] ??
           item.product.shopName?.unwrap() ??
           `Shop ${sellerKey.slice(0, 8)}`,
-        items: [
-          {
-            productID: item.product.id.unwrap(),
-            variantID: getVariantID(item),
-            stock: getMaxStock(item),
-            name: formatProductDisplayName(item),
-            quantity: item.quantity,
-            linePrice,
-          },
-        ],
-        subtotal: linePrice,
-      })
-    } else {
-      grouped.set(sellerKey, {
-        ...current,
-        items: [
-          ...current.items,
-          {
-            productID: item.product.id.unwrap(),
-            variantID: getVariantID(item),
-            stock: getMaxStock(item),
-            name: formatProductDisplayName(item),
-            quantity: item.quantity,
-            linePrice,
-          },
-        ],
-        subtotal: current.subtotal + linePrice,
-      })
-    }
-  }
+        items: [],
+        subtotal: 0,
+      }
 
-  const panels = Array.from(grouped.values())
+    return {
+      ...acc,
+      [sellerKey]: {
+        ...basePanel,
+        items: [...basePanel.items, nextItem],
+        subtotal: basePanel.subtotal + linePrice,
+      },
+    }
+  }, {})
+
+  const panels = Object.values(grouped)
   const grandTotal = panels.reduce((sum, panel) => sum + panel.subtotal, 0)
 
   return (
@@ -460,13 +453,13 @@ function formatProductDisplayName(item: CartItem): string {
     return baseName
   }
 
-  const fromName = firstVariant.name.unwrap().split("-").pop()
+  const fromName = firstVariant.name.unwrap().split("-").at(-1)
   const parsedFromName = fromName != null ? fromName.trim().toUpperCase() : ""
   if (parsedFromName !== "") {
     return `${baseName} - ${parsedFromName}`
   }
 
-  const fromSku = firstVariant.sku.unwrap().split("-").pop()
+  const fromSku = firstVariant.sku.unwrap().split("-").at(-1)
   const parsedFromSku = (fromSku ?? "").trim().toUpperCase()
   if (parsedFromSku !== "") {
     return `${baseName} - ${parsedFromSku}`

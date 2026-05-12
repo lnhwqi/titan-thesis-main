@@ -8,7 +8,12 @@ import { ApiError } from "../Api"
 import * as RD from "../../../Core/Data/RemoteData"
 import * as AuthToken from "../App/AuthToken"
 import { toRoute, goBack, navigateTo } from "../Route"
-import { initAuthState, initState } from "../State/init"
+import {
+  initAuthAdminState,
+  initAuthSellerState,
+  initAuthUserState,
+  initState,
+} from "../State/init"
 import * as FieldString from "../../../Core/Data/Form/FieldString"
 import { reconnectAuthenticated, reconnectGuest } from "../Subscription"
 
@@ -95,7 +100,7 @@ export function onSubmitResponse(response: LoginApi.Response): Action {
     })
 
     reconnectAuthenticated(String(accessToken.toJSON()))
-    const nextState = _LoginState(initAuthState(user, state), {
+    const nextState = _LoginState(initAuthUserState(user, state), {
       loginResponse: RD.success(response.value),
     })
 
@@ -129,8 +134,12 @@ function onSubmitSellerResponse(response: LoginSellerApi.Response): Action {
 
     reconnectAuthenticated(String(accessToken.toJSON()))
 
+    const nextState = _LoginState(initAuthSellerState(seller, state), {
+      loginResponse: RD.notAsked(),
+    })
+
     return [
-      _LoginState(state, { loginResponse: RD.notAsked() }),
+      nextState,
       cmd(perform(navigateTo(toRoute("SellerDashboard", {})))),
     ]
   }
@@ -158,8 +167,12 @@ function onSubmitAdminResponse(response: LoginAdminApi.Response): Action {
 
     reconnectAuthenticated(String(accessToken.toJSON()))
 
+    const nextState = _LoginState(initAuthAdminState(admin, state), {
+      loginResponse: RD.notAsked(),
+    })
+
     return [
-      _LoginState(state, { loginResponse: RD.notAsked() }),
+      nextState,
       cmd(perform(navigateTo(toRoute("AdminDashboard", {})))),
     ]
   }

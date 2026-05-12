@@ -1,6 +1,6 @@
 import { cmd, type Cmd } from "../Action"
 import { parseRoute } from "../Route"
-import { _AuthState, _PublicState, State } from "../State"
+import { _AuthUserState, _PublicState, State } from "../State"
 
 import * as ProfileAction from "./Profile"
 import * as ProductAction from "./Product"
@@ -72,7 +72,7 @@ export function onUrlChange(s: State): [State, Cmd] {
       return [reportState, [...orderCmd, ...reportCmd]]
     }
     case "Profile":
-      return withHomePoster(_AuthState(ProfileAction.onEnterRoute)(state))
+      return withHomePoster(_AuthUserState(ProfileAction.onEnterRoute)(state))
     case "SellerReports":
       return ReportAction.onEnterSellerReportsRoute()(state)
 
@@ -153,18 +153,22 @@ export function onUrlChange(s: State): [State, Cmd] {
 
     case "Search": {
       const rawName = route.params.name
-      let query = ""
+      const query = decodeURIComponent(
+        (() => {
+          if (typeof rawName === "string") {
+            return rawName
+          }
 
-      if (typeof rawName === "string") {
-        query = rawName
-      } else if (rawName !== null && typeof rawName === "object") {
-        const json = JSON.parse(JSON.stringify(rawName))
-        if (json.value && typeof json.value === "string") {
-          query = json.value
-        }
-      }
+          if (rawName !== null && typeof rawName === "object") {
+            const json = JSON.parse(JSON.stringify(rawName))
+            return json.value && typeof json.value === "string"
+              ? json.value
+              : ""
+          }
 
-      query = decodeURIComponent(query || "").trim()
+          return ""
+        })(),
+      ).trim()
 
       const { searchQuery, listResponse } = state.product
       const isAlreadyLoading =

@@ -13,6 +13,7 @@ import {
   createResultTextAdmin,
   ReportStatus,
   ReportCategory,
+  type ReportID,
 } from "../../../Core/App/Report"
 import { createSellerUrlImgs } from "../../../Core/App/Report/SellerUrlImgs"
 import { navigateTo, toRoute } from "../Route"
@@ -328,10 +329,8 @@ export function onChangeAdminResultDraft(
 
 export function submitSellerEvidence(reportID: string): Action {
   return (state) => {
-    let parsedID
-    try {
-      parsedID = parseReportID(reportID)
-    } catch (_e) {
+    const parsedID = parseReportIDOrNull(reportID)
+    if (parsedID == null) {
       return [
         _ReportState(state, { flashMessage: "Invalid report id." }),
         cmd(),
@@ -406,10 +405,8 @@ export function approveSellerRefund(reportID: string): Action {
       ]
     }
 
-    let parsedID
-    try {
-      parsedID = parseReportID(reportID)
-    } catch (_e) {
+    const parsedID = parseReportIDOrNull(reportID)
+    if (parsedID == null) {
       return [
         _ReportState(state, { flashMessage: "Invalid report id." }),
         cmd(),
@@ -468,10 +465,8 @@ function submitAdminUpdateStatusInternal(
       ]
     }
 
-    let parsedID
-    try {
-      parsedID = parseReportID(reportID)
-    } catch (_e) {
+    const parsedID = parseReportIDOrNull(reportID)
+    if (parsedID == null) {
       return [
         _ReportState(state, { flashMessage: "Invalid report id." }),
         cmd(),
@@ -539,6 +534,14 @@ function isAdminReportClosed(status: ReportStatus): boolean {
   )
 }
 
+function parseReportIDOrNull(value: string): ReportID | null {
+  try {
+    return parseReportID(value)
+  } catch (_e) {
+    return null
+  }
+}
+
 function onUserListResponse(response: UserListApi.Response): Action {
   return (state) => {
     if (response._t === "Err") {
@@ -573,14 +576,27 @@ function onSellerListResponse(response: SellerListApi.Response): Action {
       ]
     }
 
-    const nextStatusDraft = { ...state.report.statusDraftByReportID }
-    const nextAdminResultDraft = { ...state.report.adminResultDraftByReportID }
-
-    response.value.reports.forEach((report) => {
-      const key = report.id.unwrap()
-      nextStatusDraft[key] = report.status
-      nextAdminResultDraft[key] = report.resultTextAdmin?.unwrap() ?? ""
-    })
+    const [nextStatusDraft, nextAdminResultDraft] = response.value.reports.reduce<
+      [Record<string, ReportStatus>, Record<string, string>]
+    >(
+      ([statusDraft, adminResultDraft], report) => {
+        const key = report.id.unwrap()
+        return [
+          {
+            ...statusDraft,
+            [key]: report.status,
+          },
+          {
+            ...adminResultDraft,
+            [key]: report.resultTextAdmin?.unwrap() ?? "",
+          },
+        ]
+      },
+      [
+        { ...state.report.statusDraftByReportID },
+        { ...state.report.adminResultDraftByReportID },
+      ],
+    )
 
     return [
       _ReportState(state, {
@@ -682,13 +698,27 @@ function onAdminListResponse(response: AdminListApi.Response): Action {
       ]
     }
 
-    const nextStatusDraft = { ...state.report.statusDraftByReportID }
-    const nextAdminResultDraft = { ...state.report.adminResultDraftByReportID }
-    response.value.reports.forEach((report) => {
-      const key = report.id.unwrap()
-      nextStatusDraft[key] = report.status
-      nextAdminResultDraft[key] = report.resultTextAdmin?.unwrap() ?? ""
-    })
+    const [nextStatusDraft, nextAdminResultDraft] = response.value.reports.reduce<
+      [Record<string, ReportStatus>, Record<string, string>]
+    >(
+      ([statusDraft, adminResultDraft], report) => {
+        const key = report.id.unwrap()
+        return [
+          {
+            ...statusDraft,
+            [key]: report.status,
+          },
+          {
+            ...adminResultDraft,
+            [key]: report.resultTextAdmin?.unwrap() ?? "",
+          },
+        ]
+      },
+      [
+        { ...state.report.statusDraftByReportID },
+        { ...state.report.adminResultDraftByReportID },
+      ],
+    )
 
     return [
       _ReportState(state, {

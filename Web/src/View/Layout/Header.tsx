@@ -36,19 +36,16 @@ export default function Header(props: Props): JSX.Element {
   const { isOpen } = state.category
   const query = state.product.searchQuery
   const avatarMenuOpen = state.avatarMenuOpen
+  const authUser = "updateProfile" in state ? state : null
 
   const rawUserName =
-    state._t === "AuthUser" ? state.profile.name.unwrap() : "Guest"
-  const userName = rawUserName.trim().split(/\s+/).pop() ?? "Guest"
+    authUser != null ? authUser.profile.name.unwrap() : "Guest"
+  const userName = rawUserName.trim().split(/\s+/).at(-1) ?? "Guest"
   const userInitial = userName.trim().charAt(0).toUpperCase() || "G"
 
   // Prefer the globally-refreshed balance; fall back to the profile snapshot
   const effectiveWallet =
-    state._t === "AuthUser" ||
-    state._t === "AuthSeller" ||
-    state._t === "AuthAdmin"
-      ? (state.userBalance ?? state.profile.wallet)
-      : null
+    "profile" in state ? (state.userBalance ?? state.profile.wallet) : null
   const walletRaw =
     effectiveWallet != null ? String(effectiveWallet.unwrap()) : ""
   const walletBalance =
@@ -151,7 +148,7 @@ export default function Header(props: Props): JSX.Element {
               className={styles.iconItem}
               title="Notifications"
               onClick={() => {
-                if (state._t !== "AuthUser") {
+                if (authUser == null) {
                   emit(
                     navigateTo(
                       toRoute("Login", { redirect: toPath(state.route) }),
@@ -166,7 +163,7 @@ export default function Header(props: Props): JSX.Element {
 
           <div className={styles.verticalDivider} />
 
-          {state._t === "AuthUser" ? (
+          {authUser != null ? (
             <div className={styles.userIdentityRow}>
               {/* Wallet pill + hover card */}
               <div className={styles.walletContainer}>
@@ -257,7 +254,7 @@ export default function Header(props: Props): JSX.Element {
 
           <div className={styles.authWrapper}>
             <div className={styles.actionGroup}>
-              {state._t === "AuthUser" ? (
+              {authUser != null ? (
                 <></>
               ) : (
                 <>
