@@ -13,12 +13,35 @@ import { initCoinRainScheduler } from "./CoinRainScheduler"
 const app: Express = express()
 const { APP_PORT, NODE_ENV } = ENV
 
-if (NODE_ENV === "development") {
-  // We enable CORS for all requests in NodeJS in development
-  // as CORS will be handled externally (eg. by Nginx/API Gateway) in staging/production
+function resolveCorsOrigins(): string | string[] {
+  const raw = (process.env.CORS_ORIGIN ?? process.env.FRONTEND_URL ?? "").trim()
+  if (raw === "") {
+    return "*"
+  }
+
+  if (raw === "*") {
+    return "*"
+  }
+
+  const origins = raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0)
+
+  return origins.length <= 1 ? (origins[0] ?? "*") : origins
+}
+
+const corsOrigins = resolveCorsOrigins()
+
+if (
+  NODE_ENV === "development" ||
+  process.env.CORS_ORIGIN != null ||
+  process.env.FRONTEND_URL != null
+) {
+  // In staging/production this can be configured via CORS_ORIGIN/FRONTEND_URL.
   app.use(
     cors({
-      origin: "*",
+      origin: corsOrigins,
       methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
       preflightContinue: false,
       optionsSuccessStatus: 204,

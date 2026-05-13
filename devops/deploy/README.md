@@ -106,3 +106,13 @@ Prerequisites on EC2:
   before running compose
 - `devops/deploy/ec2-deploy.sh` auto-runs `tsx database/migrate.ts` before
   starting API/Web
+
+## 6) Troubleshooting Product Load Failures
+
+If the UI shows "Unable to load products" instead of an empty list:
+
+- Verify API endpoint returns JSON from EC2:
+  `curl "http://127.0.0.1:3001/products?page=1&limit=12&sortBy=newest&categoryID=&name="`
+- Ensure `VITE_API_HOST` points to the real API host:port used by browsers.
+- Set `CORS_ORIGIN` (and `FRONTEND_URL` for Socket.IO) in
+  `/etc/titan/production.env` or `/etc/titan/staging.env` and redeploy.
