@@ -453,6 +453,11 @@ const databaseName =
         1)
     : ENV.DB_DATABASE
 
+// Use SSL only when explicitly enabled (for example: RDS with SSL required).
+const shouldUseDbSSL = ["1", "true", "yes", "on"].includes(
+  String(process.env.DB_SSL ?? "false").toLowerCase(),
+)
+
 const pool = new Pool({
   host: ENV.DB_HOST,
   user: ENV.DB_USER,
@@ -460,14 +465,12 @@ const pool = new Pool({
   database: databaseName,
   port: ENV.DB_PORT,
   max: ENV.DB_MAX_POOL,
-  ssl:
-    ENV.NODE_ENV === "production"
-      ? {
-          // RDS issues a self-signed cert but we don't really want to verify
-          // since it is all in a private subnet
-          rejectUnauthorized: false,
-        }
-      : false,
+  ssl: shouldUseDbSSL
+    ? {
+        // RDS can expose self-signed cert chains in private networks.
+        rejectUnauthorized: false,
+      }
+    : false,
 })
 
 const db = new Kysely<Schema>({
