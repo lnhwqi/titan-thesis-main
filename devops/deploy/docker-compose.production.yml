@@ -63,7 +63,7 @@ services:
     depends_on:
       - api
     ports:
-      - "${WEB_PORT_PUBLISHED:-80}:80"
+      - "${WEB_PORT_PUBLISHED:-8080}:80"
 
 volumes:
   production_db_data:
