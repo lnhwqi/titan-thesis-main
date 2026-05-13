@@ -23,6 +23,8 @@ export async function call(params: BodyParams): Promise<Response> {
 export function errorString(code: ApiError<ErrorCode>): string {
   return apiErrorString(code, (errorCode) => {
     switch (errorCode) {
+      case "SELLER_NOT_APPROVED":
+        return "Your seller account is not approved by admin yet."
       case "CATEGORY_NOT_FOUND":
         return "Category not found."
       case "SKU_ALREADY_EXISTS":

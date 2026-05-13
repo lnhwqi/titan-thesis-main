@@ -15,7 +15,7 @@ export function productRoutes(app: Express): void {
   publicApi(app, GetByID)
   publicApi(app, ListRatings)
 
-  sellerAuthApi(app, CreateProduct)
+  sellerAuthApi(app, CreateProduct, { requireVerified: false })
   sellerAuthApi(app, UploadImages)
   sellerAuthApi(app, UpdateProduct)
   sellerAuthApi(app, DeleteProduct)

@@ -15,6 +15,10 @@ export async function handler(
   seller: AuthSeller,
   params: API.BodyParams,
 ): Promise<Result<API.ErrorCode, API.Payload>> {
+  if (seller.verified.unwrap() === false) {
+    return err("SELLER_NOT_APPROVED")
+  }
+
   const category = await CategoryRow.getByID(params.categoryID)
   if (category == null) {
     return err("CATEGORY_NOT_FOUND")

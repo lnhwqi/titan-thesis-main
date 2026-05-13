@@ -258,13 +258,21 @@ export const sellerAuthApi = <
     contract: AuthApi<AuthSeller, M, Route, U, B, E, P>
     handler: AuthHandler<AuthSeller, U & B, E, P>
   },
+  options: { requireVerified?: boolean } = {},
 ) =>
   authApi<AuthSeller, SellerID, M, Route, U, B, E, P>(
     app,
     api,
     async (id) => {
       const seller = await SellerRow.getByID(id)
-      if (seller == null || seller.verified.unwrap() === false) {
+      if (seller == null) {
+        return null
+      }
+
+      if (
+        options.requireVerified !== false &&
+        seller.verified.unwrap() === false
+      ) {
         return null
       }
 

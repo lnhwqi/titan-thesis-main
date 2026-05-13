@@ -53,6 +53,7 @@ export type BodyParams = {
 }
 
 export type ErrorCode =
+  | "SELLER_NOT_APPROVED"
   | "CATEGORY_NOT_FOUND"
   | "SKU_ALREADY_EXISTS"
   | "INVALID_PRODUCT_INPUT"
@@ -66,6 +67,7 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
 })
 
 export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
+  "SELLER_NOT_APPROVED",
   "CATEGORY_NOT_FOUND",
   "SKU_ALREADY_EXISTS",
   "INVALID_PRODUCT_INPUT",
