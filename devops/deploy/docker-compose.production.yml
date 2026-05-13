@@ -1,0 +1,67 @@
+name: titan-production
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-admin_production}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${DB_DATABASE:-production}
+    ports:
+      - "${DB_PORT_PUBLISHED:-5432}:5432"
+    volumes:
+      - production_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  api:
+    build:
+      context: ../..
+      dockerfile: Api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_ENV: production
+      APP_PORT: "3001"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-admin_production}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_DATABASE: ${DB_DATABASE:-production}
+      DB_MAX_POOL: ${DB_MAX_POOL:-30}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      ZALO_APP_ID: ${ZALO_APP_ID:?ZALO_APP_ID is required}
+      ZALO_KEY1: ${ZALO_KEY1:?ZALO_KEY1 is required}
+      ZALO_KEY2: ${ZALO_KEY2:?ZALO_KEY2 is required}
+      ZALO_CREATE_URL: ${ZALO_CREATE_URL:?ZALO_CREATE_URL is required}
+      ZALO_QUERY_URL: ${ZALO_QUERY_URL:?ZALO_QUERY_URL is required}
+      GHN_TOKEN: ${GHN_TOKEN:?GHN_TOKEN is required}
+      GHN_URL: ${GHN_URL:?GHN_URL is required}
+    ports:
+      - "${API_PORT_PUBLISHED:-3001}:3001"
+    volumes:
+      - production_api_uploads:/app/Api/uploads
+
+  web:
+    build:
+      context: ../..
+      dockerfile: Web/Dockerfile
+      args:
+        VITE_APP_ENV: production
+        VITE_API_HOST: ${VITE_API_HOST:?VITE_API_HOST is required}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT_PUBLISHED:-80}:80"
+
+volumes:
+  production_db_data:
+  production_api_uploads:

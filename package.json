@@ -18,10 +18,14 @@
     "ai:ingest:faq": "bash ./devops/dev/ai-ingest-faq.sh",
     "test": "bash ./devops/test/run-test.sh",
     "test:watch": "bash ./devops/test/run-test.sh --watch",
-    "staging:deploy:api": "TODO",
-    "staging:deploy:web": "TODO: vite build",
-    "production:deploy:api": "TODO",
-    "production:deploy:web": "TODO"
+    "deploy:staging": "docker compose -f ./devops/deploy/docker-compose.staging.yml up -d --build --remove-orphans",
+    "deploy:staging:down": "docker compose -f ./devops/deploy/docker-compose.staging.yml down",
+    "deploy:production": "docker compose -f ./devops/deploy/docker-compose.production.yml up -d --build --remove-orphans",
+    "deploy:production:down": "docker compose -f ./devops/deploy/docker-compose.production.yml down",
+    "staging:deploy:api": "npm run deploy:staging",
+    "staging:deploy:web": "npm run deploy:staging",
+    "production:deploy:api": "npm run deploy:production",
+    "production:deploy:web": "npm run deploy:production"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
