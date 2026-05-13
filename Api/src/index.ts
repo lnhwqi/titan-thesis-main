@@ -69,6 +69,6 @@ const io = initializeSocketIO(server)
 startSupportMetricsPersistence()
 initCoinRainScheduler(io).catch(console.error)
 
-server.listen(APP_PORT, () => {
-  console.info(`⚡️[server]: Server is running at http://localhost:${APP_PORT}`)
+server.listen(APP_PORT, "0.0.0.0", () => {
+  console.info(`⚡️[server]: Server is running at http://0.0.0.0:${APP_PORT}`)
 })
