@@ -52,7 +52,30 @@ else
 fi
 
 docker compose -f "$COMPOSE_FILE" config > /dev/null
-docker compose -f "$COMPOSE_FILE" up -d --build --remove-orphans
+
+echo "==> Building deploy images"
+docker compose -f "$COMPOSE_FILE" build api web
+
+echo "==> Starting database service"
+docker compose -f "$COMPOSE_FILE" up -d db
+
+echo "==> Running database migrations"
+attempt=1
+max_attempts=20
+until docker compose -f "$COMPOSE_FILE" run --rm --no-deps api tsx database/migrate.ts; do
+  if [[ $attempt -ge $max_attempts ]]; then
+    echo "==> Migration failed after $max_attempts attempts"
+    exit 1
+  fi
+
+  echo "==> Migration attempt $attempt failed, retrying in 3s..."
+  attempt=$((attempt + 1))
+  sleep 3
+done
+
+echo "==> Starting application services"
+docker compose -f "$COMPOSE_FILE" up -d --remove-orphans api web
+
 docker image prune -f
 
 echo "==> Deployment completed for $TARGET"

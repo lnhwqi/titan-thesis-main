@@ -104,3 +104,5 @@ Prerequisites on EC2:
   - `/etc/titan/production.env`
 - `devops/deploy/ec2-deploy.sh` auto-loads `/etc/titan/<target>.env` if present
   before running compose
+- `devops/deploy/ec2-deploy.sh` auto-runs `tsx database/migrate.ts` before
+  starting API/Web
