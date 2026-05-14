@@ -1,11 +1,12 @@
 ﻿import { css } from "@emotion/css"
 import { State } from "../../State"
 import { JSX } from "react"
-import { appThemeClass, color, font, theme } from "../Theme"
+import { appThemeClass, font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as CategoryAction from "../../Action/Category"
 import Header from "./Header"
 import SubHeader from "./SubHeader"
+import Footer from "./Footer"
 import CategorySidebar from "../Part/Category"
 import { CartSidebar } from "../Part/Cart"
 import HomePoster from "../Part/HomePoster"
@@ -61,6 +62,8 @@ export function SubHome(props: Props): JSX.Element {
         </main>
       </div>
 
+      <Footer state={state} />
+
       <CartSidebar state={state} />
     </div>
   )
@@ -75,38 +78,58 @@ const styles = {
     position: "relative",
     zIndex: 1,
     background:
-      "linear-gradient(180deg, rgba(72,85,106,0.03) 0%, transparent 160px)",
+      "linear-gradient(180deg, var(--app-brand-20) 0%, transparent 200px)",
   }),
 
   body: css({
     display: "grid",
-    gridTemplateColumns: "max-content max-content minmax(0, 1fr)",
+    gridTemplateColumns: "minmax(0, 1fr)",
     flex: 1,
     minHeight: 0,
+    position: "relative",
+    "@media (min-width: 1024px)": {
+      gridTemplateColumns: "max-content minmax(0, 1fr)",
+    },
+    "@media (min-width: 1280px)": {
+      gridTemplateColumns: "max-content max-content minmax(0, 1fr)",
+    },
   }),
 
   sidebarOpen: css({
-    width: "260px",
-    height: "calc(100vh - 82px)",
-    position: "sticky",
-    top: "82px",
+    width: "min(86vw, 300px)",
+    height: "calc(100dvh - 74px)",
+    position: "fixed",
+    left: 0,
+    top: "74px",
     alignSelf: "start",
     opacity: 1,
     visibility: "visible",
-    borderRight: `1px solid ${color.genz.purple100}`,
-    backgroundColor: "rgba(255,255,255,0.62)",
+    borderRight: "1px solid var(--app-border)",
+    backgroundColor: "var(--app-surface-strong)",
     backdropFilter: "blur(18px)",
+    boxShadow: "var(--app-shadow-sm)",
     overflow: "hidden",
+    zIndex: 1200,
     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
     willChange: "width, opacity",
+    "@media (min-width: 1024px)": {
+      width: "260px",
+      height: "calc(100dvh - 82px)",
+      position: "sticky",
+      left: "auto",
+      top: "82px",
+      boxShadow: "none",
+      zIndex: 2,
+    },
   }),
 
   sidebarClosed: css({
     width: "0px",
-    height: "100vh",
-    position: "sticky",
+    height: "calc(100dvh - 74px)",
+    position: "fixed",
     alignSelf: "start",
-    top: 0,
+    left: 0,
+    top: "74px",
     opacity: 0,
     visibility: "hidden",
     borderRight: "0px solid transparent",
@@ -114,48 +137,66 @@ const styles = {
     overflow: "hidden",
     transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
     willChange: "width, opacity",
+    "@media (min-width: 1024px)": {
+      height: "calc(100dvh - 82px)",
+      position: "sticky",
+      left: "auto",
+      top: "82px",
+    },
   }),
 
   sidebarContent: css({
-    width: "260px",
+    width: "min(86vw, 300px)",
     height: "100%",
     position: "sticky",
     top: 0,
     overflowY: "auto",
     "&::-webkit-scrollbar": { display: "none" },
+    "@media (min-width: 1024px)": {
+      width: "260px",
+    },
   }),
 
   posterSidebarOpen: css({
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    position: "sticky",
-    alignSelf: "start",
-    height: "calc(100vh - 82px)",
-    top: "82px",
-    width: "260px",
-    opacity: 1,
-    visibility: "visible",
-    borderRight: `1px solid ${color.genz.purple100}`,
-    backgroundColor: "rgba(255,255,255,0.52)",
-    backdropFilter: "blur(18px)",
-    overflow: "auto",
-    scrollbarWidth: "none",
-    transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1) , opacity 0.3s ease",
-    willChange: "width, opacity",
+    display: "none",
+    "@media (min-width: 1280px)": {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "flex-start",
+      position: "sticky",
+      alignSelf: "start",
+      height: "calc(100dvh - 82px)",
+      top: "82px",
+      width: "260px",
+      opacity: 1,
+      visibility: "visible",
+      borderRight: "1px solid var(--app-border)",
+      backgroundColor: "var(--app-surface)",
+      backdropFilter: "blur(18px)",
+      overflow: "auto",
+      scrollbarWidth: "none",
+      transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1) , opacity 0.3s ease",
+      willChange: "width, opacity",
+    },
   }),
 
   posterSidebarClosed: css({
-    width: "0px",
-    height: "auto",
-    opacity: 0,
-    alignSelf: "start",
-    visibility: "hidden",
-    borderRight: "0px solid transparent",
-    pointerEvents: "none",
-    overflow: "hidden",
-    transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
-    willChange: "width, opacity",
+    display: "none",
+    "@media (min-width: 1280px)": {
+      display: "block",
+      width: "0px",
+      height: "calc(100dvh - 82px)",
+      opacity: 0,
+      alignSelf: "start",
+      position: "sticky",
+      top: "82px",
+      visibility: "hidden",
+      borderRight: "0px solid transparent",
+      pointerEvents: "none",
+      overflow: "hidden",
+      transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
+      willChange: "width, opacity",
+    },
   }),
 
   posterWrapper: css({
@@ -214,7 +255,8 @@ const styles = {
 
   mainContent: css({
     height: "auto",
-    padding: `${theme.s4} ${theme.s4} ${theme.s6}`,
+    padding: `clamp(12px, 2.5vw, 24px) clamp(12px, 2.8vw, 28px) ${theme.s6}`,
     position: "relative",
+    minWidth: 0,
   }),
 }

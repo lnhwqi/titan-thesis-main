@@ -725,12 +725,17 @@ export const Chatbox: React.FC<Props> = (props: Props) => {
 const styles = {
   chatboxContainer: css({
     position: "fixed",
-    bottom: "24px",
-    right: "24px",
-    zIndex: 10001,
+    bottom: "max(10px, env(safe-area-inset-bottom, 0px) + 8px)",
+    right: "clamp(8px, 2.6vw, 24px)",
+    zIndex: 2147483000,
+    isolation: "isolate",
+    maxWidth: "calc(100dvw - 12px)",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    "@media (max-width: 480px)": { bottom: "16px", right: "16px" },
+    "@media (max-width: 640px)": {
+      bottom: "max(6px, env(safe-area-inset-bottom, 0px) + 6px)",
+      right: "6px",
+    },
   }),
   chatboxToggleWrap: css({
     display: "flex",
@@ -738,6 +743,7 @@ const styles = {
     alignItems: "center",
     gap: "6px",
     position: "relative",
+    zIndex: 2,
   }),
   chatboxBubble: css({
     position: "relative",
@@ -769,8 +775,8 @@ const styles = {
     clipPath: "polygon(0 0, 100% 0, 50% 100%)",
   }),
   chatboxToggle: css({
-    width: "64px",
-    height: "64px",
+    width: "clamp(54px, 8vw, 64px)",
+    height: "clamp(54px, 8vw, 64px)",
     borderRadius: "50%",
     background: `linear-gradient(135deg, ${BRAND}, ${SECONDARY})`,
     border: "none",
@@ -816,10 +822,11 @@ const styles = {
   }),
   chatboxWindow: css({
     position: "absolute",
-    bottom: "76px",
+    bottom: "74px",
     right: "0",
-    width: "380px",
-    height: "580px",
+    width: "min(400px, calc(100dvw - 16px))",
+    height: "min(76dvh, 620px)",
+    maxHeight: "calc(100dvh - 88px)",
     background: "#ffffff",
     borderRadius: "16px",
     boxShadow: "0 8px 48px rgba(0,0,0,0.18),0 2px 12px rgba(0,0,0,0.08)",
@@ -827,22 +834,33 @@ const styles = {
     flexDirection: "column",
     overflow: "hidden",
     animation: `${slideUp} 0.25s cubic-bezier(0.34,1.56,0.64,1)`,
-    border: "1px solid rgba(0,82,156,0.12)",
-    "@media (max-width: 480px)": {
-      width: "calc(100vw - 32px)",
-      height: "calc(100dvh - 100px)",
-      bottom: "72px",
+    border: "1px solid rgba(0,82,156,0.2)",
+    outline: "1px solid rgba(0,82,156,0.08)",
+    zIndex: 3,
+    "@media (max-width: 900px)": {
+      width: "min(430px, calc(100dvw - 12px))",
+      height: "min(80dvh, calc(100dvh - 84px))",
+    },
+    "@media (max-width: 640px)": {
+      width: "calc(100dvw - 12px)",
+      right: "0",
+      height: "min(84dvh, calc(100dvh - 74px))",
+      bottom: "66px",
       borderRadius: "14px",
     },
   }),
   header: css({
-    padding: "14px 16px",
+    padding: "12px 14px",
     background: `linear-gradient(135deg, ${BRAND} 0%, ${SECONDARY} 100%)`,
     color: "white",
     display: "flex",
     alignItems: "center",
     gap: "10px",
     flexShrink: 0,
+    "@media (max-width: 640px)": {
+      padding: "10px 12px",
+      gap: "8px",
+    },
   }),
   backBtn: css({
     background: "rgba(255,255,255,0.18)",
@@ -850,8 +868,8 @@ const styles = {
     color: "white",
     cursor: "pointer",
     borderRadius: "8px",
-    width: "32px",
-    height: "32px",
+    width: "30px",
+    height: "30px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -899,8 +917,8 @@ const styles = {
     color: "white",
     cursor: "pointer",
     borderRadius: "8px",
-    width: "32px",
-    height: "32px",
+    width: "30px",
+    height: "30px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -921,7 +939,13 @@ const styles = {
     textTransform: "uppercase",
     letterSpacing: "0.04em",
   }),
-  newChatRow: css({ display: "flex", gap: "6px" }),
+  newChatRow: css({
+    display: "flex",
+    gap: "6px",
+    "@media (max-width: 460px)": {
+      flexDirection: "column",
+    },
+  }),
   newChatInput: css({
     flex: 1,
     padding: "7px 10px",
@@ -947,6 +971,10 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
     transition: "opacity 0.2s",
+    "@media (max-width: 460px)": {
+      width: "100%",
+      minHeight: "36px",
+    },
     "&:disabled": { opacity: 0.45, cursor: "not-allowed" },
   }),
   newChatError: css({
@@ -985,7 +1013,15 @@ const styles = {
     color: "#4d4d4d",
     lineHeight: 1.55,
   }),
-  guestPromptActions: css({ display: "flex", gap: "10px", marginTop: "4px" }),
+  guestPromptActions: css({
+    display: "flex",
+    gap: "10px",
+    marginTop: "4px",
+    "@media (max-width: 460px)": {
+      width: "100%",
+      flexDirection: "column",
+    },
+  }),
   guestLoginBtn: css({
     padding: "10px 28px",
     background: `linear-gradient(135deg, ${BRAND}, ${SECONDARY})`,
@@ -996,6 +1032,9 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
     transition: "opacity 0.2s, transform 0.15s",
+    "@media (max-width: 460px)": {
+      width: "100%",
+    },
     "&:hover": { opacity: 0.9, transform: "translateY(-1px)" },
   }),
   guestRegisterBtn: css({
@@ -1008,6 +1047,9 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
     transition: "background 0.2s, transform 0.15s",
+    "@media (max-width: 460px)": {
+      width: "100%",
+    },
     "&:hover": { background: ACCENT_SOFT, transform: "translateY(-1px)" },
   }),
   loadingState: css({
@@ -1144,6 +1186,9 @@ const styles = {
     display: "flex",
     flexDirection: "column-reverse",
     gap: "4px",
+    "@media (max-width: 640px)": {
+      padding: "12px 10px",
+    },
   }),
   noMessages: css({
     display: "flex",
@@ -1163,8 +1208,11 @@ const styles = {
     display: "flex",
     alignItems: "flex-end",
     gap: "8px",
-    maxWidth: "88%",
+    maxWidth: "92%",
     marginBottom: "4px",
+    "@media (max-width: 640px)": {
+      maxWidth: "96%",
+    },
   }),
   msgRowMine: css({ alignSelf: "flex-end", flexDirection: "row-reverse" }),
   msgRowOther: css({ alignSelf: "flex-start" }),
@@ -1279,7 +1327,7 @@ const styles = {
     "& span:nth-child(3)": { animationDelay: "0.36s" },
   }),
   inputArea: css({
-    padding: "10px 12px",
+    padding: "8px 10px",
     borderTop: "1px solid rgba(124,58,237,0.1)",
     display: "flex",
     alignItems: "flex-end",
@@ -1306,6 +1354,11 @@ const styles = {
       boxShadow: "0 0 0 3px rgba(124,58,237,0.1)",
     },
     "&:disabled": { background: "#f3f4f6", cursor: "not-allowed" },
+    "@media (max-width: 640px)": {
+      fontSize: "13px",
+      padding: "8px 12px",
+      maxHeight: "88px",
+    },
   }),
   sendBtn: css({
     width: "38px",

@@ -54,15 +54,22 @@ const styles = {
       minHeight: theme.s11,
       borderRadius: theme.br3,
       padding: `${theme.s2} ${theme.s3}`,
-      background: disabled ? color.neutral20 : color.neutral0,
-      border: `1px solid ${invalid ? color.semantics.error.red500 : changed ? color.semantics.warning.yellow500 : color.genz.purple100}`,
+      background: disabled
+        ? "var(--app-surface-muted)"
+        : "var(--app-surface-strong)",
+      border: `1px solid ${invalid ? color.semantics.error.red500 : changed ? color.semantics.warning.yellow500 : "var(--app-border)"}`,
       boxShadow: invalid ? "none" : theme.elevation.xsmall,
       boxSizing: "border-box",
       backdropFilter: "blur(10px)",
-      transition: "border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
+      transition:
+        "border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
       "&:focus-within": {
-        borderColor: invalid ? color.semantics.error.red500 : color.genz.purple,
-        boxShadow: `0 0 0 4px ${color.genz.purple100}`,
+        borderColor: invalid
+          ? color.semantics.error.red500
+          : "var(--app-brand-400)",
+        boxShadow: invalid
+          ? "0 0 0 4px var(--app-error-20)"
+          : "0 0 0 4px var(--app-brand-20)",
       },
     }),
   input: (disabled: boolean, invalid: boolean) =>
@@ -76,10 +83,10 @@ const styles = {
       color: invalid
         ? color.semantics.error.red500
         : disabled
-          ? color.neutral300
-          : color.neutral900,
+          ? "var(--app-text-muted)"
+          : "var(--app-text)",
       "::placeholder": {
-        color: invalid ? color.semantics.error.red500 : color.neutral400,
+        color: invalid ? color.semantics.error.red500 : "var(--app-text-muted)",
       },
     }),
 }

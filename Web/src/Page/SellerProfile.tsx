@@ -345,7 +345,7 @@ const claimPop = keyframes`
 const styles = {
   page: css({
     width: "100%",
-    maxWidth: "1280px",
+    maxWidth: "min(100%, 1280px)",
     margin: "0 auto",
     padding: `0 0 ${theme.s8}`,
     display: "flex",
@@ -457,7 +457,7 @@ const styles = {
     margin: 0,
     ...font.regular14,
     color: "rgba(255,255,255,0.82)",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     lineHeight: 1.55,
     display: "-webkit-box",
     WebkitLineClamp: 2,
@@ -737,7 +737,7 @@ const styles = {
   /* ── Skeleton ── */
   fullscreenStatus: css({
     width: "100%",
-    maxWidth: "1280px",
+    maxWidth: "min(100%, 1280px)",
     margin: "0 auto",
     padding: `0 ${theme.s5} ${theme.s8}`,
     display: "flex",

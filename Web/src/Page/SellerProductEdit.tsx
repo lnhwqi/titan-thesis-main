@@ -337,7 +337,7 @@ const styles = {
     background: `radial-gradient(circle at 10% 15%, rgba(0, 82, 156, 0.08) 0%, transparent 40%), ${color.secondary10}`,
   }),
   gateCard: css({
-    maxWidth: "420px",
+    maxWidth: "min(100%, 420px)",
     background: "var(--app-surface-strong)",
     border: "1px solid var(--app-border)",
     borderRadius: theme.s4,
@@ -413,7 +413,7 @@ const styles = {
   }),
   modalCard: css({
     width: "100%",
-    maxWidth: "420px",
+    maxWidth: "min(100%, 420px)",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,

@@ -173,7 +173,7 @@ const styles = {
   field: css({
     display: "grid",
     gap: theme.s1,
-    maxWidth: "480px",
+    maxWidth: "min(100%, 480px)",
   }),
   label: css({
     ...font.medium14,

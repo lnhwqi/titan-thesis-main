@@ -335,7 +335,7 @@ const styles = {
   }),
   brandLogoImg: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     minWidth: "120px",
     aspectRatio: "1 / 1",
     objectFit: "contain",
@@ -363,7 +363,7 @@ const styles = {
     ...font.regular17,
     color: "rgba(255,255,255,0.50)",
     letterSpacing: "0.01em",
-    maxWidth: "360px",
+    maxWidth: "min(100%, 360px)",
   }),
   brandFeatures: css({
     margin: 0,
@@ -416,7 +416,7 @@ const styles = {
   authInner: css({
     position: "relative",
     width: "100%",
-    maxWidth: "380px",
+    maxWidth: "min(100%, 380px)",
     display: "flex",
     flexDirection: "column",
     gap: theme.s5,

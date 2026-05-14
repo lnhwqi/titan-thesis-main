@@ -293,10 +293,12 @@ const styles = {
   /* ---------- container ---------- */
   container: css({
     display: "flex",
-    padding: `${theme.s3} ${theme.s4}`,
-    gap: theme.s4,
+    padding: `clamp(8px, 1.8vw, 12px) clamp(10px, 2.8vw, 16px)`,
+    gap: "clamp(8px, 1.8vw, 16px)",
+    rowGap: "8px",
     justifyContent: "space-between",
     alignItems: "center",
+    flexWrap: "wrap",
     background: "var(--app-surface)",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
@@ -315,6 +317,13 @@ const styles = {
       background:
         "linear-gradient(90deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
     },
+    "@media (max-width: 1024px)": {
+      justifyContent: "flex-start",
+    },
+    "@media (max-width: 760px)": {
+      top: 0,
+      rowGap: "10px",
+    },
   }),
 
   /* ---------- left: logo + greeting in a row ---------- */
@@ -323,11 +332,13 @@ const styles = {
     alignItems: "center",
     flexDirection: "row",
     gap: theme.s2,
+    minWidth: 0,
+    flex: "1 1 auto",
   }),
   logo: css({
     display: "block",
     width: "auto",
-    height: "40px",
+    height: "clamp(32px, 4.2vw, 40px)",
     flexShrink: 0,
     textDecoration: "none",
     transition: "transform 0.25s ease, filter 0.25s ease",
@@ -347,6 +358,11 @@ const styles = {
     color: "var(--app-text-soft)",
     whiteSpace: "nowrap",
     flexShrink: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    "@media (max-width: 680px)": {
+      display: "none",
+    },
   }),
 
   /* ---------- category button ---------- */
@@ -370,19 +386,33 @@ const styles = {
       transform: "translateY(-1px)",
       boxShadow: theme.elevation.xsmall,
     },
+    "@media (max-width: 980px)": {
+      minHeight: theme.s10,
+      padding: `${theme.s1} ${theme.s3}`,
+      ...font.medium12,
+    },
+    "@media (max-width: 760px)": {
+      order: 2,
+    },
   }),
 
   /* ---------- search ---------- */
   searchWrapper: css({
-    flex: 1,
+    flex: "1 1 320px",
     display: "flex",
     justifyContent: "center",
     maxWidth: "800px",
+    minWidth: "min(100%, 240px)",
+    "@media (max-width: 1024px)": {
+      order: 4,
+      maxWidth: "100%",
+      flexBasis: "100%",
+    },
   }),
   searchContainer: css({
     display: "flex",
     width: "100%",
-    minHeight: theme.s11,
+    minHeight: "clamp(38px, 5vw, 44px)",
     borderRadius: theme.brFull,
     border: "1px solid var(--app-border)",
     overflow: "hidden",
@@ -416,7 +446,7 @@ const styles = {
     },
   }),
   searchButton: css({
-    width: theme.s12,
+    width: "clamp(40px, 6vw, 48px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -439,22 +469,35 @@ const styles = {
     justifyContent: "flex-end",
     alignItems: "center",
     flexShrink: 0,
+    marginLeft: "auto",
     padding: `${theme.s2} ${theme.s3}`,
     borderRadius: theme.br5,
     border: "1px solid var(--app-border)",
     background: "var(--app-surface)",
     backdropFilter: "blur(8px)",
     boxShadow: theme.elevation.xsmall,
+    "@media (max-width: 1024px)": {
+      order: 3,
+    },
+    "@media (max-width: 760px)": {
+      width: "100%",
+      justifyContent: "space-between",
+      marginLeft: 0,
+      padding: `${theme.s2} ${theme.s2}`,
+    },
   }),
   utilityZone: css({
     display: "flex",
     alignItems: "center",
-    gap: theme.s2,
+    gap: "clamp(4px, 1.6vw, 8px)",
   }),
   verticalDivider: css({
     width: "1px",
     alignSelf: "stretch",
     background: "var(--app-border)",
+    "@media (max-width: 760px)": {
+      display: "none",
+    },
   }),
 
   /* ---------- icon buttons ---------- */
@@ -463,8 +506,8 @@ const styles = {
     display: "flex",
     cursor: "pointer",
     position: "relative",
-    width: theme.s10,
-    height: theme.s10,
+    width: "clamp(34px, 4.5vw, 40px)",
+    height: "clamp(34px, 4.5vw, 40px)",
     borderRadius: "50%",
     alignItems: "center",
     justifyContent: "center",
@@ -508,7 +551,7 @@ const styles = {
   userIdentityRow: css({
     display: "flex",
     alignItems: "center",
-    gap: theme.s2,
+    gap: "clamp(6px, 1.6vw, 8px)",
   }),
   walletContainer: css({
     position: "relative",
@@ -524,7 +567,7 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     gap: theme.s1,
-    padding: `${theme.s2} ${theme.s3}`,
+    padding: `${theme.s1} ${theme.s2}`,
     borderRadius: theme.br5,
     background: "var(--app-surface-strong)",
     border: "1px solid var(--app-border)",
@@ -548,6 +591,9 @@ const styles = {
     color: "var(--app-accent)",
     lineHeight: 1,
     cursor: "default",
+    maxWidth: "74px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   }),
   walletHoverCard: css({
     position: "absolute",
@@ -623,7 +669,7 @@ const styles = {
     position: "absolute",
     top: "calc(100% + 10px)",
     right: 0,
-    width: "204px",
+    width: "min(204px, calc(100dvw - 24px))",
     borderRadius: theme.br4,
     border: "1px solid var(--app-border)",
     backgroundColor: "var(--app-surface-strong)",
@@ -729,15 +775,24 @@ const styles = {
     gap: "3px",
     lineHeight: 1.2,
     marginLeft: theme.s1,
+    "@media (max-width: 760px)": {
+      alignItems: "flex-end",
+      marginLeft: 0,
+    },
   }),
   actionGroup: css({
     display: "flex",
     gap: theme.s1,
     alignItems: "center",
     minHeight: "16px",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
   }),
   separator: css({
     color: color.neutral400,
     fontSize: "12px",
+    "@media (max-width: 520px)": {
+      display: "none",
+    },
   }),
 }

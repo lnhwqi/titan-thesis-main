@@ -626,7 +626,7 @@ const styles = {
   }),
   modalCard: css({
     width: "100%",
-    maxWidth: "420px",
+    maxWidth: "min(100%, 420px)",
     background: color.neutral0,
     borderRadius: theme.s3,
     border: `1px solid ${color.genz.purple100}`,

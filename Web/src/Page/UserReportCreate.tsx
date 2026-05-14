@@ -194,7 +194,7 @@ const styles = {
     padding: theme.s6,
     display: "grid",
     gap: theme.s2,
-    maxWidth: "760px",
+    maxWidth: "min(100%, 760px)",
     background:
       `radial-gradient(circle at 10% 18%, ${color.genz.purple100} 0%, transparent 34%), ` +
       `radial-gradient(circle at 85% 80%, ${color.genz.pink100} 0%, transparent 30%), ` +
@@ -246,7 +246,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "min(100%, 480px)",
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
     padding: theme.s6,
@@ -283,7 +283,7 @@ const styles = {
   }),
   confirmCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     background: color.neutral0,
     borderRadius: theme.s2,
     border: `1px solid ${color.genz.purple100}`,

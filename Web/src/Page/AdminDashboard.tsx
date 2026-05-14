@@ -260,7 +260,7 @@ const styles = {
     ...font.regular17,
     color: color.neutral700,
     marginTop: theme.s2,
-    maxWidth: "700px",
+    maxWidth: "min(100%, 700px)",
   }),
   grid: css({
     display: "grid",
@@ -459,7 +459,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,

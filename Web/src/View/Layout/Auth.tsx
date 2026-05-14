@@ -2,7 +2,7 @@
 import { AuthState } from "../../State"
 import { JSX } from "react"
 import Header from "./Header"
-import { appThemeClass, color, theme, layoutSize } from "../Theme"
+import { appThemeClass, layoutSize } from "../Theme"
 
 type Props = { authState: AuthState; Page: React.FC<{ authState: AuthState }> }
 export function AuthLayout(props: Props): JSX.Element {
@@ -36,7 +36,8 @@ const styles = {
   header: css({
     display: "flex",
     justifyContent: "center",
-    backgroundColor: theme.color.neutral0,
+    backgroundColor: "var(--app-surface-strong)",
+    borderBottom: "1px solid var(--app-border)",
     position: "sticky",
     top: 0,
     zIndex: 20,
@@ -44,16 +45,18 @@ const styles = {
   headerWrap: css({
     width: "100%",
     maxWidth: layoutSize.maxWidth,
+    paddingInline: "clamp(8px, 2vw, 20px)",
   }),
   body: css({
     height: "100%",
     display: "flex",
     justifyContent: "center",
     overflowY: "auto",
-    backgroundColor: color.genz.purple20,
+    backgroundColor: "var(--app-brand-20)",
   }),
   bodyWrap: css({
     width: "100%",
     maxWidth: layoutSize.maxWidth,
+    paddingInline: "clamp(12px, 2.8vw, 24px)",
   }),
 }

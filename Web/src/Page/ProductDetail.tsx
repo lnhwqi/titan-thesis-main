@@ -1089,7 +1089,7 @@ const styles = {
     flexDirection: "column",
     gap: theme.s4,
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "min(100%, 400px)",
     padding: theme.s6,
     textAlign: "center",
     background: color.neutral0,

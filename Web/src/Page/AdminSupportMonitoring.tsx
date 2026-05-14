@@ -651,7 +651,7 @@ const styles = {
     color: color.neutral700,
     marginTop: theme.s2,
     marginBottom: 0,
-    maxWidth: "720px",
+    maxWidth: "min(100%, 720px)",
   }),
   panel: css({
     background: color.neutral0,
@@ -836,7 +836,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,

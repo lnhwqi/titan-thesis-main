@@ -68,7 +68,7 @@ const styles = {
     }),
   }),
   card: css({
-    maxWidth: "560px",
+    maxWidth: "min(100%, 560px)",
     margin: "0 auto",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,

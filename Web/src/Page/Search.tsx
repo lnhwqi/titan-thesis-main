@@ -1,7 +1,7 @@
 import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
-import { color, font, theme } from "../View/Theme"
+import { font, theme } from "../View/Theme"
 import { ProductCard } from "../View/Part/ProductCard"
 
 type Props = { state: State }
@@ -59,40 +59,41 @@ export default function SearchPage(props: Props): JSX.Element {
 
 const styles = {
   container: css({
-    padding: theme.s4,
+    padding: `clamp(12px, 2.5vw, 24px)`,
     width: "100%",
-    maxWidth: "1200px",
+    maxWidth: "min(100%, 1200px)",
     margin: "0 auto",
   }),
   title: css({
     ...font.bold17,
     marginBottom: theme.s6,
-    color: color.neutral900,
+    color: "var(--app-text)",
   }),
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 240px))",
-    justifyContent: "start",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))",
+    justifyContent: "stretch",
     gap: theme.s4,
   }),
   loading: css({
     textAlign: "center",
     padding: theme.s10,
-    color: color.neutral600,
+    color: "var(--app-text-soft)",
   }),
   error: css({
     textAlign: "center",
-    color: color.semantics.error.red500,
+    color: "var(--app-error-500)",
   }),
   emptyState: css({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     padding: theme.s10,
-    backgroundColor: color.neutral50,
+    backgroundColor: "var(--app-surface)",
     borderRadius: theme.br2,
+    border: "1px solid var(--app-border)",
   }),
   icon: css({ fontSize: "48px", marginBottom: theme.s4 }),
-  text: css({ ...font.bold17, color: color.neutral800 }),
-  subText: css({ ...font.regular14, color: color.neutral500 }),
+  text: css({ ...font.bold17, color: "var(--app-text)" }),
+  subText: css({ ...font.regular14, color: "var(--app-text-soft)" }),
 }

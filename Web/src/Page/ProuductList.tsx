@@ -80,7 +80,7 @@ const styles = {
   }),
   announcementCard: css({
     width: "100%",
-    maxWidth: "440px",
+    maxWidth: "min(100%, 440px)",
     padding: theme.s4,
     borderRadius: theme.s3,
     border: `1px solid ${color.genz.purple300}`,

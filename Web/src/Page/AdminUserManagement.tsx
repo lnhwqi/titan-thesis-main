@@ -536,7 +536,7 @@ const styles = {
     borderRadius: theme.s3,
     padding: theme.s6,
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "min(100%, 480px)",
     boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
   }),
   modalTitle: css({

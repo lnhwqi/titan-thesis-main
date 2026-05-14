@@ -564,7 +564,7 @@ const styles = {
   }),
   shell: css({
     width: "100%",
-    maxWidth: "1180px",
+    maxWidth: "min(100%, 1180px)",
     margin: "0 auto",
     display: "grid",
     gap: theme.s5,
@@ -615,7 +615,7 @@ const styles = {
     position: "relative",
     zIndex: 1,
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "min(100%, 400px)",
     display: "grid",
     gap: theme.s4,
     ...bp.sm({

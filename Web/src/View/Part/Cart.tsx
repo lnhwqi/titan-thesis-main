@@ -1,7 +1,7 @@
 ﻿import { css } from "@emotion/css"
 import { JSX } from "react"
 import { State } from "../../State"
-import { color, font, theme } from "../Theme"
+import { font, theme } from "../Theme"
 import { emit } from "../../Runtime/React"
 import * as CartAction from "../../Action/Cart"
 import { navigateTo, toRoute } from "../../Route"
@@ -155,7 +155,8 @@ const styles = {
   overlay: css({
     position: "fixed",
     inset: 0,
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(18, 15, 32, 0.42)",
+    backdropFilter: "blur(1px)",
     opacity: 0,
     visibility: "hidden",
     transition: "opacity 0.2s ease",
@@ -167,12 +168,11 @@ const styles = {
   }),
   sidebar: css({
     position: "fixed",
-    top: "74px",
-    right: theme.s4,
-    width: "360px",
-    maxWidth: "calc(100dvw - 32px)",
-    maxHeight: "calc(100dvh - 96px)",
-    backgroundColor: color.neutral0,
+    top: "82px",
+    right: "clamp(10px, 2vw, 16px)",
+    width: "min(360px, calc(100dvw - 20px))",
+    maxHeight: "min(78dvh, calc(100dvh - 96px))",
+    backgroundColor: "var(--app-surface-strong)",
     zIndex: 1001,
     transition: "opacity 0.22s ease, transform 0.22s ease",
     display: "flex",
@@ -181,11 +181,20 @@ const styles = {
     visibility: "hidden",
     pointerEvents: "none",
     transform: "translateY(-8px) scale(0.98)",
-    boxShadow:
-      "0 22px 48px rgba(12, 20, 34, 0.24), 0 8px 20px rgba(12, 20, 34, 0.14)",
+    boxShadow: "var(--app-shadow-lg)",
     borderRadius: theme.br2,
-    border: `1px solid ${color.genz.purple100}`,
+    border: "1px solid var(--app-border)",
     overflow: "hidden",
+    "@media (max-width: 640px)": {
+      top: "auto",
+      bottom: "12px",
+      right: "10px",
+      left: "10px",
+      width: "auto",
+      maxHeight: "70dvh",
+      borderRadius: "14px",
+      transform: "translateY(10px) scale(0.98)",
+    },
   }),
   openSidebar: css({
     opacity: 1,
@@ -198,17 +207,18 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    borderBottom: `1px solid ${color.genz.purple100}`,
-    background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+    borderBottom: "1px solid var(--app-border)",
+    background:
+      "linear-gradient(180deg, var(--app-surface) 0%, var(--app-brand-20) 100%)",
   }),
-  title: css({ ...font.bold17, color: color.genz.purple }),
+  title: css({ ...font.bold17, color: "var(--app-accent)" }),
   closeBtn: css({
     width: "32px",
     height: "32px",
     borderRadius: "50%",
-    border: `1px solid ${color.genz.purple200}`,
-    background: color.neutral0,
-    color: color.genz.purple,
+    border: "1px solid var(--app-border)",
+    background: "var(--app-surface-strong)",
+    color: "var(--app-accent)",
     cursor: "pointer",
     fontSize: "16px",
     display: "inline-flex",
@@ -216,7 +226,7 @@ const styles = {
     justifyContent: "center",
     transition: "all 0.2s ease",
     "&:hover": {
-      background: color.genz.purpleDim,
+      background: "var(--app-brand-20)",
       transform: "scale(1.05)",
     },
   }),
@@ -231,28 +241,28 @@ const styles = {
     marginBottom: theme.s3,
     padding: theme.s3,
     borderRadius: theme.br1,
-    border: `1px solid ${color.genz.purple100}`,
-    background: color.neutral0,
+    border: "1px solid var(--app-border)",
+    background: "var(--app-surface)",
   }),
   itemImg: css({
     width: "60px",
     height: "60px",
     objectFit: "cover",
     borderRadius: theme.br1,
-    border: `1px solid ${color.genz.purple100}`,
+    border: "1px solid var(--app-border)",
   }),
   itemInfo: css({ flex: 1 }),
   itemName: css({
     ...font.medium14,
     marginBottom: "4px",
-    color: color.genz.purple,
+    color: "var(--app-accent)",
   }),
   itemVariant: css({
     ...font.regular12,
-    color: color.genz.purple,
+    color: "var(--app-accent)",
     marginBottom: "4px",
   }),
-  itemPrice: css({ ...font.regular12, color: color.neutral500 }),
+  itemPrice: css({ ...font.regular12, color: "var(--app-text-soft)" }),
   controls: css({
     display: "flex",
     alignItems: "center",
@@ -262,21 +272,22 @@ const styles = {
       width: "28px",
       height: "28px",
       borderRadius: "50%",
-      border: `1px solid ${color.genz.purple200}`,
-      background: color.neutral0,
-      color: color.genz.purple,
+      border: "1px solid var(--app-border)",
+      background: "var(--app-surface-strong)",
+      color: "var(--app-accent)",
       cursor: "pointer",
       transition: "all 0.2s ease",
     },
     "& button:hover": {
-      background: color.genz.purpleDim,
+      background: "var(--app-brand-20)",
       transform: "translateY(-1px)",
     },
   }),
   footer: css({
     padding: theme.s4,
-    borderTop: `1px solid ${color.genz.purple100}`,
-    background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
+    borderTop: "1px solid var(--app-border)",
+    background:
+      "linear-gradient(180deg, var(--app-surface) 0%, var(--app-brand-20) 100%)",
   }),
   totalRow: css({
     display: "flex",
@@ -284,27 +295,27 @@ const styles = {
     marginBottom: theme.s4,
     ...font.bold17,
   }),
-  totalPrice: css({ color: color.genz.pink }),
+  totalPrice: css({ color: "var(--app-secondary-500)" }),
   checkoutBtn: css({
     width: "100%",
     padding: theme.s3,
-    backgroundColor: color.genz.pink,
-    color: color.neutral0,
+    background:
+      "linear-gradient(135deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
+    color: "var(--app-accent-contrast)",
     border: "none",
     borderRadius: theme.br2,
     ...font.bold17,
     cursor: "pointer",
-    boxShadow: "0 10px 20px rgba(14, 125, 112, 0.24)",
+    boxShadow: "var(--app-shadow-sm)",
     transition: "all 0.2s ease",
     "&:hover": {
-      backgroundColor: color.genz.purple,
       transform: "translateY(-1px)",
-      boxShadow: "0 12px 24px rgba(10, 95, 86, 0.28)",
+      boxShadow: "var(--app-shadow-md)",
     },
   }),
   empty: css({
     textAlign: "center",
     marginTop: theme.s10,
-    color: color.neutral400,
+    color: "var(--app-text-muted)",
   }),
 }

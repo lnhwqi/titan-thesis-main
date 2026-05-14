@@ -79,7 +79,7 @@ const styles = {
   }),
   announcementCard: css({
     width: "100%",
-    maxWidth: "440px",
+    maxWidth: "min(100%, 440px)",
     padding: theme.s6,
     borderRadius: theme.br4,
     border: "1px solid var(--app-border)",

@@ -507,7 +507,7 @@ const styles = {
   }),
   confirmCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     background: color.neutral0,
     borderRadius: theme.s3,
     border: `1px solid ${color.genz.purple100}`,
@@ -553,7 +553,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "min(100%, 480px)",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,

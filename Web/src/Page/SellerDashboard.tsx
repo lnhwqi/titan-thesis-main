@@ -415,7 +415,7 @@ const styles = {
   }),
   announceCard: css({
     width: "100%",
-    maxWidth: "420px",
+    maxWidth: "min(100%, 420px)",
     background: "var(--app-surface-strong)",
     backdropFilter: "blur(16px)",
     border: "1px solid var(--app-border)",
@@ -747,7 +747,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     background: "rgba(255,255,255,0.12)",
     backdropFilter: "blur(24px)",
     WebkitBackdropFilter: "blur(24px)",
@@ -783,7 +783,7 @@ const styles = {
   }),
   confirmCard: css({
     width: "100%",
-    maxWidth: "420px",
+    maxWidth: "min(100%, 420px)",
     background: "var(--app-surface-strong)",
     backdropFilter: "blur(16px)",
     border: "1px solid var(--app-border)",

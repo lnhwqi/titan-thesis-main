@@ -532,7 +532,7 @@ const styles = {
   previewFrame: css({
     marginTop: theme.s3,
     width: "100%",
-    maxWidth: "640px",
+    maxWidth: "min(100%, 640px)",
     aspectRatio: "16 / 9",
     borderRadius: theme.s2,
     border: `1px solid ${color.genz.purple200}`,
@@ -654,7 +654,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "min(100%, 480px)",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,
@@ -683,7 +683,7 @@ const styles = {
   }),
   modalCard: css({
     width: "100%",
-    maxWidth: "460px",
+    maxWidth: "min(100%, 460px)",
     background: color.neutral0,
     borderRadius: theme.s3,
     border: `1px solid ${color.genz.purple200}`,

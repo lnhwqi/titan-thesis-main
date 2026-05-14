@@ -54,7 +54,7 @@ const styles = {
     ...font.regular17,
     color: color.neutral700,
     margin: 0,
-    maxWidth: "480px",
+    maxWidth: "min(100%, 480px)",
   }),
   headerActions: css({
     display: "flex",
@@ -272,7 +272,7 @@ const styles = {
     border: `1px solid ${color.semantics.error.red50}`,
     padding: theme.s10,
     textAlign: "center",
-    maxWidth: "360px",
+    maxWidth: "min(100%, 360px)",
   }),
   gateTitle: css({
     ...font.boldH5_20,

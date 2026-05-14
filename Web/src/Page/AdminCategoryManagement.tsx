@@ -416,7 +416,7 @@ const styles = {
     ...font.regular14,
     color: color.neutral700,
     marginTop: theme.s2,
-    maxWidth: "760px",
+    maxWidth: "min(100%, 760px)",
   }),
   grid: css({
     display: "grid",
@@ -534,7 +534,7 @@ const styles = {
   }),
   modalCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     borderRadius: theme.s4,
     border: `1px solid ${color.genz.purple200}`,
     background: color.neutral0,
@@ -627,7 +627,7 @@ const styles = {
   }),
   gateCard: css({
     width: "100%",
-    maxWidth: "520px",
+    maxWidth: "min(100%, 520px)",
     background: color.neutral0,
     border: `1px solid ${color.genz.purple100}`,
     borderRadius: theme.s4,

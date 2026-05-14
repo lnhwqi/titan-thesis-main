@@ -1,7 +1,7 @@
 ﻿import { JSX } from "react"
 import { css } from "@emotion/css"
 import { State } from "../State"
-import { color, font, theme } from "../View/Theme"
+import { font, theme } from "../View/Theme"
 import { ProductCard } from "../View/Part/ProductCard"
 import {
   AuthPageShell,
@@ -78,8 +78,8 @@ export default function SavedPage(props: SavedPageProps): JSX.Element {
 const styles = {
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 220px))",
-    justifyContent: "start",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(210px, 100%), 1fr))",
+    justifyContent: "stretch",
     gap: theme.s4,
     paddingBottom: theme.s4,
   }),
@@ -106,7 +106,7 @@ const styles = {
   }),
   info: css({
     ...font.regular14,
-    color: color.neutral500,
+    color: "var(--app-text-soft)",
     textAlign: "center",
     padding: `${theme.s10} 0`,
   }),

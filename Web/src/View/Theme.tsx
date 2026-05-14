@@ -20,20 +20,20 @@ export const theme = {
 export const appThemeClass = css({
   "--app-bg": Color.secondary10,
   "--app-bg-elevated": Color.neutral0,
-  "--app-surface": "rgba(255, 255, 255, 0.84)",
-  "--app-surface-strong": "rgba(255, 255, 255, 0.96)",
+  "--app-surface": "rgba(255, 255, 255, 0.82)",
+  "--app-surface-strong": "rgba(255, 255, 255, 0.95)",
   "--app-surface-muted": Color.secondary20,
   "--app-border": Color.secondary100,
   "--app-border-strong": Color.secondary200,
-  "--app-shadow-xs": "0 4px 12px rgba(0, 82, 156, 0.06)",
-  "--app-shadow-sm": "0 12px 32px rgba(0, 82, 156, 0.10)",
-  "--app-shadow-md": "0 18px 48px rgba(0, 82, 156, 0.14)",
-  "--app-shadow-lg": "0 28px 72px rgba(0, 82, 156, 0.18)",
+  "--app-shadow-xs": "0 4px 12px rgba(124, 58, 237, 0.08)",
+  "--app-shadow-sm": "0 12px 32px rgba(124, 58, 237, 0.13)",
+  "--app-shadow-md": "0 18px 48px rgba(124, 58, 237, 0.16)",
+  "--app-shadow-lg": "0 28px 72px rgba(124, 58, 237, 0.2)",
   "--app-text": Color.neutral800,
   "--app-text-soft": Color.neutral600,
   "--app-text-muted": Color.neutral500,
   "--app-accent": Color.secondary500,
-  "--app-accent-soft": "rgba(0, 82, 156, 0.08)",
+  "--app-accent-soft": "rgba(124, 58, 237, 0.12)",
   "--app-accent-contrast": Color.neutral0,
   "--app-brand-500": Color.secondary500,
   "--app-brand-400": Color.secondary400,
@@ -63,10 +63,10 @@ export const appThemeClass = css({
   "--app-info-20": Color.semantics.info.blue20,
   minHeight: "100dvh",
   background:
-    "radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 30%), radial-gradient(circle at 90% 12%, rgba(0, 82, 156, 0.10), transparent 26%), linear-gradient(180deg, var(--app-bg) 0%, #eef5fb 100%)",
+    "radial-gradient(circle at 8% 8%, rgba(236,72,153,0.14), transparent 28%), radial-gradient(circle at 92% 12%, rgba(124,58,237,0.18), transparent 32%), radial-gradient(circle at 80% 88%, rgba(6,182,212,0.12), transparent 30%), linear-gradient(180deg, var(--app-bg) 0%, #f1ecff 100%)",
   color: "var(--app-text)",
   fontFamily:
-    '"SF Pro Display", "Inter", "Segoe UI", "Helvetica Neue", sans-serif',
+    '"Sora", "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif',
   WebkitFontSmoothing: "antialiased",
   MozOsxFontSmoothing: "grayscale",
   textRendering: "optimizeLegibility",
@@ -83,8 +83,19 @@ export const appThemeClass = css({
   "& button:focus-visible, & a:focus-visible, & input:focus-visible, & select:focus-visible, & textarea:focus-visible":
     {
       outline: "none",
-      boxShadow: "0 0 0 4px rgba(0, 82, 156, 0.16)",
+      boxShadow: "0 0 0 4px rgba(124, 58, 237, 0.22)",
     },
+  "& main, & section, & article": {
+    minWidth: 0,
+  },
+  "& img, & video, & canvas, & svg": {
+    maxWidth: "100%",
+  },
+  "& .app-page-shell": {
+    width: "min(100%, 1280px)",
+    marginInline: "auto",
+    paddingInline: "clamp(12px, 2.5vw, 28px)",
+  },
 })
 
 export const layoutSize = { maxWidth: 1240 }

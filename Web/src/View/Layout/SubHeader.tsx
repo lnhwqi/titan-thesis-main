@@ -2,7 +2,7 @@ import { css } from "@emotion/css"
 import { JSX } from "react"
 import Link from "../Link"
 import { toRoute } from "../../Route"
-import { color, font, theme } from "../Theme"
+import { font, theme } from "../Theme"
 import { State, isAuthUser } from "../../State"
 
 type Props = {
@@ -47,19 +47,22 @@ const styles = {
   navContainer: css({
     display: "flex",
     gap: theme.s2,
-    padding: `${theme.s3} ${theme.s6}`,
-    borderBottom: `1px solid ${color.genz.purple100}`,
-    background: "rgba(255,255,255,0.58)",
+    padding: `clamp(10px, 2vw, 14px) clamp(12px, 3vw, 28px)`,
+    borderBottom: "1px solid var(--app-border)",
+    background: "var(--app-surface)",
     backdropFilter: "blur(16px)",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     overflowX: "auto",
     scrollbarWidth: "none",
     "&::-webkit-scrollbar": { display: "none" },
+    "@media (min-width: 768px)": {
+      justifyContent: "center",
+    },
   }),
   navLink: css({
     ...font.medium12,
-    color: color.neutral700,
+    color: "var(--app-text-soft)",
     textDecoration: "none",
     whiteSpace: "nowrap",
     minHeight: theme.s10,
@@ -71,9 +74,9 @@ const styles = {
     border: `1px solid transparent`,
     transition: "all 0.2s ease",
     "&:hover": {
-      color: color.genz.purple,
-      backgroundColor: color.genz.purple20,
-      borderColor: color.genz.purple100,
+      color: "var(--app-accent)",
+      backgroundColor: "var(--app-brand-20)",
+      borderColor: "var(--app-border)",
       transform: "translateY(-1px)",
     },
     "&:active": {

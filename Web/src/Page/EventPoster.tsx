@@ -130,7 +130,7 @@ const styles = {
     ...font.regular17,
     color: color.neutral0,
     margin: 0,
-    maxWidth: "760px",
+    maxWidth: "min(100%, 760px)",
   }),
   meta: css({
     ...font.regular13,
