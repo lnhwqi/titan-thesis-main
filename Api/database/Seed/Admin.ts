@@ -18,8 +18,6 @@ const devAdmins: SeedAdmin[] = [
   },
 ]
 
-const prodAdmins: SeedAdmin[] = []
-
 export async function seedDev(): Promise<void> {
   for (const a of devAdmins) {
     await upsertAdmin(a)
@@ -27,9 +25,7 @@ export async function seedDev(): Promise<void> {
 }
 
 export async function seedProd(): Promise<void> {
-  for (const a of prodAdmins) {
-    await upsertAdmin(a)
-  }
+  await seedDev()
 }
 
 async function upsertAdmin(seed: SeedAdmin): Promise<void> {

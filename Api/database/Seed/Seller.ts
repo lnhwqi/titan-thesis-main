@@ -74,6 +74,16 @@ const devSellers: SeedSeller[] = [
   },
 ]
 
+function pickProductImage(seed: SeedProduct): string {
+  const rawSeed = `${seed.category}-${seed.name}-${seed.price}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+
+  const safeSeed = rawSeed.length > 0 ? rawSeed : "titan-product"
+  return `https://picsum.photos/seed/${encodeURIComponent(safeSeed)}/900/900`
+}
+
 function productsBySeller(sellerIndex: number): SeedProduct[] {
   const catalog: SeedProduct[][] = [
     // Seller 1 — Tech Galaxy (Electronics)
@@ -214,7 +224,7 @@ export async function seedDev(): Promise<void> {
 }
 
 export async function seedProd(): Promise<void> {
-  // No prod sellers
+  await seedDev()
 }
 
 async function ensureCategories(): Promise<Map<string, CategoryID>> {
@@ -285,9 +295,7 @@ async function createProduct(
   const price = createPrice(seed.price)
   const description = createDescription(seed.description)
   const attributes = createProductAttributes({})
-  const imageUrl = createImageUrl(
-    "https://placehold.co/400x400/1a1a1a/d4af37?text=TITAN-PRODUCT&font=playfair-display",
-  )
+  const imageUrl = createImageUrl(pickProductImage(seed))
 
   if (
     name == null ||

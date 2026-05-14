@@ -18,8 +18,6 @@ const devUsers: SeedUser[] = [
   },
 ]
 
-const prodUsers: SeedUser[] = []
-
 export async function seedDev(): Promise<void> {
   for (const u of devUsers) {
     await upsertUser(u)
@@ -27,9 +25,7 @@ export async function seedDev(): Promise<void> {
 }
 
 export async function seedProd(): Promise<void> {
-  for (const u of prodUsers) {
-    await upsertUser(u)
-  }
+  await seedDev()
 }
 
 async function upsertUser(seed: SeedUser): Promise<void> {
