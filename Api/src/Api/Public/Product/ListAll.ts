@@ -16,6 +16,7 @@ export async function handler(
 ): Promise<Result<API.ErrorCode, API.Payload>> {
   const categoryID = params.categoryID?.trim()
   const keyword = params.name?.trim()
+  const sellerID = params.sellerID?.trim() || undefined
   const page = params.page ?? 1
   const limit = params.limit ?? 10
   const sortBy = params.sortBy ?? "newest"
@@ -23,6 +24,7 @@ export async function handler(
   const { rows: productRows, total } = await ProductRow.getFilteredAndSorted({
     categoryID,
     name: keyword,
+    sellerID,
     page,
     limit,
     sortBy,

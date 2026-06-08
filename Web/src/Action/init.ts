@@ -41,6 +41,7 @@ function initialProductCall(): Promise<ProductApi.Response> {
     page: 1,
     limit: 12,
     sortBy: "newest",
+    sellerID: "",
   })
 }
 

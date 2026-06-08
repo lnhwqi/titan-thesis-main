@@ -30,6 +30,7 @@ export function loadList(
     page: 1,
     limit: 12,
     sortBy: "newest",
+    sellerID: "",
   },
 ): Action {
   return (state) => {
@@ -53,6 +54,7 @@ export function loadList(
           limit,
           page,
           sortBy,
+          sellerID: "",
         }).then((res) => gotListResponse(res, expected)),
       ),
     ]
@@ -90,6 +92,7 @@ function selectCategoryWithNavigation(
             page: 1,
             limit: state.product.listLimit,
             sortBy: "newest",
+            sellerID: "",
           }).then((res) => gotListResponse(res, "")),
         ),
       ]
@@ -109,6 +112,7 @@ function selectCategoryWithNavigation(
         page: 1,
         limit: state.product.listLimit,
         sortBy: "newest",
+        sellerID: "",
       }).then((res) => gotListResponse(res, expectedId)),
     )
 
@@ -303,6 +307,7 @@ export function changeSortBy(sortBy: SortByOption): Action {
         page: 1,
         limit: state.product.listLimit,
         sortBy,
+        sellerID: "",
       }).then((res) => gotListResponse(res, searchQuery || categoryID || "")),
     )
 
@@ -327,6 +332,7 @@ export function changeListPage(page: number): Action {
         page,
         limit: state.product.listLimit,
         sortBy: state.product.listSortBy,
+        sellerID: "",
       }).then((res) => gotListResponse(res, searchQuery || categoryID || "")),
     )
 
@@ -459,6 +465,7 @@ export function loadDetail(id: ProductID): Action {
               page: 1,
               limit: 200,
               sortBy: "newest",
+              sellerID: "",
             }).then(gotDetailProductPool),
           ),
           ...wishlistCmd,
@@ -499,8 +506,9 @@ export function loadSellerProfile(sellerID: SellerID): Action {
             categoryID: "",
             name: "",
             page: 1,
-            limit: 12,
+            limit: 200,
             sortBy: "newest",
+            sellerID: sellerIdString,
           }).then((response) =>
             gotSellerProductsResponse(response, sellerIdString),
           ),
@@ -664,7 +672,7 @@ function gotSellerProfileResponse(
 
 function gotSellerProductsResponse(
   response: ListAllApi.Response,
-  sellerID: string,
+  _sellerID: string,
 ): Action {
   return (state) => {
     if (response._t === "Err") {
@@ -677,15 +685,11 @@ function gotSellerProductsResponse(
       ]
     }
 
-    const items = response.value.items.filter(
-      (item) => item.sellerID.unwrap() === sellerID,
-    )
-
     return [
       _ProductState(state, {
         listResponse: RD.success(response.value),
         sellerProductsResponse: RD.success({
-          items,
+          items: response.value.items,
           page: response.value.page ?? 1,
           limit: response.value.limit ?? 10,
           totalCount: response.value.totalCount ?? 0,

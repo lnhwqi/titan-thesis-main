@@ -23,6 +23,7 @@ import { initProductRatingReportState } from "./ProductRatingReport"
 import { initProductRatingState } from "./ProductRating"
 import { initMessageState } from "./Message"
 import { initialCoinRainState } from "./CoinRain"
+import { initWalletTransactionState } from "./WalletTransaction"
 
 export function initState(route: Route): State {
   const token = AuthToken.get()
@@ -47,6 +48,7 @@ export function initState(route: Route): State {
     cart: initCartState(),
     message: initMessageState(),
     coinRain: initialCoinRainState,
+    walletTransaction: initWalletTransactionState(),
     userBalance: null,
     avatarMenuOpen: false,
   }

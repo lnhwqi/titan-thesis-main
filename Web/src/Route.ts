@@ -177,6 +177,7 @@ export type Route =
         id: string
       }
     }
+  | { _t: "CoinTransactions"; path: "/coins"; params: NoParams }
 
 const router: RouteTable = {
   Home: {
@@ -484,6 +485,14 @@ const router: RouteTable = {
       params: JD.object({
         id: JD.string,
       }),
+    }),
+  },
+  CoinTransactions: {
+    path: "/coins",
+    decoder: JD.object({
+      _t: JD.always("CoinTransactions"),
+      path: JD.always("/coins"),
+      params: JD.object({}),
     }),
   },
 }

@@ -22,6 +22,7 @@ import * as ReportCreate from "../Api/Auth/User/Report/Create"
 import * as ReportListMine from "../Api/Auth/User/Report/ListMine"
 import * as ProductRatingCreate from "../Api/Auth/User/ProductRating/Create"
 import * as ProductRatingListMine from "../Api/Auth/User/ProductRating/ListMine"
+import * as WalletTransactions from "../Api/Auth/User/WalletTransactions"
 import { userAuthApi } from "../Api/AuthApi"
 
 export function userRoutes(app: Express): void {
@@ -47,4 +48,5 @@ export function userRoutes(app: Express): void {
   userAuthApi(app, OrderPaymentCreate)
   userAuthApi(app, OrderPaymentConfirmDelivery)
   userAuthApi(app, OrderPaymentListMine)
+  userAuthApi(app, WalletTransactions)
 }

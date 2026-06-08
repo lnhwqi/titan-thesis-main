@@ -227,6 +227,14 @@ export default function Header(props: Props): JSX.Element {
                     </Link>
 
                     <Link
+                      route={toRoute("CoinTransactions", {})}
+                      className={styles.avatarMenuItem}
+                      onClick={() => emit(closeAvatarMenu)}
+                    >
+                      Coin Transaction
+                    </Link>
+
+                    <Link
                       route={toRoute("WalletDeposit", {})}
                       className={`${styles.avatarMenuItem} ${styles.avatarMenuItemDeposit}`}
                       onClick={() => emit(closeAvatarMenu)}

@@ -23,6 +23,7 @@ export async function call(
     page: 1,
     limit: 12,
     sortBy: "newest",
+    sellerID: "",
   },
 ): Promise<Response> {
   return publicApi(contract, params, {})

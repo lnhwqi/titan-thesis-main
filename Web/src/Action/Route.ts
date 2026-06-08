@@ -13,6 +13,7 @@ import * as VoucherAction from "./Voucher"
 import * as PaymentAction from "./Payment"
 import * as OrderPaymentAction from "./OrderPayment"
 import * as ReportAction from "./Report"
+import * as WalletTransactionAction from "./WalletTransaction"
 import { parseProductID } from "../../../Core/App/Product/ProductID"
 import { categoryIDDecoder } from "../../../Core/App/Category/CategoryID"
 import { sellerIDDecoder } from "../../../Core/App/Seller/SellerID"
@@ -46,6 +47,7 @@ export function onUrlChange(s: State): [State, Cmd] {
         page: 1,
         limit: 200,
         sortBy: "newest",
+        sellerID: "",
       })(wishlistState)
       return withHomePoster([listState, [...wishlistCmd, ...listCmd]])
     }
@@ -159,6 +161,9 @@ export function onUrlChange(s: State): [State, Cmd] {
       return withHomePoster(
         EventPosterAction.onEnterRoute(route.params.id)(state),
       )
+
+    case "CoinTransactions":
+      return withHomePoster(WalletTransactionAction.onEnterRoute()(state))
 
     case "Search": {
       const rawName = route.params.name

@@ -23,6 +23,7 @@ import { ProductRatingReportState } from "./State/ProductRatingReport"
 import { ProductRatingState } from "./State/ProductRating"
 import { MessageState } from "./State/Message"
 import { CoinRainState } from "./State/CoinRain"
+import { WalletTransactionState } from "./State/WalletTransaction"
 
 type SharedSessionState = {
   route: Route
@@ -44,6 +45,7 @@ type SharedSessionState = {
   cart: CartState
   message: MessageState
   coinRain: CoinRainState
+  walletTransaction: WalletTransactionState
   userBalance: Wallet | null
   avatarMenuOpen: boolean
 }

@@ -213,11 +213,12 @@ export async function unsafeCreate(row: ProductRow): Promise<ProductRow> {
 export async function getFilteredAndSorted(params: {
   categoryID?: string
   name?: string
+  sellerID?: string
   page: number
   limit: number
   sortBy?: "price-low" | "price-high" | "newest" | "oldest"
 }): Promise<{ rows: ProductRow[]; total: number }> {
-  const { categoryID, name, page, limit, sortBy } = params
+  const { categoryID, name, sellerID, page, limit, sortBy } = params
   const offset = (page - 1) * limit
 
   let query = db.selectFrom(tableName).selectAll()
@@ -228,6 +229,10 @@ export async function getFilteredAndSorted(params: {
 
   if (name) {
     query = query.where("name", "ilike", `%${name}%`)
+  }
+
+  if (sellerID) {
+    query = query.where("sellerId", "=", sellerID)
   }
 
   query = query.where("isDeleted", "=", false)
@@ -256,6 +261,10 @@ export async function getFilteredAndSorted(params: {
 
   if (name) {
     countQuery = countQuery.where("name", "ilike", `%${name}%`)
+  }
+
+  if (sellerID) {
+    countQuery = countQuery.where("sellerId", "=", sellerID)
   }
 
   countQuery = countQuery.where("isDeleted", "=", false)

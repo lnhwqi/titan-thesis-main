@@ -51,6 +51,7 @@ export function onEnterRoute(): Action {
           page: 1,
           limit: 12,
           sortBy: "newest",
+          sellerID: "",
         }).then(onLoadProductListResponse),
         SellerOrderPaymentListApi.call().then(onLoadSellerOrdersStatsResponse),
       ],
@@ -426,6 +427,7 @@ function onEditPageUpdateResponse(response: UpdateProductApi.Response): Action {
           page: 1,
           limit: 12,
           sortBy: "newest",
+          sellerID: "",
         }).then(onLoadProductListResponse),
       ),
     ]
@@ -981,6 +983,7 @@ function onDeleteProductResponse(response: DeleteProductApi.Response): Action {
           page: 1,
           limit: 12,
           sortBy: "newest",
+          sellerID: "",
         }).then(onLoadProductListResponse),
       ),
     ]
@@ -1317,6 +1320,7 @@ function onCreateResponse(response: CreateProductApi.Response): Action {
           page: 1,
           limit: 12,
           sortBy: "newest",
+          sellerID: "",
         }).then(onLoadProductListResponse),
       ),
     ]
