@@ -11,6 +11,7 @@ import * as SellerTierPolicyGetApi from "../Api/Auth/Admin/SellerTierPolicyGet"
 import * as StatsApi from "../Api/Auth/Admin/Stats"
 import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
 import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
+import * as SupportAITrainingApi from "../Api/Auth/Admin/SupportAITraining"
 //import * as SellerTierPolicyUpdateApi from "../Api/Auth/Admin/SellerTierPolicyUpdate"
 import * as ListAllUsersApi from "../Api/Auth/Admin/ListAllUsers"
 import * as SetUserActiveApi from "../Api/Auth/Admin/SetUserActive"
@@ -49,6 +50,14 @@ export type AdminDashboardState = {
     ApiError<SupportAIMetricsHistoryApi.ErrorCode>,
     SupportAIMetricsHistoryApi.Payload
   >
+  supportAITrainingResponse: RD.RemoteData<
+    ApiError<SupportAITrainingApi.ErrorCode>,
+    SupportAITrainingApi.Payload
+  >
+  supportAITrainingRunningOperation:
+    | SupportAITrainingApi.BodyParams["operation"]
+    | null
+  supportAITrainingClearConfirmOpen: boolean
   supportMonitoringRange: "1h" | "24h" | "7d" | "14d" | "all"
   supportMonitoringHistoryLimit: 60 | 120 | 200
   sellerTierPolicyResponse: RD.RemoteData<
@@ -123,6 +132,9 @@ export function initAdminDashboardState(): AdminDashboardState {
     statsResponse: RD.notAsked(),
     supportMetricsResponse: RD.notAsked(),
     supportMetricsHistoryResponse: RD.notAsked(),
+    supportAITrainingResponse: RD.notAsked(),
+    supportAITrainingRunningOperation: null,
+    supportAITrainingClearConfirmOpen: false,
     supportMonitoringRange: "24h",
     supportMonitoringHistoryLimit: 120,
     sellerTierPolicyResponse: RD.notAsked(),

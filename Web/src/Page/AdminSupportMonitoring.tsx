@@ -19,6 +19,7 @@ import { color, font, theme, bp } from "../View/Theme"
 import * as AdminDashboardAction from "../Action/Admin"
 import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
 import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
+import * as SupportAITrainingApi from "../Api/Auth/Admin/SupportAITraining"
 
 type Props = { state: State }
 
@@ -60,6 +61,12 @@ export default function AdminSupportMonitoringPage(props: Props): JSX.Element {
     state.adminDashboard.supportMetricsHistoryResponse
   const selectedRange = state.adminDashboard.supportMonitoringRange
   const selectedLimit = state.adminDashboard.supportMonitoringHistoryLimit
+  const trainingResponse = state.adminDashboard.supportAITrainingResponse
+  const runningOperation =
+    state.adminDashboard.supportAITrainingRunningOperation
+  const isTrainingBusy = runningOperation != null
+  const clearConfirmOpen =
+    state.adminDashboard.supportAITrainingClearConfirmOpen
 
   const filteredHistory = filterHistoryByRange(
     supportMetricsHistoryResponse,
@@ -162,6 +169,42 @@ export default function AdminSupportMonitoringPage(props: Props): JSX.Element {
       </section>
 
       <section className={styles.panel}>
+        <h2 className={styles.sectionTitle}>Pinecone training controls</h2>
+        <p className={styles.metaText}>
+          Clear Pinecone vectors or ingest fresh training data from platform
+          sources.
+        </p>
+
+        <div className={styles.buttonRow}>
+          <button
+            className={styles.secondaryButton}
+            disabled={isTrainingBusy}
+            onClick={() =>
+              emit(AdminDashboardAction.openSupportAITrainingClearConfirm())
+            }
+          >
+            {runningOperation === "CLEAR" ? "Clearing..." : "Clear data"}
+          </button>
+
+          <button
+            className={styles.primaryButton}
+            disabled={isTrainingBusy}
+            onClick={() =>
+              emit(AdminDashboardAction.runSupportAITraining("INGEST"))
+            }
+          >
+            {runningOperation === "INGEST"
+              ? "Ingesting..."
+              : "Ingest training data"}
+          </button>
+        </div>
+
+        <p className={styles.trainingStatusText}>
+          {toTrainingStatusText(trainingResponse, runningOperation)}
+        </p>
+      </section>
+
+      <section className={styles.panel}>
         <h2 className={styles.sectionTitle}>Current snapshot</h2>
         {renderCurrentMetrics(supportMetricsResponse)}
       </section>
@@ -178,6 +221,39 @@ export default function AdminSupportMonitoringPage(props: Props): JSX.Element {
         <h2 className={styles.sectionTitle}>Recent snapshots</h2>
         {renderSnapshotTable(supportMetricsHistoryResponse, filteredHistory)}
       </section>
+
+      {clearConfirmOpen ? (
+        <div className={styles.overlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Confirm Clear Pinecone Data</h3>
+            <p className={styles.modalText}>
+              This will remove all vectors in Pinecone and local ingestion
+              checkpoints. Use this before a full re-ingestion.
+            </p>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() =>
+                  emit(
+                    AdminDashboardAction.closeSupportAITrainingClearConfirm(),
+                  )
+                }
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.dangerButton}
+                onClick={() =>
+                  emit(AdminDashboardAction.confirmSupportAITrainingClear())
+                }
+              >
+                Clear data
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -533,6 +609,29 @@ function toPercent(part: number, total: number): string {
   return ((part / total) * 100).toFixed(1)
 }
 
+function toTrainingStatusText(
+  response: State["adminDashboard"]["supportAITrainingResponse"],
+  runningOperation: State["adminDashboard"]["supportAITrainingRunningOperation"],
+): string {
+  if (runningOperation === "CLEAR") {
+    return "Clearing Pinecone and local checkpoints..."
+  }
+
+  if (runningOperation === "INGEST") {
+    return "Ingesting support training data into Pinecone..."
+  }
+
+  if (response._t === "Failure") {
+    return SupportAITrainingApi.errorString(response.error)
+  }
+
+  if (response._t === "Success") {
+    return response.data.message
+  }
+
+  return "Use these controls to manage Pinecone training data."
+}
+
 function exportSupportMonitoringCsv(
   currentMetrics: SupportAIMetricsApi.Payload,
   history: SnapshotItem[],
@@ -675,6 +774,12 @@ const styles = {
     color: color.neutral700,
     marginTop: 0,
     marginBottom: theme.s4,
+  }),
+  trainingStatusText: css({
+    ...font.regular14,
+    color: color.neutral700,
+    marginTop: theme.s3,
+    marginBottom: 0,
   }),
   controlGrid: css({
     display: "grid",
@@ -825,6 +930,58 @@ const styles = {
     background: color.semantics.error.red50,
     borderRadius: theme.s2,
     border: `1px dashed ${color.genz.purple200}`,
+  }),
+  overlay: css({
+    position: "fixed",
+    inset: 0,
+    background: "rgba(17, 24, 39, 0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: theme.s4,
+  }),
+  modalCard: css({
+    width: "100%",
+    maxWidth: "min(100%, 520px)",
+    background: color.neutral0,
+    borderRadius: theme.s4,
+    border: `1px solid ${color.genz.purple200}`,
+    boxShadow: theme.elevation.large,
+    padding: theme.s5,
+  }),
+  modalTitle: css({
+    ...font.boldH5_20,
+    marginTop: 0,
+    marginBottom: theme.s2,
+    color: color.neutral900,
+  }),
+  modalText: css({
+    ...font.regular14,
+    color: color.neutral700,
+    marginTop: 0,
+    marginBottom: theme.s4,
+    lineHeight: 1.5,
+  }),
+  modalActions: css({
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: theme.s2,
+    flexWrap: "wrap",
+  }),
+  dangerButton: css({
+    border: "none",
+    background: color.semantics.error.red500,
+    color: color.neutral0,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s4}`,
+    ...font.medium14,
+    cursor: "pointer",
+    width: "fit-content",
+    transition: "opacity 0.2s",
+    "&:hover": {
+      opacity: 0.92,
+    },
   }),
   gate: css({
     minHeight: "100dvh",

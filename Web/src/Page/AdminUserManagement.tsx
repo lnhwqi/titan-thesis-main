@@ -208,7 +208,7 @@ function renderUsers(
             <th className={styles.th}>Name</th>
             <th className={styles.th}>Email</th>
             <th className={styles.th}>Tier</th>
-            <th className={styles.th}>Points</th>
+            <th className={styles.th}>Wallet</th>
             <th className={styles.th}>Status</th>
             <th className={styles.th}>Actions</th>
           </tr>
@@ -227,7 +227,9 @@ function renderUsers(
                 <td className={styles.td}>{user.name.unwrap()}</td>
                 <td className={styles.td}>{user.email.unwrap()}</td>
                 <td className={styles.td}>{user.tier.unwrap()}</td>
-                <td className={styles.td}>{user.points.unwrap()}</td>
+                <td className={styles.td}>
+                  {user.wallet.unwrap().toLocaleString()} VND
+                </td>
                 <td className={styles.td}>
                   <span
                     className={

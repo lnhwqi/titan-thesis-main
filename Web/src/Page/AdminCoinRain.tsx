@@ -87,10 +87,6 @@ const styles = {
     alignItems: "center",
     gap: theme.s2,
   }),
-  cardIcon: css({
-    fontSize: "20px",
-    lineHeight: 1,
-  }),
   cardDesc: css({
     ...font.regular14,
     color: color.neutral600,
@@ -156,7 +152,7 @@ const styles = {
   // Coin pool
   poolHeader: css({
     display: "grid",
-    gridTemplateColumns: "32px 1fr 1fr",
+    gridTemplateColumns: "84px 1fr 1fr",
     gap: theme.s3,
     padding: `0 ${theme.s2} ${theme.s2}`,
     borderBottom: "1px solid var(--app-border)",
@@ -170,7 +166,7 @@ const styles = {
   }),
   poolRow: css({
     display: "grid",
-    gridTemplateColumns: "32px 1fr 1fr",
+    gridTemplateColumns: "84px 1fr 1fr",
     gap: theme.s3,
     alignItems: "center",
     padding: `${theme.s2} ${theme.s2}`,
@@ -179,21 +175,24 @@ const styles = {
       background: "var(--app-brand-20)",
     },
   }),
-  tierBadge: (tier: "bronze" | "silver" | "gold") =>
+  tierLabel: (tier: "bronze" | "silver" | "gold") =>
     css({
-      width: "28px",
-      height: "28px",
-      borderRadius: "50%",
+      ...font.medium12,
+      textTransform: "uppercase",
+      letterSpacing: "0.05em",
+      borderRadius: theme.brFull,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontSize: "14px",
+      padding: `${theme.s1} ${theme.s2}`,
+      border: `1px solid ${color.neutral200}`,
+      color: color.neutral700,
       background:
         tier === "gold"
-          ? "linear-gradient(135deg, #F59E0B, #EF4444)"
+          ? color.semantics.warning.yellow50
           : tier === "silver"
-            ? "linear-gradient(135deg, #94A3B8, #64748B)"
-            : "linear-gradient(135deg, #B45309, #92400E)",
+            ? color.neutral50
+            : color.primary20,
       flexShrink: 0,
     }),
   poolInputWrap: css({
@@ -295,7 +294,6 @@ const styles = {
 
 type TierConfig = {
   tier: "bronze" | "silver" | "gold"
-  emoji: string
   label: string
   defaultValue: number
   defaultQty: number
@@ -304,21 +302,18 @@ type TierConfig = {
 const TIERS: TierConfig[] = [
   {
     tier: "bronze",
-    emoji: "🥉",
     label: "Bronze",
     defaultValue: 1000,
     defaultQty: 50,
   },
   {
     tier: "silver",
-    emoji: "🥈",
     label: "Silver",
     defaultValue: 5000,
     defaultQty: 20,
   },
   {
     tier: "gold",
-    emoji: "🥇",
     label: "Gold",
     defaultValue: 10000,
     defaultQty: 5,
@@ -371,12 +366,12 @@ export default function AdminCoinRainPage(_props: Props): JSX.Element {
     UpsertCampaignApi.call({ startTime, duration, coinPool })
       .then((res) => {
         if (res._t === "Ok") {
-          alert("✅ Campaign saved! The scheduler has been updated.")
+          alert("Campaign saved. The scheduler has been updated.")
         } else {
-          alert("❌ Failed to save campaign. Check inputs and try again.")
+          alert("Failed to save campaign. Check inputs and try again.")
         }
       })
-      .catch(() => alert("⚠️ Network error. Please try again."))
+      .catch(() => alert("Network error. Please try again."))
   }
 
   return (
@@ -385,7 +380,7 @@ export default function AdminCoinRainPage(_props: Props): JSX.Element {
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Event Management</p>
-          <h1 className={styles.title}>Flash Drop ✨</h1>
+          <h1 className={styles.title}>Flash Drop</h1>
           <p className={styles.subtitle}>
             Schedule a Coin Rain event — coins fall from the sky and users race
             to claim them in real time.
@@ -396,18 +391,15 @@ export default function AdminCoinRainPage(_props: Props): JSX.Element {
             className={styles.secondaryButton}
             onClick={() => emit(AdminDashboardAction.goToAdminDashboard())}
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </button>
         </div>
       </header>
 
       {/* ── Default schedule notice ── */}
       <div className={styles.cardAccent}>
-        <div className={styles.defaultBadge}>⚡ Default Schedule</div>
-        <h2 className={styles.cardTitle}>
-          <span className={styles.cardIcon}>🗓️</span>
-          Auto-recurring fallback
-        </h2>
+        <div className={styles.defaultBadge}>Default Schedule</div>
+        <h2 className={styles.cardTitle}>Auto-recurring fallback</h2>
         <p className={styles.cardDesc}>
           If no custom campaign is active, a default event fires{" "}
           <strong>every Friday at 20:00</strong> for 60 seconds with the pool:
@@ -418,10 +410,7 @@ export default function AdminCoinRainPage(_props: Props): JSX.Element {
 
       {/* ── Campaign form ── */}
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>
-          <span className={styles.cardIcon}>⚙️</span>
-          Custom Campaign
-        </h2>
+        <h2 className={styles.cardTitle}>Custom Campaign</h2>
         <p className={styles.cardDesc}>
           Set a one-off start time and duration. The moment the timer fires, all
           connected users receive the event and coins begin falling. Each coin
@@ -472,26 +461,21 @@ export default function AdminCoinRainPage(_props: Props): JSX.Element {
 
           {/* Coin pool */}
           <p className={styles.sectionLabel}>
-            🪙 Coin Pool — value &amp; quantity per tier
+            Coin Pool — value &amp; quantity per tier
           </p>
 
           <div className={styles.poolHeader}>
-            <div />
+            <span className={styles.poolHeaderLabel}>Tier</span>
             <span className={styles.poolHeaderLabel}>Value per coin</span>
             <span className={styles.poolHeaderLabel}>Quantity</span>
           </div>
 
-          {TIERS.map(({ tier, emoji, label, defaultValue, defaultQty }) => (
+          {TIERS.map(({ tier, label, defaultValue, defaultQty }) => (
             <div
               className={styles.poolRow}
               key={tier}
             >
-              <div
-                className={styles.tierBadge(tier)}
-                title={label}
-              >
-                {emoji}
-              </div>
+              <span className={styles.tierLabel(tier)}>{label}</span>
               <div className={styles.poolInputWrap}>
                 <input
                   name="coinValue"
@@ -532,7 +516,7 @@ export default function AdminCoinRainPage(_props: Props): JSX.Element {
               type="submit"
               className={styles.primaryButton}
             >
-              🚀 Save Campaign
+              Save Campaign
             </button>
           </div>
         </form>

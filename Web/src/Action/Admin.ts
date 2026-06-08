@@ -9,6 +9,7 @@ import * as AdminOrderPaymentListApi from "../Api/Auth/Admin/OrderPayment/List"
 import * as StatsApi from "../Api/Auth/Admin/Stats"
 import * as SupportAIMetricsApi from "../Api/Auth/Admin/SupportAIMetrics"
 import * as SupportAIMetricsHistoryApi from "../Api/Auth/Admin/SupportAIMetricsHistory"
+import * as SupportAITrainingApi from "../Api/Auth/Admin/SupportAITraining"
 import * as ReportWindowGetApi from "../Api/Auth/Admin/ReportWindowGet"
 import * as ReportWindowUpdateApi from "../Api/Auth/Admin/ReportWindowUpdate"
 import * as ProductRatingReportLimitGetApi from "../Api/Auth/Admin/ProductRatingReportLimitGet"
@@ -165,6 +166,63 @@ export function reloadSupportMonitoringData(): Action {
       ),
     ]
   }
+}
+
+export function runSupportAITraining(
+  operation: SupportAITrainingApi.BodyParams["operation"],
+): Action {
+  return (state) => {
+    if (state.adminDashboard.supportAITrainingRunningOperation != null) {
+      return [state, cmd()]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        supportAITrainingResponse: RD.loading(),
+        supportAITrainingRunningOperation: operation,
+        supportAITrainingClearConfirmOpen: false,
+        flashMessage: null,
+      }),
+      cmd(
+        SupportAITrainingApi.call({ operation }).then((response) =>
+          onSupportAITrainingResponse(response),
+        ),
+      ),
+    ]
+  }
+}
+
+export function openSupportAITrainingClearConfirm(): Action {
+  return (state) => {
+    if (state.adminDashboard.supportAITrainingRunningOperation != null) {
+      return [state, cmd()]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        supportAITrainingClearConfirmOpen: true,
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function closeSupportAITrainingClearConfirm(): Action {
+  return (state) => [
+    _AdminDashboardState(state, {
+      supportAITrainingClearConfirmOpen: false,
+    }),
+    cmd(),
+  ]
+}
+
+export function confirmSupportAITrainingClear(): Action {
+  return (state) =>
+    runSupportAITraining("CLEAR")(
+      _AdminDashboardState(state, {
+        supportAITrainingClearConfirmOpen: false,
+      }),
+    )
 }
 
 function onReportWindowLoaded(response: ReportWindowGetApi.Response): Action {
@@ -514,6 +572,43 @@ function onSupportMetricsHistoryResponse(
     }),
     cmd(),
   ]
+}
+
+function onSupportAITrainingResponse(
+  response: SupportAITrainingApi.Response,
+): Action {
+  return (state) => {
+    const limit = state.adminDashboard.supportMonitoringHistoryLimit
+
+    if (response._t === "Err") {
+      return [
+        _AdminDashboardState(state, {
+          supportAITrainingResponse: RD.failure(response.error),
+          supportAITrainingRunningOperation: null,
+          supportAITrainingClearConfirmOpen: false,
+          flashMessage: SupportAITrainingApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _AdminDashboardState(state, {
+        supportAITrainingResponse: RD.success(response.value),
+        supportAITrainingRunningOperation: null,
+        supportAITrainingClearConfirmOpen: false,
+        flashMessage: response.value.message,
+        supportMetricsResponse: RD.loading(),
+        supportMetricsHistoryResponse: RD.loading(),
+      }),
+      cmd(
+        SupportAIMetricsApi.call().then(onSupportMetricsResponse),
+        SupportAIMetricsHistoryApi.call({ limit }).then(
+          onSupportMetricsHistoryResponse,
+        ),
+      ),
+    ]
+  }
 }
 
 function onSellerTierPolicyGetResponse(
