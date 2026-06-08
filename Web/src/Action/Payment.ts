@@ -1,6 +1,6 @@
 import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, perform } from "../Action"
-import { _PaymentState } from "../State/Payment"
+import { _PaymentState, PaymentMethod } from "../State/Payment"
 import * as VoucherListMineApi from "../Api/Auth/User/Voucher/ListMine"
 import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
 import * as WalletDepositCreateApi from "../Api/Auth/User/Wallet/DepositCreate"
@@ -54,6 +54,11 @@ export function onEnterRoute(): Action {
         selectedDistrictID: null,
         selectedWardCode: null,
         addressDetail: "",
+        paymentOtpCode: "",
+        selectedPaymentMethod: null,
+        otpPopupVisible: false,
+        otpPopupMessage: null,
+        otpResendCooldown: 0,
       }),
       cmd(
         VoucherListMineApi.call().then(onMineVouchersResponse),
@@ -115,6 +120,535 @@ function openCheckoutInNewTab(orderURL: string): Action {
 
 export function onChangeAddress(value: string): Action {
   return (state) => [_PaymentState(state, { addressDetail: value }), cmd()]
+}
+
+export function onChangePaymentOtp(value: string): Action {
+  const sanitized = value.replace(/[^0-9]/g, "").slice(0, 6)
+  return (state) => [
+    _PaymentState(state, { paymentOtpCode: sanitized, otpPopupMessage: null }),
+    cmd(),
+  ]
+}
+
+export function selectPaymentMethod(method: PaymentMethod): Action {
+  return (state) => [
+    _PaymentState(state, { selectedPaymentMethod: method }),
+    cmd(),
+  ]
+}
+
+const OTP_RESEND_COOLDOWN_SECONDS = 60
+
+export function openOtpPopup(): Action {
+  return (state) => {
+    if (!("updateProfile" in state)) {
+      return [
+        state,
+        cmd(perform(navigateTo(toRoute("Login", { redirect: "/payment" })))),
+      ]
+    }
+
+    if (!state.profile.active.unwrap()) {
+      return [
+        _PaymentState(state, {
+          flashMessage:
+            "Your account is suspended. Please contact admin via chatbox.",
+        }),
+        cmd(perform(MessageAction.toggleChatbox())),
+      ]
+    }
+
+    if (state.payment.selectedPaymentMethod == null) {
+      return [
+        _PaymentState(state, {
+          flashMessage: "Please select a payment method.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const { selectedProvinceID, selectedDistrictID, selectedWardCode } =
+      state.payment
+    const detail = state.payment.addressDetail.trim()
+
+    if (selectedProvinceID == null) {
+      return [
+        _PaymentState(state, { flashMessage: "Please select a province." }),
+        cmd(),
+      ]
+    }
+    if (selectedDistrictID == null) {
+      return [
+        _PaymentState(state, { flashMessage: "Please select a district." }),
+        cmd(),
+      ]
+    }
+    if (selectedWardCode == null) {
+      return [
+        _PaymentState(state, { flashMessage: "Please select a ward." }),
+        cmd(),
+      ]
+    }
+    if (detail === "") {
+      return [
+        _PaymentState(state, {
+          flashMessage: "Please enter house number and street name.",
+        }),
+        cmd(),
+      ]
+    }
+
+    if (state.cart.items.length === 0) {
+      return [
+        _PaymentState(state, { flashMessage: "Your cart is empty." }),
+        cmd(),
+      ]
+    }
+
+    // COD: submit order directly — no OTP, user pays cash on delivery
+    if (state.payment.selectedPaymentMethod === "CASH") {
+      return [
+        _PaymentState(state, {
+          submitResponse: RD.loading(),
+          flashMessage: null,
+        }),
+        cmd(Promise.resolve().then(() => submitCodOrder())),
+      ]
+    }
+
+    // ZaloPay (wallet): send OTP first, confirm before charging wallet
+    return [
+      _PaymentState(state, {
+        submitResponse: RD.loading(),
+        paymentOtpCode: "",
+        otpPopupVisible: false,
+        otpPopupMessage: null,
+        otpResendCooldown: 0,
+        flashMessage: null,
+      }),
+      cmd(Promise.resolve().then(() => requestOtpForPayment())),
+    ]
+  }
+}
+
+// ─── COD flow ────────────────────────────────────────────────────────────────
+
+function submitCodOrder(): Action {
+  return (state) => {
+    if (!("updateProfile" in state)) return [state, cmd()]
+
+    const buildParams = buildPaymentParams(state)
+    if (buildParams._t === "Err") {
+      return [
+        _PaymentState(state, {
+          submitResponse: RD.notAsked(),
+          flashMessage: buildParams.message,
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _PaymentState(state, { submitResponse: RD.loading() }),
+      cmd(
+        OrderPaymentCreateApi.call(buildParams.value).then(onCodOrderResponse),
+      ),
+    ]
+  }
+}
+
+function onCodOrderResponse(response: OrderPaymentCreateApi.Response): Action {
+  return (state) => {
+    if (response._t === "Err") {
+      if (response.error === "PRICE_CHANGED") {
+        const uniqueProductIDs = Array.from(
+          new Set(state.cart.items.map((item) => item.product.id.unwrap())),
+        )
+        const refreshCmds = uniqueProductIDs.map((rawID) => {
+          const productID = productIDDecoder.verify(rawID)
+          return ProductGetOneApi.call({ id: productID }).then((res) =>
+            onRefreshProductPrice(rawID, res),
+          )
+        })
+        return [
+          _PaymentState(state, {
+            submitResponse: RD.failure(response.error),
+            priceChangedVisible: true,
+          }),
+          cmd(...refreshCmds),
+        ]
+      }
+
+      return [
+        _PaymentState(state, {
+          submitResponse: RD.failure(response.error),
+          flashMessage: OrderPaymentCreateApi.errorString(response.error),
+        }),
+        cmd(),
+      ]
+    }
+
+    localStorage.setItem("titan_cart", JSON.stringify([]))
+    const firstSellerID = response.value.orderPayments[0]?.sellerID
+
+    return [
+      _CartState(
+        _PaymentState(state, {
+          submitResponse: RD.success(response.value),
+          selectedVoucherBySellerID: {},
+          flashMessage: "COD order placed. Please pay cash upon delivery.",
+        }),
+        { items: [], isOpen: false },
+      ),
+      cmd(
+        firstSellerID != null
+          ? Promise.resolve(
+              MessageAction.openConversationWithSeller(firstSellerID),
+            )
+          : Promise.resolve(null),
+      ),
+    ]
+  }
+}
+
+// ─── ZaloPay / wallet OTP flow ────────────────────────────────────────────────
+
+function requestOtpForPayment(): Action {
+  return (state) => {
+    if (!("updateProfile" in state)) return [state, cmd()]
+
+    const buildParams = buildPaymentParams(state)
+    if (buildParams._t === "Err") {
+      return [
+        _PaymentState(state, {
+          submitResponse: RD.notAsked(),
+          flashMessage: buildParams.message,
+        }),
+        cmd(),
+      ]
+    }
+
+    const params = { ...buildParams.value, otpCode: undefined }
+    return [
+      _PaymentState(state, { submitResponse: RD.loading() }),
+      cmd(OrderPaymentCreateApi.call(params).then(onRequestOtpResponse)),
+    ]
+  }
+}
+
+function onRequestOtpResponse(
+  response: OrderPaymentCreateApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Ok") {
+      return onCreateWalletPaidResponse(response)(state)
+    }
+
+    if (
+      response.error === "OTP_REQUIRED" ||
+      response.error === "OTP_RATE_LIMITED"
+    ) {
+      const message =
+        response.error === "OTP_RATE_LIMITED"
+          ? "OTP rate limited. Please wait before requesting again."
+          : "An OTP has been sent to your email. Enter it below to confirm payment."
+      return [
+        _PaymentState(state, {
+          submitResponse: RD.notAsked(),
+          otpPopupVisible: true,
+          otpPopupMessage: message,
+          paymentOtpCode: "",
+          otpResendCooldown: OTP_RESEND_COOLDOWN_SECONDS,
+        }),
+        cmd(Promise.resolve().then(() => tickOtpCooldown())),
+      ]
+    }
+
+    return [
+      _PaymentState(state, {
+        submitResponse: RD.failure(response.error),
+        flashMessage: OrderPaymentCreateApi.errorString(response.error),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+export function tickOtpCooldown(): Action {
+  return (state) => {
+    if (
+      state.payment.otpResendCooldown <= 0 ||
+      !state.payment.otpPopupVisible
+    ) {
+      return [state, cmd()]
+    }
+
+    const next = state.payment.otpResendCooldown - 1
+    return [
+      _PaymentState(state, { otpResendCooldown: next }),
+      cmd(
+        next > 0
+          ? new Promise<Action>((resolve) =>
+              setTimeout(() => resolve(tickOtpCooldown()), 1000),
+            )
+          : Promise.resolve(null),
+      ),
+    ]
+  }
+}
+
+export function closeOtpPopup(): Action {
+  return (state) => [
+    _PaymentState(state, {
+      otpPopupVisible: false,
+      otpPopupMessage: null,
+      paymentOtpCode: "",
+      otpResendCooldown: 0,
+      submitResponse: RD.notAsked(),
+    }),
+    cmd(),
+  ]
+}
+
+export function resendOtp(): Action {
+  return (state) => {
+    if (state.payment.otpResendCooldown > 0) {
+      return [state, cmd()]
+    }
+
+    return [
+      _PaymentState(state, {
+        submitResponse: RD.loading(),
+        paymentOtpCode: "",
+        otpPopupMessage: null,
+        otpResendCooldown: 0,
+      }),
+      cmd(Promise.resolve().then(() => requestOtpForPayment())),
+    ]
+  }
+}
+
+export function submitOtpAndPay(): Action {
+  return (state) => {
+    if (!("updateProfile" in state)) return [state, cmd()]
+
+    const trimmedOtp = state.payment.paymentOtpCode.trim()
+    if (trimmedOtp.length !== 6) {
+      return [
+        _PaymentState(state, {
+          otpPopupMessage: "Please enter the full 6-digit OTP code.",
+        }),
+        cmd(),
+      ]
+    }
+
+    const buildParams = buildPaymentParams(state)
+    if (buildParams._t === "Err") {
+      return [
+        _PaymentState(state, {
+          otpPopupVisible: false,
+          flashMessage: buildParams.message,
+        }),
+        cmd(),
+      ]
+    }
+
+    const params = { ...buildParams.value, otpCode: trimmedOtp }
+    return [
+      _PaymentState(state, {
+        submitResponse: RD.loading(),
+        otpPopupMessage: null,
+      }),
+      cmd(OrderPaymentCreateApi.call(params).then(onSubmitOtpPayResponse)),
+    ]
+  }
+}
+
+function onSubmitOtpPayResponse(
+  response: OrderPaymentCreateApi.Response,
+): Action {
+  return (state) => {
+    if (response._t === "Ok") {
+      return [
+        _PaymentState(state, { otpPopupVisible: false, otpResendCooldown: 0 }),
+        cmd(perform(onCreateWalletPaidResponse(response))),
+      ]
+    }
+
+    if (response.error === "OTP_INVALID" || response.error === "OTP_EXPIRED") {
+      return [
+        _PaymentState(state, {
+          submitResponse: RD.notAsked(),
+          otpPopupMessage:
+            response.error === "OTP_EXPIRED"
+              ? "OTP has expired. Please resend."
+              : "Invalid OTP code. Please try again.",
+          paymentOtpCode: "",
+        }),
+        cmd(),
+      ]
+    }
+
+    return [
+      _PaymentState(state, {
+        submitResponse: RD.failure(response.error),
+        otpPopupVisible: false,
+        flashMessage: OrderPaymentCreateApi.errorString(response.error),
+      }),
+      cmd(),
+    ]
+  }
+}
+
+type BuildResult =
+  | { _t: "Ok"; value: OrderPaymentCreateApi.BodyParams }
+  | { _t: "Err"; message: string }
+
+function buildPaymentParams(state: {
+  payment: {
+    selectedProvinceID: number | null
+    selectedDistrictID: number | null
+    selectedWardCode: string | null
+    addressDetail: string
+    selectedPaymentMethod: PaymentMethod | null
+    selectedVoucherBySellerID: Record<string, string | null>
+    provinces: Array<{ ProvinceID: number; ProvinceName: string }>
+    districts: Array<{ DistrictID: number; DistrictName: string }>
+    wards: Array<{ WardCode: string; WardName: string }>
+  }
+  cart: {
+    items: Array<{
+      product: {
+        sellerID: { unwrap(): string }
+        id: { unwrap(): string }
+        name: { unwrap(): string }
+        variants: Array<{
+          id: { unwrap(): string }
+          price: { unwrap(): number }
+        }>
+      }
+      quantity: number
+    }>
+  }
+}): BuildResult {
+  const {
+    selectedProvinceID,
+    selectedDistrictID,
+    selectedWardCode,
+    addressDetail,
+    selectedPaymentMethod,
+    provinces,
+    districts,
+    wards,
+  } = state.payment
+
+  if (
+    selectedProvinceID == null ||
+    selectedDistrictID == null ||
+    selectedWardCode == null
+  ) {
+    return { _t: "Err", message: "Please complete your address." }
+  }
+
+  const detail = addressDetail.trim()
+  if (detail === "") {
+    return { _t: "Err", message: "Please enter house number and street name." }
+  }
+
+  const province = provinces.find((p) => p.ProvinceID === selectedProvinceID)
+  const district = districts.find((d) => d.DistrictID === selectedDistrictID)
+  const ward = wards.find((w) => w.WardCode === selectedWardCode)
+
+  if (province == null || district == null || ward == null) {
+    return {
+      _t: "Err",
+      message: "Invalid address selection. Please try again.",
+    }
+  }
+
+  const address = {
+    provinceCode: String(province.ProvinceID),
+    provinceName: province.ProvinceName,
+    districtCode: String(district.DistrictID),
+    districtName: district.DistrictName,
+    wardCode: ward.WardCode,
+    wardName: ward.WardName,
+    detail,
+  }
+
+  const grouped = new Map<
+    string,
+    {
+      sellerID: (typeof state.cart.items)[number]["product"]["sellerID"]
+      price: number
+      items: Array<{ productID: string; variantID: string; quantity: number }>
+    }
+  >()
+
+  for (const item of state.cart.items) {
+    const key = item.product.sellerID.unwrap()
+    const current = grouped.get(key)
+    const firstVariant = item.product.variants[0]
+    if (firstVariant == null) {
+      return {
+        _t: "Err",
+        message: `Invalid cart item: ${item.product.name.unwrap()} has no variant.`,
+      }
+    }
+
+    const linePrice = firstVariant.price.unwrap() * item.quantity
+    if (current == null) {
+      grouped.set(key, {
+        sellerID: item.product.sellerID,
+        price: linePrice,
+        items: [
+          {
+            productID: item.product.id.unwrap(),
+            variantID: firstVariant.id.unwrap(),
+            quantity: item.quantity,
+          },
+        ],
+      })
+    } else {
+      grouped.set(key, {
+        sellerID: current.sellerID,
+        price: current.price + linePrice,
+        items: [
+          ...current.items,
+          {
+            productID: item.product.id.unwrap(),
+            variantID: firstVariant.id.unwrap(),
+            quantity: item.quantity,
+          },
+        ],
+      })
+    }
+  }
+
+  // WALLET frontend = pay from wallet (isPaid true); CASH frontend = COD (isPaid false)
+  const isWallet = selectedPaymentMethod === "WALLET"
+  const panels = Array.from(grouped.entries()).map(([sellerIDKey, row]) => ({
+    sellerID: row.sellerID.unwrap(),
+    price: row.price,
+    voucherID: state.payment.selectedVoucherBySellerID[sellerIDKey] ?? null,
+    items: row.items,
+  }))
+
+  const decoded = OrderPaymentCreateApi.paramsDecoder.decode({
+    address,
+    panels,
+    isPaid: isWallet,
+    paymentMethod: isWallet ? "WALLET" : "ZALOPAY",
+  })
+
+  if (decoded.ok === false) {
+    return {
+      _t: "Err",
+      message: "Invalid payment data. Please check your address and cart.",
+    }
+  }
+
+  return { _t: "Ok", value: decoded.value }
 }
 
 export function onSelectProvince(provinceID: number): Action {
@@ -257,179 +791,6 @@ export function showFlashMessage(message: string): Action {
   return (state) => [_PaymentState(state, { flashMessage: message }), cmd()]
 }
 
-export function submitPayment(): Action {
-  return (state) => {
-    if (!("updateProfile" in state)) {
-      return [
-        state,
-        cmd(perform(navigateTo(toRoute("Login", { redirect: "/payment" })))),
-      ]
-    }
-
-    if (!state.profile.active.unwrap()) {
-      return [
-        _PaymentState(state, {
-          flashMessage:
-            "Your account is suspended. Please contact admin via chatbox.",
-        }),
-        cmd(perform(MessageAction.toggleChatbox())),
-      ]
-    }
-
-    const { selectedProvinceID, selectedDistrictID, selectedWardCode } =
-      state.payment
-    const detail = state.payment.addressDetail.trim()
-
-    if (selectedProvinceID == null) {
-      return [
-        _PaymentState(state, { flashMessage: "Please select a province." }),
-        cmd(),
-      ]
-    }
-    if (selectedDistrictID == null) {
-      return [
-        _PaymentState(state, { flashMessage: "Please select a district." }),
-        cmd(),
-      ]
-    }
-    if (selectedWardCode == null) {
-      return [
-        _PaymentState(state, { flashMessage: "Please select a ward." }),
-        cmd(),
-      ]
-    }
-    if (detail === "") {
-      return [
-        _PaymentState(state, {
-          flashMessage: "Please enter house number and street name.",
-        }),
-        cmd(),
-      ]
-    }
-
-    const province = state.payment.provinces.find(
-      (p) => p.ProvinceID === selectedProvinceID,
-    )
-    const district = state.payment.districts.find(
-      (d) => d.DistrictID === selectedDistrictID,
-    )
-    const ward = state.payment.wards.find(
-      (w) => w.WardCode === selectedWardCode,
-    )
-
-    if (province == null || district == null || ward == null) {
-      return [
-        _PaymentState(state, {
-          flashMessage: "Invalid address selection. Please try again.",
-        }),
-        cmd(),
-      ]
-    }
-
-    const address = {
-      provinceCode: String(province.ProvinceID),
-      provinceName: province.ProvinceName,
-      districtCode: String(district.DistrictID),
-      districtName: district.DistrictName,
-      wardCode: ward.WardCode,
-      wardName: ward.WardName,
-      detail,
-    }
-
-    const grouped = new Map<
-      string,
-      {
-        sellerID: (typeof state.cart.items)[number]["product"]["sellerID"]
-        price: number
-        items: Array<{
-          productID: string
-          variantID: string
-          quantity: number
-        }>
-      }
-    >()
-
-    for (const item of state.cart.items) {
-      const key = item.product.sellerID.unwrap()
-      const current = grouped.get(key)
-      const firstVariant = item.product.variants[0]
-      if (firstVariant == null) {
-        return [
-          _PaymentState(state, {
-            flashMessage: `Invalid cart item: ${item.product.name.unwrap()} has no variant.`,
-          }),
-          cmd(),
-        ]
-      }
-
-      const linePrice = firstVariant.price.unwrap() * item.quantity
-      if (current == null) {
-        grouped.set(key, {
-          sellerID: item.product.sellerID,
-          price: linePrice,
-          items: [
-            {
-              productID: item.product.id.unwrap(),
-              variantID: firstVariant.id.unwrap(),
-              quantity: item.quantity,
-            },
-          ],
-        })
-      } else {
-        grouped.set(key, {
-          sellerID: current.sellerID,
-          price: current.price + linePrice,
-          items: [
-            ...current.items,
-            {
-              productID: item.product.id.unwrap(),
-              variantID: firstVariant.id.unwrap(),
-              quantity: item.quantity,
-            },
-          ],
-        })
-      }
-    }
-
-    const panels = Array.from(grouped.entries()).map(([sellerIDKey, row]) => ({
-      sellerID: row.sellerID.unwrap(),
-      price: row.price,
-      voucherID: state.payment.selectedVoucherBySellerID[sellerIDKey] ?? null,
-      items: row.items,
-    }))
-
-    const decoded = OrderPaymentCreateApi.paramsDecoder.decode({
-      address,
-      panels,
-      isPaid: true,
-      paymentMethod: "WALLET",
-    })
-
-    if (decoded.ok === false) {
-      return [
-        _PaymentState(state, {
-          flashMessage:
-            "Invalid payment data. Please check your address and vouchers.",
-        }),
-        cmd(),
-      ]
-    }
-
-    return [
-      _PaymentState(state, {
-        submitResponse: RD.loading(),
-        pendingOrderPaymentIDs: [],
-        flashMessage: null,
-      }),
-      cmd(
-        OrderPaymentCreateApi.call(decoded.value).then(
-          onCreateWalletPaidResponse,
-        ),
-      ),
-    ]
-  }
-}
-
 function onDepositCreateResponse(
   response: WalletDepositCreateApi.Response,
 ): Action {
@@ -541,6 +902,7 @@ function onCreateWalletPaidResponse(
         _PaymentState(state, {
           submitResponse: RD.success(response.value),
           selectedVoucherBySellerID: {},
+          paymentOtpCode: "",
           pendingFinalizeParams: null,
           pendingOrderPaymentIDs: [],
           openedCheckoutAppTransID: null,

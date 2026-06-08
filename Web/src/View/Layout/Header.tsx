@@ -116,7 +116,7 @@ export default function Header(props: Props): JSX.Element {
             <div className={styles.inputWrapper}>
               <InputText
                 value={query}
-                placeholder="Search for anything"
+                placeholder="Search"
                 onChange={(val) => emit(ProductAction.onChangeQuery(val))}
               />
             </div>
@@ -332,8 +332,7 @@ const styles = {
     alignItems: "center",
     flexDirection: "row",
     gap: theme.s2,
-    minWidth: 0,
-    flex: "1 1 auto",
+    flex: "none" /* FIXED: Thay đổi từ "1 1 auto" thành "none" để tránh xô đẩy layout */,
   }),
   logo: css({
     display: "block",
@@ -398,7 +397,7 @@ const styles = {
 
   /* ---------- search ---------- */
   searchWrapper: css({
-    flex: "1 1 320px",
+    flex: "1 1 auto",
     display: "flex",
     justifyContent: "center",
     maxWidth: "800px",
@@ -407,6 +406,7 @@ const styles = {
       order: 4,
       maxWidth: "100%",
       flexBasis: "100%",
+      marginTop: "8px",
     },
   }),
   searchContainer: css({
@@ -469,7 +469,7 @@ const styles = {
     justifyContent: "flex-end",
     alignItems: "center",
     flexShrink: 0,
-    marginLeft: "auto",
+    marginLeft: "auto" /* Giữ panel chức năng luôn áp sát bên phải */,
     padding: `${theme.s2} ${theme.s3}`,
     borderRadius: theme.br5,
     border: "1px solid var(--app-border)",

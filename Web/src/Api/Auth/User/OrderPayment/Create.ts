@@ -26,7 +26,7 @@ export function errorString(code: ApiError<ErrorCode>): string {
       case "PRICE_CHANGED":
         return "Product prices have changed. Please review your cart and try again."
       case "SELLER_NOT_FOUND":
-        return "Seller not found."
+        return "One or more sellers in your cart are no longer available. Please remove their items and try again."
       case "ADMIN_NOT_FOUND":
         return "Payment receiver is not configured. Please contact support."
       case "VARIANT_NOT_FOUND":
@@ -47,6 +47,16 @@ export function errorString(code: ApiError<ErrorCode>): string {
         return "Voucher was already used."
       case "ACCOUNT_SUSPENDED":
         return "Your account is suspended. Please contact admin via chatbox."
+      case "OTP_REQUIRED":
+        return "An OTP was sent to your email. Enter it and submit again."
+      case "OTP_INVALID":
+        return "Invalid OTP code. Please try again."
+      case "OTP_EXPIRED":
+        return "OTP has expired. Please request a new code."
+      case "OTP_SEND_FAILED":
+        return "Failed to send OTP email. Please try again shortly."
+      case "OTP_RATE_LIMITED":
+        return "OTP was sent recently. Please wait before requesting another code."
     }
   })
 }

@@ -9,6 +9,7 @@ import { navigateTo, toRoute } from "../Route"
 import InputText from "../View/Form/InputText"
 import Button from "../View/Form/Button"
 import { CartItem } from "../State/Cart"
+import { PaymentMethod } from "../State/Payment"
 
 type Props = { state: State }
 
@@ -79,6 +80,23 @@ export default function PaymentPage(props: Props): JSX.Element {
 
   const panels = Object.values(grouped)
   const grandTotal = panels.reduce((sum, panel) => sum + panel.subtotal, 0)
+
+  const methodCards: Array<{
+    method: PaymentMethod
+    title: string
+    desc: string
+  }> = [
+    {
+      method: "CASH",
+      title: "COD",
+      desc: "Pay with cash when your order arrives. No wallet needed.",
+    },
+    {
+      method: "WALLET",
+      title: "Wallet Deposit",
+      desc: "Top up your wallet via ZaloPay, then pay from balance. Default deposit method.",
+    },
+  ]
 
   return (
     <div className={styles.page}>
@@ -219,29 +237,92 @@ export default function PaymentPage(props: Props): JSX.Element {
             value={state.payment.addressDetail}
             type="text"
             invalid={false}
-            placeholder="e.g. 123 Nguyen Hue Street"
+            placeholder="27 Bui Tu Toan"
             onChange={(v) => emit(PaymentAction.onChangeAddress(v))}
           />
         </div>
         <div className={styles.field}>
           <span className={styles.label}>Payment Method</span>
-          <div className={styles.paymentMethodRow}>
-            <div className={styles.paymentMethodTag}>Wallet</div>
-            <div className={styles.paymentMethodTag}>
-              Wallet: {formatT(state.profile.wallet.unwrap())}
-            </div>
-            <button
-              className={styles.linkButton}
-              onClick={() => emit(navigateTo(toRoute("WalletDeposit", {})))}
-            >
-              Deposit
-            </button>
+          <div className={styles.methodTableGrid}>
+            {methodCards.map(({ method, title, desc }) => (
+              <button
+                key={method}
+                type="button"
+                className={
+                  state.payment.selectedPaymentMethod === method
+                    ? styles.methodCardActive
+                    : styles.methodCard
+                }
+                onClick={() => emit(PaymentAction.selectPaymentMethod(method))}
+              >
+                <span className={styles.methodTitle}>{title}</span>
+                <span className={styles.methodDesc}>{desc}</span>
+              </button>
+            ))}
           </div>
         </div>
       </section>
 
+      {state.payment.otpPopupVisible ? (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Verify Payment OTP</h3>
+            <p className={styles.modalText}>
+              {state.payment.otpPopupMessage ??
+                (state.payment.selectedPaymentMethod === "CASH"
+                  ? "Enter the 6-digit OTP sent to your email to confirm your COD order."
+                  : "Enter the 6-digit OTP sent to your email to confirm your ZaloPay wallet deposit and payment.")}
+            </p>
+            <InputText
+              value={state.payment.paymentOtpCode}
+              type="text"
+              invalid={state.payment.otpPopupMessage != null}
+              placeholder="6-digit OTP"
+              onChange={(v) => emit(PaymentAction.onChangePaymentOtp(v))}
+            />
+            <div className={styles.otpActions}>
+              <Button
+                theme_={"Red"}
+                size={"M"}
+                label={
+                  state.payment.submitResponse._t === "Loading"
+                    ? "Verifying..."
+                    : "Confirm Payment"
+                }
+                onClick={() => emit(PaymentAction.submitOtpAndPay())}
+                disabled={
+                  state.payment.paymentOtpCode.trim().length !== 6 ||
+                  state.payment.submitResponse._t === "Loading"
+                }
+              />
+              <button
+                type="button"
+                className={styles.otpResendBtn}
+                disabled={
+                  state.payment.otpResendCooldown > 0 ||
+                  state.payment.submitResponse._t === "Loading"
+                }
+                onClick={() => emit(PaymentAction.resendOtp())}
+              >
+                {state.payment.otpResendCooldown > 0
+                  ? `Resend OTP (${state.payment.otpResendCooldown}s)`
+                  : "Resend OTP"}
+              </button>
+              <button
+                type="button"
+                className={styles.otpBackBtn}
+                disabled={state.payment.submitResponse._t === "Loading"}
+                onClick={() => emit(PaymentAction.closeOtpPopup())}
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <section className={styles.panel}>
-        <h2 className={styles.sectionTitle}>Shop Panels</h2>
+        <div className={styles.total}>Grand Total: {formatT(grandTotal)}</div>
 
         {panels.length === 0 ? (
           <div className={styles.notice}>Your cart is empty.</div>
@@ -406,21 +487,20 @@ export default function PaymentPage(props: Props): JSX.Element {
             })}
           </div>
         )}
-      </section>
 
-      <section className={styles.panel}>
-        <div className={styles.total}>Grand Total: {formatT(grandTotal)}</div>
         <Button
           theme_={"Red"}
           size={"M"}
           label={
             state.payment.submitResponse._t === "Loading"
               ? "Processing..."
-              : "Pay With Wallet"
+              : "Proceed to Pay"
           }
-          onClick={() => emit(PaymentAction.submitPayment())}
+          onClick={() => emit(PaymentAction.openOtpPopup())}
           disabled={
-            state.payment.submitResponse._t === "Loading" || panels.length === 0
+            state.payment.submitResponse._t === "Loading" ||
+            panels.length === 0 ||
+            state.payment.selectedPaymentMethod == null
           }
         />
       </section>
@@ -595,6 +675,85 @@ const styles = {
     cursor: "pointer",
     ...font.medium14,
     padding: 0,
+  }),
+  methodTableGrid: css({
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: theme.s2,
+    marginTop: theme.s1,
+  }),
+  methodCard: css({
+    display: "grid",
+    gap: theme.s1,
+    padding: theme.s3,
+    border: `1px solid ${color.genz.purple300}`,
+    borderRadius: theme.s2,
+    background: color.neutral0,
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "border-color 0.15s",
+    ":hover": { borderColor: color.genz.purple },
+  }),
+  methodCardActive: css({
+    display: "grid",
+    gap: theme.s1,
+    padding: theme.s3,
+    border: `2px solid ${color.genz.purple}`,
+    borderRadius: theme.s2,
+    background: color.genz.purple100,
+    cursor: "pointer",
+    textAlign: "left",
+  }),
+  methodIcon: css({ fontSize: "1.4rem" }),
+  methodTitle: css({ ...font.bold14, color: color.genz.purple }),
+  methodDesc: css({ ...font.regular12, color: color.neutral700 }),
+  methodDetailTable: css({ marginTop: theme.s2 }),
+  detailTable: css({
+    width: "100%",
+    borderCollapse: "collapse",
+    ...font.regular13,
+  }),
+  detailCaption: css({
+    ...font.medium14,
+    color: color.genz.purple,
+    textAlign: "left",
+    paddingBottom: theme.s1,
+  }),
+  detailKey: css({
+    padding: `${theme.s1} ${theme.s2}`,
+    color: color.neutral700,
+    border: `1px solid ${color.genz.purple100}`,
+    width: "45%",
+  }),
+  detailVal: css({
+    padding: `${theme.s1} ${theme.s2}`,
+    color: color.neutral900,
+    border: `1px solid ${color.genz.purple100}`,
+    ...font.regular12,
+  }),
+  otpActions: css({
+    display: "grid",
+    gap: theme.s2,
+    marginTop: theme.s2,
+  }),
+  otpResendBtn: css({
+    border: `1px solid ${color.genz.purple300}`,
+    background: color.neutral0,
+    color: color.genz.purple,
+    borderRadius: theme.s2,
+    padding: `${theme.s2} ${theme.s3}`,
+    ...font.regular12,
+    cursor: "pointer",
+    ":disabled": { opacity: 0.5, cursor: "not-allowed" },
+  }),
+  otpBackBtn: css({
+    border: "none",
+    background: "transparent",
+    color: color.neutral700,
+    ...font.regular12,
+    cursor: "pointer",
+    textDecoration: "underline",
+    ":disabled": { opacity: 0.5, cursor: "not-allowed" },
   }),
   total: css({
     ...font.bold17,

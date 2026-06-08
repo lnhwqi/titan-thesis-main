@@ -20,6 +20,9 @@ export type RegisterState = {
   name: string
   email: string
   password: string
+  otpCode: string
+  otpModalOpen: boolean
+  otpModalMessage: string | null
   shopName: string
   status: RegisterStatus
   touched: RegisterTouched
@@ -40,6 +43,9 @@ export function initRegisterState(): RegisterState {
     name: "",
     email: "",
     password: "",
+    otpCode: "",
+    otpModalOpen: false,
+    otpModalMessage: null,
     shopName: "",
     status: { _t: "Idle" },
     touched: initRegisterTouched(),

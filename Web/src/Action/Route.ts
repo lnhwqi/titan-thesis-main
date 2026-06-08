@@ -38,8 +38,17 @@ export function onUrlChange(s: State): [State, Cmd] {
         return withHomePoster([state, cmd()])
       }
 
-    case "Saved":
-      return withHomePoster(ProductAction.loadWishlist()(state))
+    case "Saved": {
+      const [wishlistState, wishlistCmd] = ProductAction.loadWishlist()(state)
+      const [listState, listCmd] = ProductAction.loadList({
+        categoryID: "",
+        name: "",
+        page: 1,
+        limit: 200,
+        sortBy: "newest",
+      })(wishlistState)
+      return withHomePoster([listState, [...wishlistCmd, ...listCmd]])
+    }
 
     case "Payment":
       return withHomePoster(PaymentAction.onEnterRoute()(state))

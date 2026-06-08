@@ -24,6 +24,16 @@ export function errorString(code: ApiError<ErrorCode>): string {
         return "Shop name is already taken."
       case "WEAK_PASSWORD":
         return "Password is too weak."
+      case "OTP_REQUIRED":
+        return "An OTP was sent to your email. Enter it and submit again."
+      case "OTP_INVALID":
+        return "Invalid OTP code. Please try again."
+      case "OTP_EXPIRED":
+        return "OTP has expired. Please request a new code."
+      case "OTP_SEND_FAILED":
+        return "Failed to send OTP email. Please try again shortly."
+      case "OTP_RATE_LIMITED":
+        return "OTP was sent recently. Please wait before requesting another code."
     }
   })
 }

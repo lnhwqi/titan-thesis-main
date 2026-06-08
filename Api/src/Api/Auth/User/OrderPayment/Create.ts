@@ -16,6 +16,7 @@ import { toAddressStorage } from "../../../../App/Address"
 import { createNow, toDate } from "../../../../../../Core/Data/Time/Timestamp"
 import { createUUID } from "../../../../../../Core/Data/UUID"
 import { getSocketIO } from "../../../../Socket"
+import * as Otp from "../../../../Data/Otp"
 
 export const contract = API.contract
 
@@ -44,7 +45,7 @@ export async function handler(
     return err("ACCOUNT_SUSPENDED")
   }
 
-  const { address, panels, isPaid, paymentMethod } = params
+  const { address, panels, isPaid, paymentMethod, otpCode } = params
 
   if (isPaid !== (paymentMethod === "WALLET")) {
     return err("INSUFFICIENT_WALLET")
@@ -52,6 +53,61 @@ export async function handler(
 
   if (panels.length === 0) {
     return ok({ orderPayments: [] })
+  }
+
+  // Pre-validate all sellers before issuing OTP so the user does not complete
+  // OTP verification only to receive SELLER_NOT_FOUND afterwards.
+  for (const panel of panels) {
+    const sellerExists = await db
+      .selectFrom("seller")
+      .select("id")
+      .where("id", "=", panel.sellerID.unwrap())
+      .where("isDeleted", "=", false)
+      .executeTakeFirst()
+
+    if (sellerExists == null) {
+      return err("SELLER_NOT_FOUND")
+    }
+  }
+
+  if (isPaid && paymentMethod === "WALLET") {
+    const normalizedOtpCode = (otpCode ?? "").trim()
+
+    if (normalizedOtpCode === "") {
+      const otpIssueResult = await Otp.issueOtp({
+        purpose: "USER_PAYMENT",
+        target: user.email.unwrap(),
+        recipientName: user.name.unwrap(),
+      })
+
+      if (otpIssueResult.type === "FAILED") {
+        return err("OTP_SEND_FAILED")
+      }
+
+      if (otpIssueResult.type === "RATE_LIMITED") {
+        return err("OTP_RATE_LIMITED")
+      }
+
+      return err("OTP_REQUIRED")
+    }
+
+    const otpVerifyResult = await Otp.verifyOtp({
+      purpose: "USER_PAYMENT",
+      target: user.email.unwrap(),
+      otpCode: normalizedOtpCode,
+    })
+
+    if (otpVerifyResult === "OTP_NOT_REQUESTED") {
+      return err("OTP_REQUIRED")
+    }
+
+    if (otpVerifyResult === "OTP_EXPIRED") {
+      return err("OTP_EXPIRED")
+    }
+
+    if (otpVerifyResult === "OTP_INVALID") {
+      return err("OTP_INVALID")
+    }
   }
 
   const now = toDate(createNow())

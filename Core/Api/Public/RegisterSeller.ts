@@ -31,12 +31,18 @@ export type BodyParams = {
   email: Email
   password: Password
   shopName: ShopName
+  otpCode?: string
 }
 
 export type ErrorCode =
   | "EMAIL_ALREADY_EXISTS"
   | "SHOP_NAME_TAKEN"
   | "WEAK_PASSWORD"
+  | "OTP_REQUIRED"
+  | "OTP_INVALID"
+  | "OTP_EXPIRED"
+  | "OTP_SEND_FAILED"
+  | "OTP_RATE_LIMITED"
 
 export type Payload = {
   seller: Seller
@@ -54,6 +60,11 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "EMAIL_ALREADY_EXISTS",
   "SHOP_NAME_TAKEN",
   "WEAK_PASSWORD",
+  "OTP_REQUIRED",
+  "OTP_INVALID",
+  "OTP_EXPIRED",
+  "OTP_SEND_FAILED",
+  "OTP_RATE_LIMITED",
 ])
 
 export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
@@ -61,6 +72,7 @@ export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   email: emailDecoder,
   password: passwordDecoder,
   shopName: shopNameDecoder,
+  otpCode: JD.optional(JD.string.transform((s) => s.trim())),
 })
 
 export const contract: Contract = {

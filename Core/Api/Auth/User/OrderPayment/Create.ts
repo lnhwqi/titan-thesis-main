@@ -37,6 +37,7 @@ export type BodyParams = {
   panels: Panel[]
   isPaid: boolean
   paymentMethod: "ZALOPAY" | "WALLET"
+  otpCode?: string
 }
 
 export type Panel = {
@@ -65,6 +66,11 @@ export type ErrorCode =
   | "VOUCHER_MIN_VALUE_NOT_MET"
   | "VOUCHER_ALREADY_USED"
   | "ACCOUNT_SUSPENDED"
+  | "OTP_REQUIRED"
+  | "OTP_INVALID"
+  | "OTP_EXPIRED"
+  | "OTP_SEND_FAILED"
+  | "OTP_RATE_LIMITED"
 
 export type Payload = {
   orderPayments: OrderPayment[]
@@ -88,6 +94,7 @@ export const bodyParamsDecoder: JD.Decoder<BodyParams> = JD.object({
   panels: JD.array(panelDecoder),
   isPaid: JD.boolean,
   paymentMethod: JD.oneOf(["ZALOPAY", "WALLET"]),
+  otpCode: JD.optional(JD.string.transform((s) => s.trim())),
 })
 
 export const payloadDecoder: JD.Decoder<Payload> = JD.object({
@@ -107,6 +114,11 @@ export const errorCodeDecoder: JD.Decoder<ErrorCode> = JD.oneOf([
   "VOUCHER_MIN_VALUE_NOT_MET",
   "VOUCHER_ALREADY_USED",
   "ACCOUNT_SUSPENDED",
+  "OTP_REQUIRED",
+  "OTP_INVALID",
+  "OTP_EXPIRED",
+  "OTP_SEND_FAILED",
+  "OTP_RATE_LIMITED",
 ])
 
 export const contract: Contract = {

@@ -29,6 +29,7 @@ export default function RegisterPage(props: Props): JSX.Element {
   const { register } = props.state
   const isSeller = register.role === "SELLER"
   const isLoading = register.status._t === "Loading"
+  const otpCodeIsComplete = register.otpCode.trim().length === 6
   const errors = getRegisterErrors(register)
   const hasErrors = Object.values(errors).some((msg) => msg != null)
   const showError = (field: keyof typeof register.touched) =>
@@ -190,6 +191,84 @@ export default function RegisterPage(props: Props): JSX.Element {
           </div>
         </div>
       </div>
+
+      {register.otpModalOpen ? (
+        <div className={styles.otpOverlay}>
+          <div className={styles.otpCard}>
+            <h3 className={styles.otpTitle}>Verify Email OTP</h3>
+            <p className={styles.otpBody}>
+              {register.otpModalMessage ??
+                "Enter the 6-digit OTP sent to your email to complete account creation."}
+            </p>
+
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>6-digit code</label>
+              <InputText
+                value={register.otpCode}
+                invalid={false}
+                type="text"
+                placeholder="000000"
+                onChange={(v) => emit(RegisterAction.onChangeOtpCode(v))}
+              />
+            </div>
+
+            <div className={styles.otpActions}>
+              <Button
+                theme_={"Red"}
+                size={"M"}
+                label={isLoading ? "Verifying..." : "Verify & Create Account"}
+                onClick={() => emit(RegisterAction.onSubmit())}
+                disabled={!otpCodeIsComplete || isLoading}
+              />
+            </div>
+
+            <div className={styles.otpLinks}>
+              <button
+                type="button"
+                className={styles.otpTextButton}
+                onClick={() => emit(RegisterAction.requestOtp())}
+                disabled={isLoading}
+              >
+                Resend OTP
+              </button>
+              <button
+                type="button"
+                className={styles.otpTextButton}
+                onClick={() => emit(RegisterAction.closeOtpModal())}
+                disabled={isLoading}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {register.status._t === "Success" ? (
+        <div className={styles.successOverlay}>
+          <div className={styles.successCard}>
+            <h3 className={styles.successTitle}>Registration Successful</h3>
+            <p className={styles.successBody}>{register.status.message}</p>
+
+            <div className={styles.successActions}>
+              <Button
+                theme_={"Red"}
+                size={"M"}
+                label="Go To Login"
+                onClick={() => emit(RegisterAction.goToLoginAfterSuccess())}
+              />
+            </div>
+
+            <button
+              type="button"
+              className={styles.successTextButton}
+              onClick={() => emit(RegisterAction.clearStatus())}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -202,7 +281,7 @@ function renderStatus(status: State["register"]["status"]): JSX.Element {
     case "Error":
       return <div className={styles.errorText}>{status.message}</div>
     case "Success":
-      return <div className={styles.successText}>{status.message}</div>
+      return <></>
   }
 }
 
@@ -550,5 +629,109 @@ const styles = {
     "&:hover": {
       textDecoration: "underline",
     },
+  }),
+  otpOverlay: css({
+    position: "fixed",
+    inset: 0,
+    zIndex: 1200,
+    background: "rgba(15,23,42,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s4,
+  }),
+  otpCard: css({
+    width: "100%",
+    maxWidth: "min(100%, 440px)",
+    background: color.neutral0,
+    border: `1px solid ${color.genz.purple100}`,
+    borderRadius: "14px",
+    padding: theme.s5,
+    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.2)",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    animation: `${fadeSlideUp} 0.3s ease both`,
+  }),
+  otpTitle: css({
+    margin: 0,
+    ...font.bold17,
+    color: color.neutral900,
+  }),
+  otpBody: css({
+    margin: 0,
+    ...font.regular13,
+    color: color.neutral600,
+    lineHeight: 1.5,
+  }),
+  otpActions: css({
+    display: "flex",
+    width: "100%",
+  }),
+  otpLinks: css({
+    display: "flex",
+    gap: theme.s2,
+    justifyContent: "space-between",
+  }),
+  otpTextButton: css({
+    border: "none",
+    background: "transparent",
+    ...font.medium12,
+    color: color.genz.purple,
+    cursor: "pointer",
+    padding: 0,
+    textDecoration: "underline",
+    "&:disabled": {
+      color: color.neutral400,
+      cursor: "not-allowed",
+    },
+  }),
+  successOverlay: css({
+    position: "fixed",
+    inset: 0,
+    zIndex: 1250,
+    background: "rgba(15,23,42,0.55)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: theme.s4,
+  }),
+  successCard: css({
+    width: "100%",
+    maxWidth: "min(100%, 440px)",
+    background: color.neutral0,
+    border: `1px solid ${color.semantics.success.green500}`,
+    borderRadius: "14px",
+    padding: theme.s5,
+    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.24)",
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.s3,
+    animation: `${fadeSlideUp} 0.3s ease both`,
+  }),
+  successTitle: css({
+    margin: 0,
+    ...font.bold17,
+    color: color.neutral900,
+  }),
+  successBody: css({
+    margin: 0,
+    ...font.regular13,
+    color: color.neutral600,
+    lineHeight: 1.5,
+  }),
+  successActions: css({
+    display: "flex",
+    width: "100%",
+  }),
+  successTextButton: css({
+    border: "none",
+    background: "transparent",
+    ...font.medium12,
+    color: color.genz.purple,
+    cursor: "pointer",
+    padding: 0,
+    textDecoration: "underline",
+    alignSelf: "flex-end",
   }),
 }

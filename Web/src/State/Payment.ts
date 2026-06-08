@@ -10,6 +10,8 @@ import { District } from "../../../Core/Api/Public/Address/GetDistrict"
 import { Ward } from "../../../Core/Api/Public/Address/GetWard"
 import type { State } from "../State"
 
+export type PaymentMethod = "CASH" | "WALLET"
+
 export type PaymentState = {
   provinces: Province[]
   districts: District[]
@@ -18,7 +20,12 @@ export type PaymentState = {
   selectedDistrictID: number | null
   selectedWardCode: string | null
   addressDetail: string
+  paymentOtpCode: string
   depositAmount: string
+  selectedPaymentMethod: PaymentMethod | null
+  otpPopupVisible: boolean
+  otpPopupMessage: string | null
+  otpResendCooldown: number
   selectedVoucherBySellerID: Record<string, string | null>
   sellerShopNameByID: Record<string, string>
   mineVouchers: Voucher[]
@@ -57,7 +64,12 @@ export function initPaymentState(): PaymentState {
     selectedDistrictID: null,
     selectedWardCode: null,
     addressDetail: "",
+    paymentOtpCode: "",
     depositAmount: "",
+    selectedPaymentMethod: null,
+    otpPopupVisible: false,
+    otpPopupMessage: null,
+    otpResendCooldown: 0,
     selectedVoucherBySellerID: {},
     sellerShopNameByID: {},
     mineVouchers: [],

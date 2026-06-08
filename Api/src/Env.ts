@@ -20,6 +20,9 @@ export type Env = {
   ZALO_QUERY_URL: string
   GHN_TOKEN: string
   GHN_URL: string
+  SMTP_HOST: string
+  SMTP_USER: string
+  SMTP_PASS: string
 }
 
 const decoder: JD.Decoder<Env> = JD.object({
@@ -38,6 +41,9 @@ const decoder: JD.Decoder<Env> = JD.object({
   ZALO_KEY2: JD.string,
   ZALO_CREATE_URL: JD.string,
   ZALO_QUERY_URL: JD.string,
+  SMTP_HOST: JD.string,
+  SMTP_USER: JD.string,
+  SMTP_PASS: JD.string,
   GHN_TOKEN: JD.string,
   GHN_URL: JD.string,
 })
@@ -65,6 +71,9 @@ function load(): Env | never {
     ZALO_QUERY_URL: process.env.ZALO_QUERY_URL,
     GHN_TOKEN: process.env.GHN_TOKEN,
     GHN_URL: process.env.GHN_URL,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS,
   }
 
   const result = fromDecodeResult(decoder.decode(env))

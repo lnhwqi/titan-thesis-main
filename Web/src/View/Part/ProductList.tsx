@@ -31,11 +31,13 @@ export default function MainContent(props: Props): JSX.Element {
 
   const renderHeader = () => (
     <div className={styles.header}>
-      <h1 className={styles.title}>
-        {currentCategoryId
-          ? (categoryName ?? "Category Products")
-          : "All Products"}
-      </h1>
+      <div className={styles.titleRow}>
+        <h1 className={styles.title}>
+          {currentCategoryId
+            ? (categoryName ?? "Category Products")
+            : "All Products"}
+        </h1>
+      </div>
       <div className={styles.divider} />
     </div>
   )
@@ -123,8 +125,7 @@ export default function MainContent(props: Props): JSX.Element {
             </div>
 
             <div className={styles.paginationInfo}>
-              Showing {(currentPage - 1) * limit + 1} to{" "}
-              {Math.min(currentPage * limit, totalCount)} of {totalCount} items
+              Total: {totalCount} items
             </div>
           </div>
 
@@ -261,16 +262,27 @@ const styles = {
     position: "relative",
   }),
 
+  titleRow: css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.s3,
+    marginBottom: theme.s3,
+  }),
+
   title: css({
     ...font.boldH3_29,
-    color: color.neutral900,
-    marginBottom: theme.s3,
+    background:
+      "linear-gradient(135deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
     letterSpacing: "-0.03em",
     display: "inline-block",
+    margin: 0,
   }),
 
   divider: css({
-    width: "64px",
+    width: "80px",
     height: "3px",
     background:
       "linear-gradient(90deg, var(--app-brand-500) 0%, var(--app-secondary-500) 100%)",
@@ -279,8 +291,8 @@ const styles = {
 
   grid: css({
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-    gap: theme.s4,
+    gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+    gap: theme.s5,
     paddingBottom: theme.s10,
   }),
 
@@ -338,16 +350,18 @@ const styles = {
   }),
 
   skeletonCard: css({
-    borderRadius: theme.br3,
+    borderRadius: theme.br4,
     overflow: "hidden",
     border: "1px solid var(--app-border)",
     backgroundColor: "rgba(255,255,255,0.76)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
   }),
 
   skeletonImage: css({
     width: "100%",
     paddingTop: "100%",
-    background: "linear-gradient(90deg, rgba(0,82,156,0.06) 25%, rgba(237,28,36,0.05) 50%, rgba(0,82,156,0.06) 75%)",
+    background:
+      "linear-gradient(90deg, rgba(0,82,156,0.06) 25%, rgba(237,28,36,0.05) 50%, rgba(0,82,156,0.06) 75%)",
     backgroundSize: "200% 100%",
     animation: "shimmer 1.4s infinite linear",
     "@keyframes shimmer": {
@@ -364,7 +378,8 @@ const styles = {
 
   skeletonLine: css({
     borderRadius: "4px",
-    background: "linear-gradient(90deg, rgba(0,82,156,0.07) 25%, rgba(237,28,36,0.05) 50%, rgba(0,82,156,0.07) 75%)",
+    background:
+      "linear-gradient(90deg, rgba(0,82,156,0.07) 25%, rgba(237,28,36,0.05) 50%, rgba(0,82,156,0.07) 75%)",
     backgroundSize: "200% 100%",
     animation: "shimmer 1.4s infinite linear",
   }),
@@ -374,12 +389,13 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: theme.s5,
-    padding: `${theme.s4} ${theme.s5}`,
-    background: "var(--app-surface-strong)",
+    padding: `${theme.s3} ${theme.s5}`,
+    background:
+      "linear-gradient(135deg, rgba(124,58,237,0.04) 0%, rgba(237,28,36,0.03) 100%)",
     backdropFilter: "blur(12px)",
     borderRadius: theme.br4,
     border: "1px solid var(--app-border)",
-    boxShadow: theme.elevation.xsmall,
+    boxShadow: "0 2px 8px rgba(124,58,237,0.07)",
     gap: theme.s3,
     flexWrap: "wrap",
   }),
@@ -400,22 +416,23 @@ const styles = {
   select: css({
     minHeight: theme.s10,
     padding: `${theme.s2} ${theme.s4}`,
-    border: "1px solid var(--app-border)",
+    border: "1px solid var(--app-brand-200)",
     borderRadius: theme.brFull,
     backgroundColor: color.neutral0,
     color: "var(--app-accent)",
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "600",
     cursor: "pointer",
     outline: "none",
+    boxShadow: "0 1px 4px rgba(124,58,237,0.08)",
     transition: "border-color 0.18s ease, box-shadow 0.18s ease",
     "&:hover": {
       borderColor: "var(--app-brand-400)",
-      boxShadow: "0 0 0 3px rgba(0, 82, 156, 0.12)",
+      boxShadow: "0 0 0 3px rgba(124,58,237,0.12)",
     },
     "&:focus": {
-      borderColor: "var(--app-secondary-400)",
-      boxShadow: "0 0 0 3px rgba(237, 28, 36, 0.12)",
+      borderColor: "var(--app-brand-500)",
+      boxShadow: "0 0 0 3px rgba(124,58,237,0.16)",
     },
   }),
 
