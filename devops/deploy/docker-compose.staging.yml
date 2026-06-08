@@ -38,7 +38,10 @@ services:
       DB_MAX_POOL: ${DB_MAX_POOL:-20}
       DB_SSL: ${DB_SSL:-false}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      WEB_URL: ${WEB_URL:-https://titan-ecom.xyz}
+      FRONTEND_URL: ${FRONTEND_URL:-https://titan-ecom.xyz}
+      BASE_URL: ${BASE_URL:-https://titan-ecom.xyz/api}
+      ASSET_BASE_URL: ${ASSET_BASE_URL:-https://titan-ecom.xyz/api}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       ZALO_APP_ID: ${ZALO_APP_ID:?ZALO_APP_ID is required}
       ZALO_KEY1: ${ZALO_KEY1:?ZALO_KEY1 is required}

@@ -470,7 +470,11 @@ async function emitOrderPaymentBriefChatMessages(
   }>,
 ): Promise<void> {
   const io = getSocketIO()
-  const frontendURL = (process.env.FRONTEND_URL ?? "").replace(/\/$/, "")
+  const frontendURL = (
+    process.env.WEB_URL ??
+    process.env.FRONTEND_URL ??
+    "https://titan-ecom.xyz"
+  ).replace(/\/$/, "")
 
   for (const createdOrder of createdOrders) {
     const row = createdOrder.row

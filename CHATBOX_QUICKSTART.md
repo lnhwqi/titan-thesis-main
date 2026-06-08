@@ -53,14 +53,14 @@ Create `.env` files:
 
 ```env
 JWT_SECRET=your-jwt-secret-here
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://titan-ecom.xyz
 SOCKET_IO_PATH=/socket.io
 ```
 
 **Web/.env.local**
 
 ```env
-REACT_APP_SOCKET_URL=http://localhost:3001
+REACT_APP_SOCKET_URL=https://titan-ecom.xyz/api
 ```
 
 ### 3. Run Development Server
@@ -73,7 +73,7 @@ npm start
 The server will output:
 
 ```
-⚡️[server]: Server is running at http://localhost:3001
+⚡️[server]: Server is running at https://titan-ecom.xyz/api
 ```
 
 ---
@@ -216,7 +216,7 @@ socket.on("conversation:updated", (data: { conversationID }) => {})
 ### **Manual Testing**
 
 1. Start the server: `npm start`
-2. Open http://localhost:3000 in browser
+2. Open https://titan-ecom.xyz in browser
 3. Login with a user account
 4. Look for the **purple circular button** in the bottom-right corner
 5. Click to open the chatbox

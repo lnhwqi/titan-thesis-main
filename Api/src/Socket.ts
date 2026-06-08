@@ -101,7 +101,10 @@ type ErrorResponse = { success: false; error: string }
 export function initializeSocketIO(server: HTTPServer): SocketIOServer {
   const io = new SocketIOServer(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      origin:
+        process.env.WEB_URL ||
+        process.env.FRONTEND_URL ||
+        "https://titan-ecom.xyz",
       methods: ["GET", "POST"],
       credentials: true,
     },

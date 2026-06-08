@@ -326,13 +326,13 @@ xl: 1280px // Large desktop
 ```bash
 # Api/.env
 JWT_SECRET=your-secret-key
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://titan-ecom.xyz
 NODE_ENV=development
 APP_PORT=3001
 
 # Web/.env.local
-REACT_APP_SOCKET_URL=http://localhost:3001
-REACT_APP_API_URL=http://localhost:3001
+REACT_APP_SOCKET_URL=https://titan-ecom.xyz/api
+REACT_APP_API_URL=https://titan-ecom.xyz/api
 ```
 
 ---

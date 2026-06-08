@@ -9,7 +9,7 @@ describe("Data/Url", () => {
   it("createWebLink returns value for valid URL", () => {
     ;[
       "https://example.com",
-      "http://localhost:3000",
+      "https://titan-ecom.xyz",
       "ftp://files.example.com",
     ].forEach((url) => {
       const result = createWebLink(url)

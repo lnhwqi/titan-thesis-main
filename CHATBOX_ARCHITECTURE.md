@@ -582,10 +582,10 @@ Api/
 ```env
 # Api/.env or Api/.env.example
 JWT_SECRET=your-jwt-secret
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://titan-ecom.xyz
 
 # Web/.env or Web/.env.example
-REACT_APP_SOCKET_URL=http://localhost:3001
+REACT_APP_SOCKET_URL=https://titan-ecom.xyz/api
 ```
 
 ---
