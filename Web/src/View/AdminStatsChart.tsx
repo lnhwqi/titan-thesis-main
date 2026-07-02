@@ -423,6 +423,20 @@ function renderSupportMetrics(
             {current.latency.averageMs.toLocaleString()} ms
           </div>
         </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Citation Precision</div>
+          <div className={styles.statValue}>
+            {(current.citations.precision * 100).toFixed(1)}%
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>Citation Recall</div>
+          <div className={styles.statValue}>
+            {(current.citations.recall * 100).toFixed(1)}%
+          </div>
+        </div>
       </div>
 
       <div className={styles.chartCard}>

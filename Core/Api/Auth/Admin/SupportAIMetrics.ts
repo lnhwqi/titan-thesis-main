@@ -42,6 +42,9 @@ export type Payload = {
     sampleSize: number
     averageIncluded: number
     averageRetrieved: number
+    precision: number
+    recall: number
+    avgCitationScore: number
   }
   rateLimits: {
     tooFast: number
@@ -84,6 +87,9 @@ export const payloadDecoder: JD.Decoder<Payload> = JD.object({
     sampleSize: JD.number,
     averageIncluded: JD.number,
     averageRetrieved: JD.number,
+    precision: JD.number,
+    recall: JD.number,
+    avgCitationScore: JD.number,
   }),
   rateLimits: JD.object({
     tooFast: JD.number,

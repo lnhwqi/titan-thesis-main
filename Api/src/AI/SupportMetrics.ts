@@ -50,6 +50,9 @@ export type SupportMetricsSnapshot = {
     sampleSize: number
     averageIncluded: number
     averageRetrieved: number
+    precision: number
+    recall: number
+    avgCitationScore: number
   }
   rateLimits: {
     tooFast: number
@@ -99,6 +102,8 @@ let latencySampleCount = 0
 let totalCitationsIncluded = 0
 let totalCitationsRetrieved = 0
 let citationSampleCount = 0
+let totalCitationScores = 0
+let citationScoreSampleCount = 0
 
 let rateLimitTooFast = 0
 let rateLimitWindowLimit = 0
@@ -141,10 +146,17 @@ export function recordSupportMetric(
 
       const citationsIncluded = readNumber(payload, "citationsIncluded")
       const citationsRetrieved = readNumber(payload, "citationsRetrieved")
+      const avgCitationScore = readNumber(payload, "avgCitationScore")
+
       if (citationsIncluded != null && citationsRetrieved != null) {
         totalCitationsIncluded += citationsIncluded
         totalCitationsRetrieved += citationsRetrieved
         citationSampleCount += 1
+      }
+
+      if (avgCitationScore != null && avgCitationScore >= 0) {
+        totalCitationScores += avgCitationScore
+        citationScoreSampleCount += 1
       }
       break
     }
@@ -183,6 +195,18 @@ export function getSupportMetricsSnapshot(): SupportMetricsSnapshot {
   const averageRetrieved =
     citationSampleCount > 0 ? totalCitationsRetrieved / citationSampleCount : 0
 
+  // Precision: how confident were citations (0-1, higher is better)
+  const precision =
+    citationScoreSampleCount > 0
+      ? totalCitationScores / citationScoreSampleCount
+      : 0
+
+  // Recall: how many retrieved chunks were cited (0-1, higher is better)
+  const recall =
+    totalCitationsRetrieved > 0
+      ? totalCitationsIncluded / totalCitationsRetrieved
+      : 0
+
   return {
     generatedAt: new Date(now).toISOString(),
     startedAt: new Date(startedAtMs).toISOString(),
@@ -208,6 +232,9 @@ export function getSupportMetricsSnapshot(): SupportMetricsSnapshot {
       sampleSize: citationSampleCount,
       averageIncluded: round2(averageIncluded),
       averageRetrieved: round2(averageRetrieved),
+      precision: round2(Math.min(1, precision)),
+      recall: round2(Math.min(1, recall)),
+      avgCitationScore: round2(precision),
     },
     rateLimits: {
       tooFast: rateLimitTooFast,
@@ -244,6 +271,8 @@ export function _resetSupportMetricsForTest(): void {
   totalCitationsIncluded = 0
   totalCitationsRetrieved = 0
   citationSampleCount = 0
+  totalCitationScores = 0
+  citationScoreSampleCount = 0
 
   rateLimitTooFast = 0
   rateLimitWindowLimit = 0

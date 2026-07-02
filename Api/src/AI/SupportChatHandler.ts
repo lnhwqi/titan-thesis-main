@@ -169,10 +169,18 @@ async function _handleSupportAIReply(
       return
     }
 
+    // Calculate average citation score for precision metric
+    const avgCitationScore =
+      result.citations.length > 0
+        ? result.citations.reduce((sum, c) => sum + c.score, 0) /
+          result.citations.length
+        : 0
+
     recordSupportMetric("ANSWER_GENERATED", {
       latencyMs,
       citationsIncluded: result.citations.length,
       citationsRetrieved: result.usedContextCount,
+      avgCitationScore,
     })
 
     const normalizedAnswer = await _normalizeProductLinksInAnswer(result.answer)
