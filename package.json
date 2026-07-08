@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "license": "ISC",
   "description": "Monorepo for TypeFirst Bedrock Typescript project",
+  "workspaces": [
+    "Api",
+    "Web"
+  ],
   "scripts": {
     "start": "bash ./devops/dev/start.sh",
     "tsc": "tsc --noEmit",
@@ -28,29 +32,12 @@
     "production:deploy:web": "npm run deploy:production"
   },
   "dependencies": {
-    "bcrypt": "^6.0.0",
     "date-fns": "^4.1.0",
     "decoders": "^2.7.0",
-    "jsonwebtoken": "^9.0.3",
-    "kysely": "^0.28.17",
-    "nodemailer": "^6.10.1",
-    "pg": "^8.16.3",
-    "pino-http": "^11.0.0",
-    "pino-http-print": "^4.0.0",
-    "react-icons": "^5.5.0",
-    "react-markdown": "^10.1.0",
-    "react-quill-new": "^3.8.3",
-    "remark-gfm": "^4.0.1",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.1.0",
-    "@types/nodemailer": "^8.0.0",
-    "@types/react": "^19.2.8",
-    "@types/react-dom": "^19.2.3",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",

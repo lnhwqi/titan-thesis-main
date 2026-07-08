@@ -12,15 +12,21 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jose": "^6.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "kysely": "^0.28.17",
+    "nodemailer": "^6.10.1",
     "pg": "^8.16.3",
-    "pino-http": "^10.5.0",
-    "pino-http-print": "^3.1.0",
-    "pure-md5": "^0.1.14"
+    "pino-http": "^11.0.0",
+    "pino-http-print": "^4.0.0",
+    "pure-md5": "^0.1.14",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.15.4"
   }
 }
