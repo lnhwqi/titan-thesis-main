@@ -65,7 +65,7 @@ export function buildVectorDocumentDrafts(
   })
 
   const content = _buildContent(input.source.table, sanitizedRow)
-  const chunkSize = Math.max(250, Math.min(input.chunkSize ?? 1200, 6000))
+  const chunkSize = Math.max(250, Math.min(input.chunkSize ?? 568, 6000))
   const chunkOverlap = Math.max(
     0,
     Math.min(input.chunkOverlap ?? 120, Math.floor(chunkSize / 3)),
