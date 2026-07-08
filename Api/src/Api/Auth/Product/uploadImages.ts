@@ -114,7 +114,7 @@ function buildPublicUrl(filename: string): string {
   const base =
     baseEnv != null && baseEnv.trim() !== ""
       ? baseEnv.replace(/\/$/, "")
-      : "https://titan-ecom.xyz/api"
+      : `http://localhost:${process.env.APP_PORT ?? 3000}`
 
   return `${base}/uploads/${filename}`
 }
