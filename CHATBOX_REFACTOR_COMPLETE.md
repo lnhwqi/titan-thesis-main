@@ -242,7 +242,7 @@ _Includes detailed comments and error handling_
 3. **Environment Variables** Ensure Socket.IO URL is configured:
 
    ```
-   REACT_APP_SOCKET_URL=http://localhost:3001
+   REACT_APP_SOCKET_URL=https://titan-ecom.xyz/api
    ```
 
 4. **Server Integration** The server-side Socket.ts handlers are ready to use:

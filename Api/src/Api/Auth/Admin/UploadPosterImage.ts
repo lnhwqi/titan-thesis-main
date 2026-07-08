@@ -9,7 +9,6 @@ import {
 } from "../../../../../Core/App/Product/ProductImageUrl"
 import { AuthAdmin } from "../../AuthApi"
 import { uploadsRoot } from "../../../Uploads"
-import ENV from "../../../Env"
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024 // 10MB per image
 
@@ -101,11 +100,11 @@ function extensionFromMime(mime: string): string | null {
 }
 
 function buildPublicUrl(filename: string): string {
-  const baseEnv = process.env.ASSET_BASE_URL
+  const baseEnv = process.env.ASSET_BASE_URL ?? process.env.BASE_URL
   const base =
     baseEnv != null && baseEnv.trim() !== ""
       ? baseEnv.replace(/\/$/, "")
-      : `http://localhost:${ENV.APP_PORT}`
+      : "https://titan-ecom.xyz/api"
 
   return `${base}/uploads/${filename}`
 }

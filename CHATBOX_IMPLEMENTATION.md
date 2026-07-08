@@ -95,10 +95,10 @@ npm install socket.io socket.io-client
 ```env
 # Api/.env
 JWT_SECRET=your-secret
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://titan-ecom.xyz
 
 # Web/.env.local
-REACT_APP_SOCKET_URL=http://localhost:3001
+REACT_APP_SOCKET_URL=https://titan-ecom.xyz/api
 ```
 
 ### 3. Start Server

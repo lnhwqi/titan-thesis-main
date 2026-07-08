@@ -14,7 +14,12 @@ const app: Express = express()
 const { APP_PORT, NODE_ENV } = ENV
 
 function resolveCorsOrigins(): string | string[] {
-  const raw = (process.env.CORS_ORIGIN ?? process.env.FRONTEND_URL ?? "").trim()
+  const raw = (
+    process.env.CORS_ORIGIN ??
+    process.env.WEB_URL ??
+    process.env.FRONTEND_URL ??
+    ""
+  ).trim()
   if (raw === "") {
     return "*"
   }
@@ -36,9 +41,10 @@ const corsOrigins = resolveCorsOrigins()
 if (
   NODE_ENV === "development" ||
   process.env.CORS_ORIGIN != null ||
+  process.env.WEB_URL != null ||
   process.env.FRONTEND_URL != null
 ) {
-  // In staging/production this can be configured via CORS_ORIGIN/FRONTEND_URL.
+  // In staging/production this can be configured via CORS_ORIGIN/WEB_URL/FRONTEND_URL.
   app.use(
     cors({
       origin: corsOrigins,
