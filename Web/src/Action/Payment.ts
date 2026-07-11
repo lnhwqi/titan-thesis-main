@@ -1,5 +1,6 @@
 import * as RD from "../../../Core/Data/RemoteData"
 import { Action, cmd, perform } from "../Action"
+import { State } from "../State"
 import { _PaymentState, PaymentMethod } from "../State/Payment"
 import * as VoucherListMineApi from "../Api/Auth/User/Voucher/ListMine"
 import * as OrderPaymentCreateApi from "../Api/Auth/User/OrderPayment/Create"
@@ -137,6 +138,22 @@ export function selectPaymentMethod(method: PaymentMethod): Action {
   ]
 }
 
+/**
+ * Validates that all cart items have sufficient stock
+ * @returns error message if validation fails, null if all good
+ */
+function validateCartStock(state: State): string | null {
+  for (const item of state.cart.items) {
+    const variant = item.product.variants[0]
+    const availableStock = variant?.stock.unwrap() ?? Number.MAX_SAFE_INTEGER
+    
+    if (item.quantity > availableStock) {
+      return `Insufficient stock for "${item.product.name.unwrap()}". Available: ${availableStock}, Requested: ${item.quantity}`
+    }
+  }
+  return null
+}
+
 const OTP_RESEND_COOLDOWN_SECONDS = 60
 
 export function openOtpPopup(): Action {
@@ -201,6 +218,15 @@ export function openOtpPopup(): Action {
     if (state.cart.items.length === 0) {
       return [
         _PaymentState(state, { flashMessage: "Your cart is empty." }),
+        cmd(),
+      ]
+    }
+
+    // Validate stock availability before proceeding
+    const stockError = validateCartStock(state)
+    if (stockError != null) {
+      return [
+        _PaymentState(state, { flashMessage: stockError }),
         cmd(),
       ]
     }
