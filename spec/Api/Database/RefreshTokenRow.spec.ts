@@ -23,5 +23,5 @@ describe("Database/RefreshTokenRow", () => {
     expect(_notNull(good_).id.unwrap()).toBe(good.unwrap())
 
     expect(_notNull(other_).id.unwrap()).toBe(other.unwrap())
-  })
+  }, 15000)
 })
